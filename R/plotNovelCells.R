@@ -20,7 +20,7 @@
 #' @returns ggplot object containing hierarchical voronoi tessellations plot
 #' highlighting the outlier cells in the map
 #' @author Shantanu Vaidya <shantanu.vaidya@@mu-sigma.com>
-#' @seealso \code{\link{trainHVT}} \cr \code{\link{plot2DHeatmap}}
+#' @seealso \code{\link{trainHVT}} \cr \code{\link{plotHVT}}
 #' @keywords Novelty / Outliers
 #' @importFrom magrittr %>%
 #' @import ggplot2

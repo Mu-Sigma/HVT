@@ -19,7 +19,7 @@
 #' @param ...  color.vec and line.width can be passed from here
 #' @returns Dataframe containing scored predicted data, prediction plots and mean absolute deviation plots
 #' @author Shubhra Prakash <shubhra.prakash@@mu-sigma.com>, Sangeet Moy Das <sangeet.das@@mu-sigma.com>
-#' @seealso \code{\link{trainHVT}} \cr \code{\link{plot2DHeatmap}}
+#' @seealso \code{\link{trainHVT}} \cr \code{\link{plotHVT}}
 #' @keywords Scoring
 #' @importFrom magrittr %>%
 #' @examples

@@ -40,7 +40,7 @@
 #' quantization error was met. } \item{summary}{ Summary. Output table with
 #' summary. }
 #' @author Shubhra Prakash <shubhra.prakash@@mu-sigma.com>, Sangeet Moy Das <sangeet.das@@mu-sigma.com>
-#' @seealso \code{\link{hvtHmap}}
+#' @seealso \code{\link{plotHVT}}
 #' @importFrom magrittr %>%
 #' @importFrom stats complete.cases
 #' @examples

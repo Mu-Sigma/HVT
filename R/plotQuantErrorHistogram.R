@@ -1,6 +1,6 @@
-#' @title plotQuantErrorHistogram
+#' @name plotQuantErrorHistogram
 #'
-#' Make the diagnostic plots for hierarchical voronoi tessellations model.
+#' @title Make the diagnostic plots for hierarchical voronoi tessellations model.
 #'
 #' @param hvt.results List. A list of hvt.results obtained from the trainHVT
 #' function.
@@ -13,6 +13,9 @@
 #' @importFrom magrittr %>%
 #' @import ggplot2
 #' @export plotQuantErrorHistogram
+#' @example 
+#' 
+#' plotQuantErrorHistogram(hvt.results, hvt.predictions)
 
 library(patchwork)
 plotQuantErrorHistogram <- function(hvt.results, hvt.predictions) {
