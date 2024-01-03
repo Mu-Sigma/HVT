@@ -12,7 +12,7 @@
 #'
 #' @param df Data frame. Input dataframe should contain two columns of cell ID from scoreHVT function and timestamp.
 #' @param sample_size Numeric. An integer indicating the Fraction of the dataframe to sample.
-#' Default value is 0.2.
+#' Default value is 0.2
 #' @param line_plot Logical. A logical value indicating to create a line plot.
 #' Default value is NULL.
 #' @param cellid_column character. Name of the column containing cell IDs.
@@ -53,6 +53,7 @@
 
 
 plotStateTransitions <- function(df, sample_size = NULL, line_plot = NULL, cellid_column, time_column) {
+
   # Rename column names for Time and Cell for consistency
   colnames(df)[colnames(df) == time_column] <- "Timestamp"
   colnames(df)[colnames(df) == cellid_column] <- "Cell.ID"

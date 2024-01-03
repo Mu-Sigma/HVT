@@ -23,22 +23,24 @@
 #' @keywords Scoring
 #' @importFrom magrittr %>%
 #' @examples
-#' data(USArrests)
-#' # Split in train and test
-#'
-#' train <- USArrests[1:40, ]
-#' test <- USArrests[41:50, ]
-#'
-#' hvt.results <- list()
-#' hvt.results <- trainHVT(train,
-#'   n_cells = 15, depth = 1, quant.err = 0.2,
-#'   distance_metric = "L1_Norm", error_metric = "mean",
-#'   projection.scale = 10, normalize = TRUE,
-#'   quant_method = "kmeans", diagnose = TRUE
-#' )
-#'
-#' predictions <- scoreHVT(test, hvt.results, child.level = 2, mad.threshold = 0.2)
-#' print(predictions$scoredPredictedData)
+#'data("EuStockMarkets")
+#'dataset <- data.frame(date = as.numeric(time(EuStockMarkets)),
+#'                      DAX = EuStockMarkets[, "DAX"],
+#'                      SMI = EuStockMarkets[, "SMI"],
+#'                      CAC = EuStockMarkets[, "CAC"],
+#'                      FTSE = EuStockMarkets[, "FTSE"])
+#'#adding this step especially for this function
+#'rownames(EuStockMarkets) <- dataset$date
+#'# Split in train and test
+#'train <- EuStockMarkets[1:1302, ]
+#'test <- EuStockMarkets[1303:1860, ]
+#'hvt_summary <- list()
+#'hvt_summary<- trainHVT(train,n_cells = 15, depth = 1, quant.err = 0.2,
+#'                       distance_metric = "L1_Norm", error_metric = "mean",
+#'                       projection.scale = 10, normalize = TRUE,seed = 123,
+#'                       quant_method = "kmeans")
+#'predictions <- scoreHVT(test, hvt_summary, child.level = 2, mad.threshold = 0.2)
+#'data_predictions <- predictions$scoredPredictedData
 #' @export scoreHVT
 
 

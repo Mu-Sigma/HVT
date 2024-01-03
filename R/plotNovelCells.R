@@ -24,7 +24,10 @@
 #' @keywords Novelty / Outliers
 #' @importFrom magrittr %>%
 #' @import ggplot2
-#'
+#' @examples
+#' #the cells selected are random
+#' plotNovelCells(c(2,4,5,10),hvt.results,line.width = c(0.6),color.vec = c("#000000"),pch1 = 21,
+#'               centroid.size = 0.5,title = NULL, maxDepth = 1)
 #' @export plotNovelCells
 
 
