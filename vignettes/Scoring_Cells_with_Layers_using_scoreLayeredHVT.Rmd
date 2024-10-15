@@ -50,56 +50,7 @@ ul {
 }
 ```
 
-```{r setup, warning = FALSE, include = FALSE}
-# knitr::opts_chunk$set(
-#   collapse = TRUE,
-#   comment = "#>",
-#   #out.width = "auto",
-#   #out.height = "480px",
-#   fig.width = 7,
-#   fig.height = 5,
-#   fig.align = "center",
-#   fig.retina = 1,
-#   dpi = 150
-# )
-list.of.packages <- c("plyr", "dplyr", "reactable", "kableExtra", "geozoo", "plotly", "purrr", "sp", "data.table", "gridExtra", "tidyr")
-new.packages <-
-  list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
-if (length(new.packages))
-  install.packages(new.packages, dependencies = TRUE, repos='https://cloud.r-project.org/')
-lapply(list.of.packages, library, character.only = TRUE)
 
-
-
-options(expressions = 10000)
-global_var <- nzchar(Sys.getenv("RUN_VIGNETTE"))
-global_var <- TRUE
-
-scrolLimit <- function(noOfRows){
-  if(noOfRows<10){
-    swe = paste(as.character(noOfRows*50),"px")
-  }
-  else{
-    swe = "400px"
-  }
-  return(swe)
-}
-
-Table <- function(data,scroll = TRUE, limit = NULL){
-  if(!is.null(limit)){
-    data <- head(data,limit)
-  }
-  kable_table <- data %>% kable(escape = FALSE,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
-  scroll <- scroll
-  
-  if(scroll == TRUE){
-  kable_table <- kable_table %>% scroll_box(width = "100%", height = scrolLimit(nrow(data)))
-  }
-  return(kable_table)
-}
-
-set.seed(240)
-```
 
 # 1. Abstract
 
@@ -115,30 +66,42 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 
 5. **Temporal Analysis and Visualization**: A Collection of new functions that leverages the capacity of the HVT package by analyzing time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
 
-# 2. Import Code Modules
+# 2. Notebook Requirements
 
-Here is the guide to install the HVT package. This helps user to install the most recent version of the HVT package.
+This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
+
+```{r, warning=FALSE, message=FALSE}
+list.of.packages <- c("plyr", "dplyr", "reactable", "kableExtra", "geozoo", "plotly", "purrr", "HVT", "data.table", "gridExtra", "tidyr")
+
+new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+if (length(new.packages))
+  install.packages(new.packages, dependencies = TRUE, repos='https://cloud.r-project.org/')
+invisible(lapply(list.of.packages, library, character.only = TRUE))
+```
+
+## 2.1 User defined Function
+
+This is a custom-built function called `Table`, designed to neatly display all tabulated results throughout the vignette.
+
 ```{r}
-###direct installation###
-#install.packages("HVT")
+scrollLimit <- function(noOfRows){
+  if(noOfRows<10){
+    swe = paste(as.character(noOfRows*50),"px")}
+  else{
+    swe = "400px"}
+  return(swe)}
 
-#or
-
-###git repo installation###
-#library(devtools)
-#devtools::install_github(repo = "Mu-Sigma/HVT")
+Table <- function(data,scroll = FALSE, limit = NULL){
+  if(!is.null(limit)){
+    data <- head(data,limit)}
+  kable_table <- data %>% kable(escape = FALSE,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
+  scroll <- scroll
+  if(scroll == TRUE){
+  kable_table <- kable_table %>% scroll_box(width = "100%", height = scrollLimit(nrow(data)))}
+ return(kable_table)
+}
 
 ```
-
-
-**NOTE:** At the time documenting this vignette, the updated changes were not still in CRAN, hence we are sourcing the scripts from the R folder directly to the session environment.
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
-
 
 # 3. Example : HVT with the Torus dataset
 
@@ -160,7 +123,7 @@ The torus dataset includes the following columns:
 
 Lets, explore the **torus dataset containing 12000 points**. For the sake of brevity we are displaying first 6 rows.
 
-```{r torus generate,warning=FALSE,message=FALSE,eval = global_var}
+```{r torus generate,warning=FALSE,message=FALSE}
 set.seed(240)
 # Here p represents dimension of object, n represents number of points
 torus <- geozoo::torus(p = 3,n = 12000)
@@ -223,7 +186,7 @@ edaPlots(torus_df, output_type = "correlation", n_cols = 3)
 
 Let us split the torus dataset into train and test. We will randomly select 80% of the torus dataset as train and remaining as test.
 
-```{r train-test torus,warning=FALSE,message=FALSE,eval = global_var}
+```{r train-test torus,warning=FALSE,message=FALSE}
 smp_size <- floor(0.80 * nrow(torus_df))
 set.seed(279)
 train_ind <- sample(seq_len(nrow(torus_df)), size = smp_size)
@@ -236,14 +199,14 @@ torus_test <- torus_df[-train_ind, ]
 
 Now, lets have a look at the selected **training dataset** containing (9600 data points). For the sake of brevity we are displaying first six rows.
 
-```{r torus head, warning=FALSE, eval = global_var}
+```{r torus head, warning=FALSE}
 rownames(torus_train) <- NULL
 Table(head(torus_train), scroll= FALSE)
 ```
 
 Now lets have a look at **structure** of the training dataset.
 
-```{r train torus structure, warning=FALSE, eval = global_var}
+```{r train torus structure, warning=FALSE}
 str(torus_train)
 ```
 
@@ -270,14 +233,14 @@ edaPlots(torus_train, output_type = "correlation", n_cols = 3)
 Now, lets have a look at **testing dataset containing(2400 data points)**.For the sake of brevity we are displaying first six rows.
 
 
-```{r torus 2 head, warning=FALSE,message=FALSE, eval = global_var}
+```{r torus 2 head, warning=FALSE,message=FALSE}
 rownames(torus_test) <- NULL
 Table(head(torus_test), scroll = FALSE)
 ```
 
 Now lets have a look at **structure** of the testing dataset.
 
-```{r torus test structure, warning=FALSE, eval = global_var}
+```{r torus test structure, warning=FALSE}
 str(torus_test)
 ```
 
@@ -445,7 +408,7 @@ torus_mapA <- trainHVT(
 
 Let's check the compression summary for torus.
 
-```{r compression summary torus third,warning=FALSE,eval = global_var}
+```{r compression summary torus third,warning=FALSE}
 displayTable(data = torus_mapA[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
 ```
 
@@ -545,7 +508,7 @@ Now let's plot the Voronoi Tessellation with the heatmap overlaid for all the fe
 The heatmaps displayed below provides a visual representation of the spatial characteristics of the torus dataset, allowing us to observe patterns and trends in the distribution of each of the features (x,y,z). The sheer green shades highlight regions with higher values in each of the heatmaps, while the indigo shades indicate areas with the lowest values in each of the heatmaps. By analyzing these heatmaps, we can gain insights into the variations and relationships between each of these features within the torus dataset.
 
 
-```{r hvt_mapA hmp level x torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 4: The Voronoi Tessellation with the heat map overlaid for variable ’x’ in the ’torus’ dataset',eval = global_var,fig.width = 7, fig.height = 5}
+```{r hvt_mapA hmp level x torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 4: The Voronoi Tessellation with the heat map overlaid for variable ’x’ in the ’torus’ dataset',fig.width = 7, fig.height = 5}
 
   plotHVT(
   torus_mapA,
@@ -559,7 +522,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
 
 ```
 
-```{r hvt_mapA hmp level y torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 5: The Voronoi Tessellation with the heat map overlaid for variable ’y’ in the ’torus’ dataset',eval = global_var,fig.width = 7, fig.height = 5}
+```{r hvt_mapA hmp level y torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 5: The Voronoi Tessellation with the heat map overlaid for variable ’y’ in the ’torus’ dataset',fig.width = 7, fig.height = 5}
 
   plotHVT(
   torus_mapA,
@@ -573,7 +536,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
 
 ```
 
-```{r hvt_mapA hmp level z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 6: The Voronoi Tessellation with the heat map overlaid for variable ’z’ in the ’torus’ dataset',eval = global_var,fig.width = 7, fig.height = 5}
+```{r hvt_mapA hmp level z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 6: The Voronoi Tessellation with the heat map overlaid for variable ’z’ in the ’torus’ dataset',fig.width = 7, fig.height = 5}
 
 
   plotHVT(
@@ -641,7 +604,7 @@ table {
 
 The **`plotNovelCells`** function is used to plot the Voronoi tessellation using the compressed HVT map (torus_mapA) containing 500 cells and highlights the identified novelty cell(s) i.e 6 cells (containing 115 records) in red on the map.
 
-```{r compress_novelty_plot,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 9: The Voronoi Tessellation constructed using the compressed HVT map (map A) with the novelty cell(s) highlighted in red',eval = global_var,fig.width = 7, fig.height = 5}
+```{r compress_novelty_plot,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 9: The Voronoi Tessellation constructed using the compressed HVT map (map A) with the novelty cell(s) highlighted in red',fig.width = 7, fig.height = 5}
 plotNovelCells(identified_Novelty_cells, torus_mapA,line.width = c(0.4),centroid.size = 0.01)
 ```
 
@@ -681,7 +644,7 @@ displayTable(data =torus_mapB[[3]][['summary']], columnName= 'Quant.Error', valu
 
 Now let's check the compression summary for HVT (torus_mapB). The table below shows no of cells, no of cells having quantization error below threshold and percentage of cells having quantization error below threshold for each level.
 
-```{r hvt_map_B compression summary,warning=FALSE,eval = global_var}
+```{r hvt_map_B compression summary,warning=FALSE}
 displayTable(data = torus_mapB[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
 ```
 
@@ -724,7 +687,7 @@ torus_mapC <- trainHVT(dataset  = data_without_novelty,
 
 Now let's check the compression summary for HVT (torus_mapC) where n_cell was set to 15. The table below shows no of cells, no of cells having quantization error below threshold and percentage of cells having quantization error below threshold for each level.
 
-```{r hvt_map_C compression summary,warning=FALSE,eval = global_var}
+```{r hvt_map_C compression summary,warning=FALSE}
 displayTable(data = torus_mapC[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
 
 ```
@@ -765,7 +728,7 @@ displayTable(data =torus_mapC[[3]][['summary']], columnName= 'Quant.Error', valu
 
 Now let's check the **compression summary** for HVT (torus_mapC). The table below shows no of cells, no of cells having quantization error below threshold and percentage of cells having quantization error below threshold for each level.
 
-```{r hvt_mapC compression summary,warning=FALSE,eval = global_var}
+```{r hvt_mapC compression summary,warning=FALSE}
 displayTable(data = torus_mapC[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
 ```
 
@@ -794,7 +757,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
 
 
 
-```{r hvt_mapC hmp level one x torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 12: The Voronoi Tessellation with the heat map overlaid for feature `x` in the ’torus’ dataset' , eval = global_var,fig.width = 7, fig.height = 5}
+```{r hvt_mapC hmp level one x torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 12: The Voronoi Tessellation with the heat map overlaid for feature `x` in the ’torus’ dataset',fig.width = 7, fig.height = 5}
   plotHVT(
   torus_mapC,
   child.level = 2,
@@ -809,7 +772,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
 
 
 
-```{r hvt_mapC hmp levelonetorus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 13: The Voronoi Tessellation with the heat map overlaid for feature `y` in the ’torus’ dataset',eval = global_var,fig.width = 7, fig.height = 5}
+```{r hvt_mapC hmp levelonetorus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 13: The Voronoi Tessellation with the heat map overlaid for feature `y` in the ’torus’ dataset',fig.width = 7, fig.height = 5}
 
   plotHVT(
   torus_mapC,
@@ -823,7 +786,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
 
 ```
 
-```{r hvt_mapC hmp level one z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 14: The Voronoi Tessellation with the heat map overlaid for feature `z` in the ’torus’ dataset',eval = global_var,fig.width = 7, fig.height = 5}
+```{r hvt_mapC hmp level one z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 14: The Voronoi Tessellation with the heat map overlaid for feature `z` in the ’torus’ dataset',fig.width = 7, fig.height = 5}
 
   plotHVT(
   torus_mapC,

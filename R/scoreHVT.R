@@ -670,6 +670,7 @@ if(analysis.plots) {
     actual_predictedTable = df_reordered,
     QECompareDf = QECompareDf2,
     anomalyPlot = plotlyPredict,
+    cellID_coordinates =cellID_coordinates,
     predictInput = c("depth" = child.level, "quant.err" = mad.threshold),
     model_mad_plots = list(),
     model_info = list(type = "hvt_prediction", 
