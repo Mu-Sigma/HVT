@@ -227,40 +227,40 @@ These six metrics are organized into three main categories. Below is a brief ove
 - Range: 0 to ∞
 - Description: Execution duration refers to the amount of time it takes for an algorithm to complete its task from start to finish. In the context of dimensionality reduction, it measures how long it takes for methods like t-SNE, UMAP, or Sammon projection to process the data and produce a reduced-dimensionality output. Lower execution duration indicates faster performance, which is particularly important when working with large datasets or in time-sensitive applications.
   
-# 5. Importing Code Modules
+# 5. Notebook Requirements
 
-**NOTE**: At the time of documenting this notebook, the updated changes
-were not still in CRAN, hence we are sourcing the scripts from the R
-folder directly to the session environment.
+This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
-```{r, message = FALSE,warning=FALSE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
-
-```{r lib, warning=FALSE, message=FALSE, include=FALSE, error=FALSE}
-### First install(if not already installed) and call the necessary libraries
-
-list.of.packages <<- c("DT",'plotly', "magrittr", "data.table", "tidyverse", "crosstalk", "kableExtra", "gganimate","gdata", "data.table", "jmuOutlier", "viridis", "deldir", "conf.design", "splancs","Hmisc","xfun","sp","cowplot",
-"polyclip","devtools","deldir","gdata","tidyverse","skimr","patchwork", "crosstalk", "ggforce","htmltools", "scales", "ggplot2", "htmlwidgets", "gridExtra","gtable","tibble")
+```{r lib, warning=FALSE, message=FALSE,error=FALSE}
+list.of.packages <- c("DT","plotly", "magrittr", "data.table", "tidyverse", "crosstalk", "kableExtra", "cowplot","gdata","tidyverse", "ggplot2", "gridExtra","tibble", "HVT")
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages)){install.packages(new.packages, repos='https://cloud.r-project.org/')}
 invisible(lapply(list.of.packages, library, character.only = TRUE))
+```
 
-Table <- function(data,scroll = F, limit = NULL){
+## 5.1 User defined Function
+
+This is a custom-built function called `Table`, designed to neatly display all tabulated results throughout the vignette.
+
+```{r}
+scrollLimit <- function(noOfRows){
+  if(noOfRows<10){
+    swe = paste(as.character(noOfRows*50),"px")}
+  else{
+    swe = "400px"}
+  return(swe)}
+
+Table <- function(data,scroll = FALSE, limit = NULL){
   if(!is.null(limit)){
     data <- head(data,limit)}
-kable_table <- data %>% kable(escape = F,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
-if(scroll == T){
-kable_table <- kable_table %>% scroll_box(width = "100%" , height = scrolLimit(nrow(data)))
-  }
-return(kable_table)
+  kable_table <- data %>% kable(escape = FALSE,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
+  scroll <- scroll
+  if(scroll == TRUE){
+  kable_table <- kable_table %>% scroll_box(width = "100%", height = scrollLimit(nrow(data)))}
+ return(kable_table)
 }
 
-set.seed(20)
 ```
   
 # 6. Data Understanding

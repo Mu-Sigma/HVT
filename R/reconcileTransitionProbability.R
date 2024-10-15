@@ -78,12 +78,10 @@ reconcileTransitionProbability <- function(df, hmap_type = NULL, cellid_column, 
   transition_values1 <- table(raw_data1$Cell.ID[-nrow(raw_data1)], raw_data1$Cell.ID[-1])
   mat1 <- unclass(transition_values1)
   normalized_value1 <- mat1 / rowSums(mat1)
-  
-  # Set probability to 0 for transitions to the same state
-  for (i in 1:nrow(normalized_value1)) {
-    normalized_value1[i, i] <- 0
-  }
 
+  #nullifying self state probabilities 
+  normalized_value1[cbind(1:nrow(normalized_value1), 1:ncol(normalized_value1))] <- 0
+  
   melted_matrix1 <- reshape2::melt(normalized_value1)
   a_df1 <- melted_matrix1 %>% as.data.frame()
   colnames(a_df1) <- c("StateFrom", "StateTo", "Probabilty")
@@ -91,7 +89,7 @@ reconcileTransitionProbability <- function(df, hmap_type = NULL, cellid_column, 
   a_df1$StateFrom <- as.integer(a_df1$StateFrom)
   a_df1$Probabilty <- round(a_df1$Probabilty,4)
   a_df1 <- a_df1 %>% arrange( StateFrom, StateTo)
-  
+    
   hmap2 <- plotly::plot_ly(
     data = a_df1,
     x = ~StateFrom,

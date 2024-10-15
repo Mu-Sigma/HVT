@@ -63,54 +63,7 @@ ul {
 
 
 
-```{r, warning=FALSE,message=FALSE,include = FALSE}
 
-# knitr::opts_chunk$set(
-#   collapse = TRUE,
-#   comment = "#>",
-#   out.width = "672px",
-#   out.height = "480px",
-#   fig.width = 7.5,
-#   fig.height = 5,
-#   fig.align = "center",
-#   fig.retina = 1,
-#   dpi = 150
-# )
-
-# installing all required packages
-list.of.packages <- c("dplyr", "kableExtra", "plotly", "purrr", "sp", "data.table", "gridExtra","plyr", "grid", "ggforce", "reactable", "markovchain", "reshape", "gganimate", "gapminder", "tidyr", "stringr", "DT", "knitr", "feather")
-
-new.packages <-
-  list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
-if (length(new.packages))
-  install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
-
-# Loading the required libraries
-invisible(lapply(list.of.packages, library, character.only = TRUE))
-options(expressions = 10000)
-global_var <- nzchar(Sys.getenv("RUN_VIGNETTE"))
-global_var <- TRUE
-scrolLimit <- function(noOfRows){
-  if(noOfRows<10){
-    swe = paste(as.character(noOfRows*50),"px")
-  }
-  else{
-    swe = "400px"
-   }
-  return(swe)
-}
-Table <- function(data,scroll = F, limit = NULL){
-  if(!is.null(limit)){
-    data <- head(data,limit)}
-kable_table <- data %>% kable(escape = F,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
-if(scroll == T){
-kable_table <- kable_table %>% scroll_box(width = "100%", height = scrolLimit(nrow(data)))
-  }
-return(kable_table)
-}
-
-set.seed(240)
-```
 
 # 1. Background
 
@@ -160,30 +113,45 @@ The dataset includes the following columns:
 * U: U represents the velocity or speed of the system at a particular point in the attractor 
 * t: The time variable (discrete time steps which are incremented by approximately 0.0002500012500062 units of time) associated with each point in the Lorenz attractor. It indicates how much time has elapsed since the beginning of the simulation. Each value represents a specific point in time, and they are spaced apart by a fixed time interval.
 
-# 3. Importing Code Modules
+# 3. Notebook Requirements
 
-Here is the guide to installing the HVT package. This helps users to install the latest version of the HVT package.
+This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
+
+```{r, warning=FALSE, message=FALSE}
+list.of.packages <- c("dplyr", "kableExtra", "plotly", "purrr", "data.table", "gridExtra", "grid", "reactable", "reshape", "tidyr", 
+                      "stringr", "DT", "knitr", "feather", "HVT")
+
+new.packages <-
+  list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+if (length(new.packages))
+  install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
+invisible(lapply(list.of.packages, library, character.only = TRUE))
+
+```
+
+## 3.1 User defined Function
+
+This is a custom-built function called `Table`, designed to neatly display all tabulated results throughout the vignette.
+
 ```{r}
-###direct installation###
-#install.packages("HVT")
+scrollLimit <- function(noOfRows){
+  if(noOfRows<10){
+    swe = paste(as.character(noOfRows*50),"px")}
+  else{
+    swe = "400px"}
+  return(swe)}
 
-#or
-
-###git repo installation###
-#library(devtools)
-#devtools::install_github(repo = "Mu-Sigma/HVT")
-
+Table <- function(data,scroll = FALSE, limit = NULL){
+  if(!is.null(limit)){
+    data <- head(data,limit)}
+  kable_table <- data %>% kable(escape = FALSE,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
+  scroll <- scroll
+  if(scroll == TRUE){
+  kable_table <- kable_table %>% scroll_box(width = "100%", height = scrollLimit(nrow(data))) }
+  return(kable_table)
+}
 ```
 
-
-**NOTE:** At the time of documenting this vignette, the updated changes were not still in CRAN, hence we are sourcing the scripts from the R folder directly to the session environment.
-
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
 
 
 # 4. Data Understanding
@@ -302,7 +270,7 @@ Table(trainDataset, limit = 10)
 
 Now, let's have a look at the **structure** of the training dataset.
 
-```{r train structure, warning=FALSE, eval = global_var}
+```{r train structure, warning=FALSE}
 str(trainDataset)
 ```
 
@@ -351,7 +319,7 @@ Table(testDataset, limit = 10)
 
 Now, let's have a look at the **structure** of the testing dataset.
 
-```{r test structure, warning=FALSE, eval = global_var}
+```{r test structure, warning=FALSE}
 str(testDataset)
 ```
 
@@ -406,7 +374,7 @@ We will use the `trainHVT` function to compress our dataset while preserving ess
 
 **NOTE:** *The compression takes place only for the X, Y and Z coordinates and not for U(velocity) and t(Timestamp). After training & Scoring, we merge back the U and t columns with the dataset.*
 
-```{r ,warning=FALSE,fig.show='hold',results='hide',message=FALSE,eval = global_var}
+```{r ,warning=FALSE,fig.show='hold',results='hide',message=FALSE}
 hvt.results <- trainHVT(
   trainDataset[,-c(4:5)],
   n_cells = 100,
@@ -424,7 +392,7 @@ hvt.results <- trainHVT(
 Let's check out the compression summary. 
 
 In the `displayTable` function, the 'columnName' argument takes any of the column names that have to be highlighted greater than the given 'value' based on the provided data.
-```{r compression summary torus first,warning=FALSE,eval = global_var}
+```{r compression summary torus first,warning=FALSE}
 displayTable(data = hvt.results[[3]]$compression_summary,
              columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
              value = 0.8, tableType = "compression")
@@ -467,7 +435,7 @@ Now, once we have built the model, let us try to score using the model.
 
 NOTE: *we are using the training dataset plus the testing dataset i.e., the raw dataset here for the demo purpose.*
 
-```{r scoreHVT function,warning=FALSE,message=FALSE,eval = global_var}
+```{r scoreHVT function,warning=FALSE,message=FALSE}
 set.seed(240)
 scoring <- scoreHVT(dataset,
                     hvt.results,
@@ -477,7 +445,7 @@ scoring <- scoreHVT(dataset,
 Let’s see the output of `scoreHVT()` which has scored the cells for all the data points in the dataset.  For the sake of brevity, we will only show the first 100 rows.
 
 In the `displayTable` function, the 'columnName' argument takes any of the column names that have to be highlighted greater than the given 'value' based on the provided data.
-```{r scoreHVT,warning=FALSE,eval = global_var}
+```{r scoreHVT,warning=FALSE}
 displayTable(data =scoring$scoredPredictedData, columnName= 'Quant.Error', 
              value = 0.1, tableType = "summary", limit =100, scroll = T)
 ```

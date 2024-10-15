@@ -102,30 +102,6 @@ ul {
 ```
 
 
-```{r, warning=FALSE,message=FALSE,include = FALSE}
-list.of.packages <- c("dplyr","magrittr", "ggplot2", "kableExtra", "gridExtra","grid", "httr", "stats", "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly", "tidyr","dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable")
-
-new.packages <-
-  list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
-if (length(new.packages))
-  install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
-invisible(lapply(list.of.packages, library, character.only = TRUE))
-
-options(expressions = 10000)
-global_var <- nzchar(Sys.getenv("RUN_VIGNETTE"))
-global_var <- TRUE
-scrolLimit <- function(noOfRows){
-  if(noOfRows<10){
-    swe = paste(as.character(noOfRows*50),"px")
-  }
-  else{
-    swe = "400px"
-   }
-  return(swe)
-}
-
-set.seed(240)
-```
 
 # 1. Background
 
@@ -202,32 +178,23 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 
 # 3. Notebook Requirements
 
-## 3.1 Importing Code Modules
+This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
-Here is the guide to install the HVT package. This helps the user to install the most recent version of the HVT package.
-```{r}
-###direct installation###
-#install.packages("HVT")
+```{r, warning=FALSE, message=FALSE}
+list.of.packages <- c("dplyr","magrittr", "ggplot2", "kableExtra", "gridExtra","grid", "httr", "stats", 
+                      "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly","HVT", "tidyr",
+                      "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable")
 
-#or
-
-###git repo installation###
-#library(devtools)
-#devtools::install_github(repo = "Mu-Sigma/HVT")
+new.packages <-
+  list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+if (length(new.packages))
+  install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
+invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
 
-**NOTE:** At the time documenting this vignette, the updated changes were not still in CRAN, hence we are sourcing the scripts from the R folder directly to the session environment.
-
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
-
-## 3.2 User-defined Functions
+## 3.1 User-defined Functions
 
 In this section, we are establishing all the functions that will be utilized in this notebook. The detailed explanation follows below:
 
@@ -235,12 +202,19 @@ In this section, we are establishing all the functions that will be utilized in 
 
 This is a function used to create tables to display dataframes in this notebook.
 ```{r}
+scrollLimit <- function(noOfRows){
+  if(noOfRows<10){
+    swe = paste(as.character(noOfRows*50),"px")}
+  else{
+    swe = "400px"}
+  return(swe)}
+
 Table <- function(data,scroll = F, limit = NULL){
   if(!is.null(limit)){
     data <- head(data,limit)}
 kable_table <- data %>% kable(escape = F,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
 if(scroll == T){
-kable_table <- kable_table %>% scroll_box(width = "100%" , height = scrolLimit(nrow(data)))}
+kable_table <- kable_table %>% scroll_box(width = "100%" , height = scrollLimit(nrow(data)))}
 return(kable_table)}
 ```
 
@@ -549,14 +523,14 @@ The Twitter dataset used in this notebook is accessible to public (open source) 
 
 ## 4.2 Dataset Cleaning
 
-3) Using the [Function to Merge and Slice the data](#function-to-merge-and-slice-the-data) from section 3.2, all the csvs are collated to a single csv and first 3 tweets of all the celebrities or influencers are extracted. This approach aims to diversify the dataset by including more celebrities or influencers, thus ensuring a broader range of content instead of repetitive contextual tweets.
+3) Using the [Function to Merge and Slice the data](#function-to-merge-and-slice-the-data) from section 3.1, all the csvs are collated to a single csv and first 3 tweets of all the celebrities or influencers are extracted. This approach aims to diversify the dataset by including more celebrities or influencers, thus ensuring a broader range of content instead of repetitive contextual tweets.
 
 ```{r, eval=FALSE}
 merge_and_slice_data(directory = "./twitter_data/all_celebs_tweets_folder/" , output_path = "./twitter_data/sliced_data.csv")
 ```
 
 
-4) All the selected data from above step is given as an input to the [Function to clean the twitter data](#function-to-clean-the-twitter-data) from section 3.2 where the removal of encoded texts, tags and emoji to text conversion takes place. Returned will be the cleaned texts. The source of this function which is written in python traces back to the <a href="https://www.kaggle.com/code/ahmedshahriarsakib/twitter-celebrity-matcher-sbert-tweepy#4-Data-Preparation" target="_blank">kaggle</a> twitter data processing notebook.
+4) All the selected data from above step is given as an input to the [Function to clean the twitter data](#function-to-clean-the-twitter-data) from section 3.1 where the removal of encoded texts, tags and emoji to text conversion takes place. Returned will be the cleaned texts. The source of this function which is written in python traces back to the <a href="https://www.kaggle.com/code/ahmedshahriarsakib/twitter-celebrity-matcher-sbert-tweepy#4-Data-Preparation" target="_blank">kaggle</a> twitter data processing notebook.
 
 
 ```{python}
@@ -579,7 +553,7 @@ Table(selected_csv[1:10,])
 
 6) The cleaned data is then transformed into token embeddings using **OpenAI's text-embedding-ada-002** model, which generates **1536-dimensional data**. 
 
-7) The [Function for generating embeddings from textual data](#function-for-generating-embeddings-from-textual-data-using-openai) mentioned in section 3.2 follows all the below given steps for the process of converting textual data to numerical embeddings.
+7) The [Function for generating embeddings from textual data](#function-for-generating-embeddings-from-textual-data-using-openai) mentioned in section 3.1 follows all the below given steps for the process of converting textual data to numerical embeddings.
 
 <span style="font-size: 15px;">**Steps of Embeddings Generation**</span>
 
@@ -996,7 +970,7 @@ plotHVT(hvt.results,  hmap.cols = "n", plot.type  = '2Dheatmap', cell_id = TRUE)
 
 *NOTE: We have 1536 columns displaying all of them will blow up the notebook hence we are displaying the Heatmaps for only the first 50 columns*
 
-The [Function for generating Heatmaps for each column of a dataset](#function-for-generating-heatmaps-for-each-column-of-a-dataset) from section 3.2 is used to generate the below Heatmaps.
+The [Function for generating Heatmaps for each column of a dataset](#function-for-generating-heatmaps-for-each-column-of-a-dataset) from section 3.1 is used to generate the below Heatmaps.
 
 ##### Heatmaps for columns 1 to 17
 
@@ -1325,7 +1299,7 @@ clust.results$clusterplot
 
 - Subsetting the data in each cluster by the below code and processing it without punctuation marks to be given as input to API call. Data from each cluster will be saved as a .txt file and the files will be read during the API call.
 
-- Let's call the [Function for writing clusters as .txt files](#function-for-writing-clusters-as-.txt-files) which is explained in section 3.2 for this process.
+- Let's call the [Function for writing clusters as .txt files](#function-for-writing-clusters-as-.txt-files) which is explained in section 3.1 for this process.
 
 ```{r}
 create_and_write_clusters(cluster_numbers = 1:15, cluster_method = clust.results$cluster_data)
@@ -1333,7 +1307,7 @@ create_and_write_clusters(cluster_numbers = 1:15, cluster_method = clust.results
 
 - The below chunk makes a call to **OpenAI's gpt-3.5-Turbo** via chat completions API and print the responses for clusters below. 
 
-- Let's call the [Function for making OpenAI-API Call to generate domain names](#function-for-making-openai-api-call-to-generate-domain-names) which is explained in section 3.2. This function makes 10 API calls for each cluster and prints all 10 responses. The domain name that appears most frequently is selected as the domain name for that cluster.
+- Let's call the [Function for making OpenAI-API Call to generate domain names](#function-for-making-openai-api-call-to-generate-domain-names) which is explained in section 3.1. This function makes 10 API calls for each cluster and prints all 10 responses. The domain name that appears most frequently is selected as the domain name for that cluster.
 
 ```{r}
 result <- get_cluster_domains(15)
@@ -1511,7 +1485,7 @@ Now, we will pass all the data from each cluster to **OpenAI's gpt-3.5-turbo** m
 
 Subsetting the data in each cluster by the below code and processing it without punctuation marks to be given as input in API call. Data from each cluster will be saved as a .txt file and the files will be read during the API call.
 
-Let's call the [Function for writing clusters as .txt files](#function-for-writing-clusters-as-.txt-files) which is explained in section 3.2 for this process.
+Let's call the [Function for writing clusters as .txt files](#function-for-writing-clusters-as-.txt-files) which is explained in section 3.1 for this process.
 
 ```{r}
 cluster_data <- clust.results$cluster_data
@@ -1520,7 +1494,7 @@ create_and_write_clusters(cluster_numbers = 1:15, cluster_method = cluster_data)
 
 The below chunk makes a call to **OpenAI's gpt-3.5-Turbo** via chat completions API and print the responses for clusters below. 
 
-- Let's call the [Function for making OpenAI-API Call to generate domain names](#function-for-making-openai-api-call-to-generate-domain-names) which is explained in section 3.2. This function makes 10 API calls for each cluster and prints all 10 responses. The domain name that appears most frequently is selected as the domain name for that cluster.
+- Let's call the [Function for making OpenAI-API Call to generate domain names](#function-for-making-openai-api-call-to-generate-domain-names) which is explained in section 3.1. This function makes 10 API calls for each cluster and prints all 10 responses. The domain name that appears most frequently is selected as the domain name for that cluster.
 
 ```{r}
 result <- get_cluster_domains(15)
