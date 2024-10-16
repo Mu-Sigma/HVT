@@ -1,6 +1,3 @@
-#' @name clusterPlot
-#' @export clusterPlot
-
 clusterPlot <- function(dataset, hvt.results, domains.column)
   suppressWarnings({
     

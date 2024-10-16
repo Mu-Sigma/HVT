@@ -301,8 +301,7 @@ This chunk verifies the installation of all the necessary packages to successful
 ```{r, message=FALSE, warning=FALSE}
 list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr", "HVT", "DT")
 
-new.packages <-
-  list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
   install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
 

@@ -129,29 +129,6 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
-## 3.1 User defined Function
-
-This is a custom-built function called `Table`, designed to neatly display all tabulated results throughout the vignette.
-
-```{r}
-scrollLimit <- function(noOfRows){
-  if(noOfRows<10){
-    swe = paste(as.character(noOfRows*50),"px")}
-  else{
-    swe = "400px"}
-  return(swe)}
-
-Table <- function(data,scroll = FALSE, limit = NULL){
-  if(!is.null(limit)){
-    data <- head(data,limit)}
-  kable_table <- data %>% kable(escape = FALSE,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
-  scroll <- scroll
-  if(scroll == TRUE){
-  kable_table <- kable_table %>% scroll_box(width = "100%", height = scrollLimit(nrow(data))) }
-  return(kable_table)
-}
-```
-
 
 
 # 4. Data Understanding
@@ -164,7 +141,7 @@ file_path <- ("./sample_dataset/lorenz_attractor.feather")
 dataset <- read_feather(file_path) %>% as.data.frame()
 dataset <- dataset %>% select(X,Y,Z,U,t)
 dataset$t <- round(dataset$t, 5)
-Table(dataset, limit = 10)
+displayTable(dataset, limit = 10)
 ```
 
 Now, let's try to visualize the Lorenz attractor (overlapping spirals) in  3D Space.
@@ -265,7 +242,7 @@ rownames(testDataset) <- NULL
 Let's have a look at the Training dataset containing 160,000 data points. For the sake of brevity, we are displaying the first 10 rows.
 
 ```{r,warning=FALSE,message=FALSE}
-Table(trainDataset, limit = 10)
+displayTable(trainDataset, limit = 10)
 ```
 
 Now, let's have a look at the **structure** of the training dataset.
@@ -314,7 +291,7 @@ edaPlots(trainDataset, output_type = 'correlation', n_cols = 5)
 Let's have a look at the Testing dataset containing 40,000 data points. For the sake of brevity, we are displaying first the 10 rows.
 
 ```{r, warning=FALSE,message=FALSE}
-Table(testDataset, limit = 10)
+displayTable(testDataset, limit = 10)
 ```
 
 Now, let's have a look at the **structure** of the testing dataset.
@@ -542,7 +519,7 @@ trans_table <- getTransitionProbability(df = temporal_data,
 
 ```{r}
 combined_df <- do.call(rbind, trans_table)
-Table(combined_df, limit = 10)
+displayTable(combined_df, limit = 10)
 ```
 
 
@@ -596,7 +573,7 @@ reconcile_plots[[1]]
 **Reconciliation table of transition probability with self-state**
   
 ```{r hmap2, fig.align = "center", fig.show ='hold', message=FALSE, out.width='70%', results='asis', warning=FALSE}
-Table(reconcile_plots[[2]], scroll = TRUE)
+displayTable(reconcile_plots[[2]], scroll = TRUE)
 ```
 **Reconciliation plots of transition probability without self-state**
 
@@ -610,7 +587,7 @@ reconcile_plots[[3]]
 
 **Reconciliation table of transition probability without self-state**
 ```{r hmap4, fig.align = "center", fig.show ='hold', message=FALSE, out.width='70%', results='asis', warning=FALSE}
-Table(reconcile_plots[[4]], scroll = TRUE)
+displayTable(reconcile_plots[[4]], scroll = TRUE)
 ```
 
 

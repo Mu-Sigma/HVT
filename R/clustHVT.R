@@ -46,14 +46,24 @@
 
 
 clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method = 'ward.D2',
-                     indices, clusters_k = "champion") {
+                     indices, clusters_k = "champion", type = "default",domains.column,hvt.results,dataset) {
   requireNamespace('NbClust')
   
-  hclust_data <- data
-  
-  results_df <- c()
+  if (type == "plot"){
+    
+    if (is.null(dataset) || is.null(hvt.results) || is.null(domains.column)) {
+      stop("For type 'plot',  the arguments `dataset`, `hvt.results` and `domains.column` are required.")
+    }
+    
+    plot_a <- clusterPlot(dataset= dataset, hvt.results  = hvt.results, domains.column = domains.column )
 
-  
+    return(plot_a)
+    
+  } 
+  else if (type == "default"){
+    
+  hclust_data <- data
+  results_df <- c()
   # Function to run NbClust and extract results
   print_nbclust_results <- function(hclust_data, indices) {
     get_nbclust_result <- function(index) {
@@ -149,4 +159,9 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   )
   
   return(output_list)
+  }
+  else{
+    stop("Unknown type. Please use 'default' or 'plot'.")
+  }
+  
 }
