@@ -7,15 +7,15 @@ Version: 24.9.1
 Authors@R: c(
 	person("Zubin", "Dowlaty", email = "zubin.dowlaty@mu-sigma.com", role = "aut"),
     	person("Mu Sigma, Inc.", email = "ird.experiencelab@mu-sigma.com", role = "cre"))
-Description: Facilitates building topology preserving maps for rich multivariate data. 
-             Credits to Mu Sigma for their continuous support throughout the development of the package.
+Description: The HVT package is a collection of R functions to facilitate building 
+              topology preserving maps for rich multivariate data.
 License: Apache License 2.0
 Encoding: UTF-8
 Imports: MASS, grDevices, splancs, stats, dplyr, NbClust,
         purrr, magrittr, ggplot2, tidyr, scales, cluster,
         reshape2, ggforce, FNN,Rtsne,umap, plyr, rlang,
         gganimate, markovchain, methods
-Depends: R (>= 3.6.0)
+Depends: R (>= 4.2.0)
 BugReports: https://github.com/Mu-Sigma/HVT/issues
 URL: https://github.com/Mu-Sigma/HVT
 RoxygenNote: 7.3.1

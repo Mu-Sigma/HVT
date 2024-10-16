@@ -199,6 +199,14 @@ This version of the HVT package offers features for both training an HVT model a
 
 # 4. Installation of HVT (v24.9.1)
 
+**CRAN installation**
+
+``` r
+install.packages("HVT")
+```
+
+**Git Hub Installation**
+
 ``` r
 library(devtools)
 devtools::install_github(repo = "Mu-Sigma/HVT")

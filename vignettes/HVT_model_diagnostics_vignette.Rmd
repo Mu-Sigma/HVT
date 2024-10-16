@@ -311,30 +311,6 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
-## 4.1 User defined Functions
-
-This is a custom-built function called `Table`, designed to neatly display all tabulated results throughout the vignette.
-
-```{r}
-scrollLimit <- function(noOfRows){
-  if(noOfRows<10){
-    swe = paste(as.character(noOfRows*50),"px")}
-  else{
-    swe = "400px"}
-  return(swe)}
-
-Table <- function(data,scroll = FALSE, limit = NULL){
-  if(!is.null(limit)){
-    data <- head(data,limit)}
-  kable_table <- data %>% kable(escape = FALSE,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
-  scroll <- scroll
-  if(scroll == TRUE){
-  kable_table <- kable_table %>% scroll_box(width = "100%", height = scrollLimit(nrow(data))) }
-  return(kable_table)
-}
-```
-
-
 
 
 # 5. Data Importing
@@ -394,7 +370,7 @@ colnames(dataset_updated) <- c("x","y","z")
     paste0( "Dataset having ", nrow(dataset_updated), " row(s) and ", ncol(dataset_updated), " column(s)",  "simulated successfully. ") %>% cat("\n")  
     dataset_updated <- dataset_updated %>% mutate_if(is.numeric, round, digits = 4) 
     paste0("Code chunk executed successfully. The table below is showing first 10 row(s) of the dataset.") %>% cat("\n")
-    dataset_updated %>% head(10) %>%as.data.frame() %>%Table(limit = 10)
+    dataset_updated %>% head(10) %>%as.data.frame() %>%displayTable(limit = 10)
   }
 }
 ```
@@ -807,7 +783,7 @@ data <- dataset_updated %>% dplyr::summarise_if(is.numeric, var) %>% t() %>%
   data.frame() %>% round(3) #%>% DT::datatable(colnames = "Variance")
 
 colnames(data) <- c("Variance")
-Table(data,scroll = TRUE, limit = 20)
+displayTable(data,scroll = TRUE, limit = 20)
 
 ```
 
@@ -832,7 +808,7 @@ dataset_updated <-  dataset_updated %>% mutate_if(is.numeric, round, digits = 4)
 
 dataset_updated %>% head(10) %>%
   as.data.frame() %>%
-  Table(limit = 10)
+  displayTable(limit = 10)
 
 ```
 
@@ -1543,7 +1519,7 @@ DT::datatable(
 df1 <-  QECompareDf1 %>%
     mutate_if(is.numeric, ~ round(., 4)) %>%
     select(-c(`Quant.Error.Diff (%)`)) 
-Table(df1,scroll = TRUE, limit = 10)
+displayTable(df1,scroll = TRUE, limit = 10)
 
 ```
 
@@ -1560,7 +1536,7 @@ folder.
 predictClusterData <- hvt.score[["scoredPredictedData"]]%>%as.data.frame()
  predictClusterData  %>% head(100) %>% round(2)%>%
       as.data.frame() %>%
-      Table(scroll = TRUE, limit = 100)
+      displayTable(scroll = TRUE, limit = 100)
 ```
 
 # 11. Applications
