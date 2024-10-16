@@ -182,7 +182,7 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr","magrittr", "ggplot2", "kableExtra", "gridExtra","grid", "httr", "stats", 
-                      "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly","HVT", "tidyr",
+                      "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly", "tidyr",
                       "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable")
 
 new.packages <-
@@ -192,7 +192,6 @@ if (length(new.packages))
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
-
 
 ## 3.1 User-defined Functions
 
@@ -684,7 +683,7 @@ edaPlots(dataset, output_type = "correlation",n_cols = 10)
 ### Summary Table 
 
 ```{r summary, figures-side, fig.show="hold", warning=FALSE, message=FALSE}
-edaPlots(dataset, output_type = "summary", n_cols = 1536)
+#edaPlots(dataset, output_type = "summary", n_cols = 1536)
 ```
 
 </br>
@@ -961,7 +960,7 @@ The [Function for generating Heatmaps for each column of a dataset](#function-fo
 
 ```{r tabset1, figures-side, fig.show="hold", fig.height=2, fig.width =3.1, warning=FALSE}
 no_of_cols <- 1:17
-plot_columns(dataset, no_of_cols, hvt.results)
+#plot_columns(dataset, no_of_cols, hvt.results)
 ```
 
 
@@ -976,7 +975,7 @@ plot_columns(dataset, no_of_cols, hvt.results)
 
 ```{r tabset2, figures-side, fig.show="hold",  fig.height=2, fig.width =3.1, warning=FALSE}
 no_of_cols <- 18:34
-plot_columns(dataset, no_of_cols, hvt.results)
+#plot_columns(dataset, no_of_cols, hvt.results)
 ```
 
 
@@ -990,7 +989,7 @@ plot_columns(dataset, no_of_cols, hvt.results)
 
 ```{r tabset3, figures-side, fig.show="hold",  fig.height=2, fig.width =3.1, warning=FALSE}
 no_of_cols <- 35:50
-plot_columns(dataset, no_of_cols, hvt.results)
+#plot_columns(dataset, no_of_cols, hvt.results)
 ```
 
 ### 6.2.5 plotHVT - 2D Interactive surface plot
@@ -1314,7 +1313,7 @@ In this section, we will generate the Heatmaps of OpenAI and Manual Approach for
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_1 <- clusterPlot(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name")
+hclust_plot_1 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
 ```
 
 **Manual Approach**
@@ -1338,7 +1337,7 @@ cluster_data$cluster_name <- cluster_names[cluster_data$clusters]
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-manual_plot_1 <-clusterPlot(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name")
+manual_plot_1 <-clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
 ```
 
 ### 8.2.5 Visualization of plots: OpenAI vs Manual Approach
@@ -1384,7 +1383,7 @@ invisible(lapply(1:15, function(i) {
   cluster_data$cluster_name[cluster_data$clusters == i] <<- paste0(result$mode[[i]], "_1538D")
 }))
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_2 <- clusterPlot(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name")
+hclust_plot_2 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
 
 ward_cluster <- cluster_data
 hc_1 <- clust.results$hc
@@ -1500,7 +1499,7 @@ Sammon’s coordinates (2D - x and y coordinates) with the embeddings (1536D) of
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_2 <- clusterPlot(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name")
+hclust_plot_2 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
 ```
 
 **Manual Approach**
@@ -1526,7 +1525,7 @@ cluster_data$cluster_name <- cluster_names[cluster_data$clusters]
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-manual_plot_2 <- clusterPlot(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name")
+manual_plot_2 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
 ```
 
 
@@ -1575,7 +1574,7 @@ invisible(lapply(1:15, function(i) {
   cluster_data$cluster_name[cluster_data$clusters == i] <<- paste0(result$mode[[i]], "_1538D")
 }))
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_2 <- clusterPlot(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name")
+hclust_plot_2 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
 
 cluster_data <- cluster_data
 hc_2 <- clust.results$hc
@@ -1600,7 +1599,7 @@ ward_cluster$cluster_name <- ifelse(ward_cluster$clusters == 1, "Activism_2D",
                                  ifelse(ward_cluster$clusters == 14, "Promotion_2D", "Wishes_2D"))))))))))))))
  
 centroid_cluster_data <- ward_cluster %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-manual_plot_1 <-clusterPlot(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name")
+manual_plot_1 <-clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type="plot")
 ```
 
 
@@ -1621,7 +1620,7 @@ cluster_data$cluster_name <- ifelse(cluster_data$clusters == 1, "Announcements_1
                                  ifelse(cluster_data$clusters == 14, "Appreciation_1538D", "Wishes_1538D"))))))))))))))
 
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-manual_plot_2 <- clusterPlot(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name")
+manual_plot_2 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
 ```
 
 ## 8.4 Comparative Visualizations of OpenAI and Manual Approach: 2D vs 1538D Datasets

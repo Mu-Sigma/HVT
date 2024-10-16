@@ -239,29 +239,7 @@ if (length(new.packages)){install.packages(new.packages, repos='https://cloud.r-
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
-## 5.1 User defined Function
 
-This is a custom-built function called `Table`, designed to neatly display all tabulated results throughout the vignette.
-
-```{r}
-scrollLimit <- function(noOfRows){
-  if(noOfRows<10){
-    swe = paste(as.character(noOfRows*50),"px")}
-  else{
-    swe = "400px"}
-  return(swe)}
-
-Table <- function(data,scroll = FALSE, limit = NULL){
-  if(!is.null(limit)){
-    data <- head(data,limit)}
-  kable_table <- data %>% kable(escape = FALSE,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
-  scroll <- scroll
-  if(scroll == TRUE){
-  kable_table <- kable_table %>% scroll_box(width = "100%", height = scrollLimit(nrow(data)))}
- return(kable_table)
-}
-
-```
   
 # 6. Data Understanding
 

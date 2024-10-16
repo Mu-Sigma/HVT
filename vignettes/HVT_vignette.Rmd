@@ -194,7 +194,7 @@ $$E=\frac{1}{\sum_{i<j} d_{ij}^*}\sum_{i<j}\frac{(d_{ij}^*-d_{ij})^2}{d_{ij}^*}$
 
 The minimization  of this can be performed either by gradient descent, as proposed initially, or by other means, usually involving iterative methods. The number of iterations need to be experimentally determined and convergent solutions are not always guaranteed. Many implementations prefer to use the first Principal Components as a starting configuration.
 
-## 3.1 Tessellation
+# 4. Tessellation
 
 A Voronoi diagram is a way of dividing space into a number of regions. A set of points (called seeds, sites, or generators) is specified beforehand and for each seed, there will be a corresponding region consisting of all points within proximity of that seed. These regions are called `Voronoi cells`. It is complementary to `Delaunay triangulation` is a geometrical algorithm used to create a triangulated mesh from a set of points in a plane which has the property that no data point lies within the circumcircle of any triangle in the triangulation. This property guarantees that the resulting cells in the tessellation do not overlap with each other. 
 
@@ -209,7 +209,7 @@ In this package, we use `sammons` from the package `MASS` to project higher dime
 
 
 
-# 4. Scoring
+# 5. Scoring
 
 Scoring basically refers to the process of chalking up or estimating future values or outcomes based on existing data patterns.In training process, a model is developed based on historical data or a training dataset, and this model is then used to score new, unseen data. The model captures the underlying patterns, trends, and relationships present in the training data, allowing it to pin point the cell of the similar or related data points.
 
@@ -224,43 +224,19 @@ The Scoring algorithm recursively calculates the distance between each point in 
 3. Check if the cell drills down further to form more cells.
 4. If it doesn’t, return the path. Or else repeat steps 1 to 4 till we reach a level at which the cell doesn’t drill down further.
 
-# 5. Installing Packages
+# 6. Installing Packages
 
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
 ```{r, warning = FALSE, message=FALSE}
 
 list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr", "HVT",  "data.table", "gridExtra","plyr")
-new.packages <-
-  list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
   install.packages(new.packages, dependencies = TRUE, repos='https://cloud.r-project.org/')
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
-# 6. User defined Function
-
-This is a custom-built function called `Table`, designed to neatly display all tabulated results throughout the vignette.
-
-```{r}
-scrollLimit <- function(noOfRows){
-  if(noOfRows<10){
-    swe = paste(as.character(noOfRows*50),"px")}
-  else{
-    swe = "400px"}
-  return(swe)}
-
-Table <- function(data,scroll = FALSE, limit = NULL){
-  if(!is.null(limit)){
-    data <- head(data,limit)}
-  kable_table <- data %>% kable(escape = FALSE,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
-  scroll <- scroll
-  if(scroll == TRUE){
-  kable_table <- kable_table %>% scroll_box(width = "100%", height = scrollLimit(nrow(data)))}
- return(kable_table)
-}
-
-```
 
 # 7. Example I: HVT with the Torus dataset
 
@@ -289,7 +265,7 @@ torus <- geozoo::torus(p = 3,n = 12000)
 torus_df <- data.frame(torus$points)
 colnames(torus_df) <- c("x","y","z")
 torus_df <- torus_df %>% round(4)
-Table(head(torus_df))
+displayTable(head(torus_df))
 ```
 Let's  visualize the torus (donut) in  3D Space.
 
@@ -386,7 +362,7 @@ Now, lets have a look at the selected **training dataset** containing (9600 data
 
 ```{r torus head, warning=FALSE}
 rownames(torus_train) <- NULL
-Table(head(torus_train))
+displayTable(head(torus_train))
 ```
 
 Now lets have a look at **structure** of the training data.
@@ -432,7 +408,7 @@ Now, lets have a look at **testing dataset containing(2400 data points)**.For th
 
 ```{r torus 2 head, warning=FALSE}
 rownames(torus_test) <- NULL
-Table(head(torus_test))
+displayTable(head(torus_test))
 ```
 
 Now lets have a look at **structure** of the test data.
@@ -969,7 +945,7 @@ Let's see which cell and level each point belongs to and check the mean absolute
 ```{r}
 Act_pred_Table <- scoring_torus[["scoredPredictedData"]]
 rownames(Act_pred_Table) <- NULL
-Act_pred_Table %>% head(100) %>%as.data.frame() %>%Table(scroll = TRUE, limit = 100)
+Act_pred_Table %>% head(100) %>%as.data.frame() %>%displayTable(scroll = TRUE, limit = 100)
 ```
 
 
@@ -1010,7 +986,7 @@ Let's explore the **Personal Computers Dataset containing (6259 points)**. For t
 
 ```{r sample data computer,warning=FALSE,message=FALSE,eval = TRUE}
 computers <- computers[,-1]
-Table(head(computers))
+displayTable(head(computers))
 ```
 
 Now let's have a look at **structure** of the dataset.
@@ -1091,7 +1067,7 @@ Now, lets have a look at the randomly selected **training dataset** containing (
 trainComputers_data <- trainComputers %>% as.data.frame() %>% round(4)
 trainComputers_data <- trainComputers_data %>% dplyr::select(price,speed,hd,ram,screen,ads)
 row.names(trainComputers_data) <- NULL
-Table(head(trainComputers_data))
+displayTable(head(trainComputers_data))
 ```
 
 Now let's have a look at **structure** of the training dataset.
@@ -1127,7 +1103,7 @@ Now, lets have a look at the **testing dataset** containing (1252 data points). 
 testComputers_data <- testComputers %>% as.data.frame() %>% round(4)
 testComputers_data <- testComputers_data %>% dplyr::select(price,speed,hd,ram,screen,ads)
 rownames(testComputers_data) <- NULL
-Table(head(testComputers_data))
+displayTable(head(testComputers_data))
 ```
 
 Now let's have a look at **structure** of the testing dataset.
@@ -1423,7 +1399,7 @@ Let's see which cell and level each point belongs to and check the mean absolute
 ```{r}
 Act_pred_Table <- scoring_comp[["actual_predictedTable"]]
 rownames(Act_pred_Table) <- NULL
-Act_pred_Table %>% head(100) %>%as.data.frame() %>%Table(scroll = TRUE, limit = 100)
+Act_pred_Table %>% head(100) %>%as.data.frame() %>%displayTable(scroll = TRUE, limit = 100)
 ```
 
 

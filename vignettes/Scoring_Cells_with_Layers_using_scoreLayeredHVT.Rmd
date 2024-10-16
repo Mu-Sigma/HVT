@@ -79,29 +79,6 @@ if (length(new.packages))
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
-## 2.1 User defined Function
-
-This is a custom-built function called `Table`, designed to neatly display all tabulated results throughout the vignette.
-
-```{r}
-scrollLimit <- function(noOfRows){
-  if(noOfRows<10){
-    swe = paste(as.character(noOfRows*50),"px")}
-  else{
-    swe = "400px"}
-  return(swe)}
-
-Table <- function(data,scroll = FALSE, limit = NULL){
-  if(!is.null(limit)){
-    data <- head(data,limit)}
-  kable_table <- data %>% kable(escape = FALSE,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
-  scroll <- scroll
-  if(scroll == TRUE){
-  kable_table <- kable_table %>% scroll_box(width = "100%", height = scrollLimit(nrow(data)))}
- return(kable_table)
-}
-
-```
 
 # 3. Example : HVT with the Torus dataset
 
@@ -130,7 +107,7 @@ torus <- geozoo::torus(p = 3,n = 12000)
 torus_df <- data.frame(torus$points)
 colnames(torus_df) <- c("x","y","z")
 torus_df <- torus_df %>% round(4)
-Table(head(torus_df), scroll = FALSE)
+displayTable(head(torus_df), scroll = FALSE)
 ```
 
 
@@ -201,7 +178,7 @@ Now, lets have a look at the selected **training dataset** containing (9600 data
 
 ```{r torus head, warning=FALSE}
 rownames(torus_train) <- NULL
-Table(head(torus_train), scroll= FALSE)
+displayTable(head(torus_train), scroll= FALSE)
 ```
 
 Now lets have a look at **structure** of the training dataset.
@@ -235,7 +212,7 @@ Now, lets have a look at **testing dataset containing(2400 data points)**.For th
 
 ```{r torus 2 head, warning=FALSE,message=FALSE}
 rownames(torus_test) <- NULL
-Table(head(torus_test), scroll = FALSE)
+displayTable(head(torus_test), scroll = FALSE)
 ```
 
 Now lets have a look at **structure** of the testing dataset.
@@ -589,7 +566,7 @@ novelty_data <- data_with_novelty
 novelty_data$Row.No <- row.names(novelty_data)
 novelty_data <- novelty_data %>% dplyr::select("Row.No","Cell.ID","Cell.Number","x","y","z")
 colnames(novelty_data) <- c("Row.No","Cell.ID","Segment.Child","x","y","z")
-Table(novelty_data,scroll = TRUE)
+displayTable(novelty_data,scroll = TRUE)
 ```
 
 ```{=html}
@@ -893,7 +870,7 @@ Let's see which cell and layer each point belongs to and check the Mean Absolute
 ```{r}
 act_pred <- new_score[["actual_predictedTable"]]
 rownames(act_pred) <- NULL
-act_pred %>% head(100) %>%as.data.frame() %>%Table(scroll = TRUE)
+act_pred %>% head(100) %>%as.data.frame() %>%displayTable(scroll = TRUE)
 ```
 
 ```{r,message=FALSE,warning=FALSE,fig.cap='Figure 16: Mean Absolute Difference',fig.width = 7, fig.height = 5}
