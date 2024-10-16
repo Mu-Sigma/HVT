@@ -78,7 +78,7 @@
 #' hvt.results <- trainHVT(EuStockMarkets, n_cells = 60, depth = 1, quant.err = 0.1, 
 #'                        distance_metric = "L1_Norm", error_metric = "max",
 #'                        normalize = TRUE,quant_method="kmeans")
-#' @include hvq.R getCellId.R madPlot.R
+#' @include hvq.R getCellId.R madPlot.R displayTable.R
 #' @include Add_boundary_points.R  Corrected_Tessellations.R  DelaunayInfo.R  Delete_Outpoints.R diagPlot.R
 #' @export trainHVT
 
@@ -668,6 +668,11 @@ trainHVT <-
       fin_out[[3]]$summary <- getCellId(hvt.results=fin_out)
       fin_out[[3]]$summary <- fin_out[[3]]$summary %>% select(Segment.Level, Segment.Parent, Segment.Child, n, Cell.ID, Quant.Error, colnames(dataset))
       
+      compression_summary_table <- displayTable(data = hvt.results[[3]]$compression_summary,
+                                                columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
+                                                value = 0.8, tableType = "compression")
+      print(compression_summary_table)
+      
       return(fin_out)
       
     } else { 
@@ -961,11 +966,16 @@ trainHVT <-
       # generating cell ID using getCellId
       fin_out[[3]]$summary <- getCellId(hvt.results=fin_out)
       fin_out[[3]]$summary <- fin_out[[3]]$summary %>% select(Segment.Level, Segment.Parent, Segment.Child, n, Cell.ID, Quant.Error, colnames(dataset))
+     
+      compression_summary_table <- knitr::kable(hvq_k$compression_summary, format = "html") %>%
+        kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+      
+      print(compression_summary_table)
+      
+      
       
       return(fin_out)
       
     }
-    
-    
   }
 

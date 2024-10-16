@@ -65,7 +65,7 @@ displayTable <- function(data, columnName = NULL, value = NULL, tableType = "sum
       
       # Ensure all numeric columns are rounded to 2 decimal places using dplyr's mutate and across
       data <- data %>%
-        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~round(., 2)))
+        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~round(., 4)))
       
       # Apply conditional coloring based on tableType and value
       # Apply conditional coloring based on tableType and value if columnName is provided

@@ -58,7 +58,6 @@ ul {
 
 
 
-
 # 1. Background
 
 The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps </a> for rich multivariate data analysis. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
@@ -229,8 +228,7 @@ The Scoring algorithm recursively calculates the distance between each point in 
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
 ```{r, warning = FALSE, message=FALSE}
-
-list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr", "HVT",  "data.table", "gridExtra","plyr")
+list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr",  "data.table", "gridExtra","plyr", "HVT")
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
   install.packages(new.packages, dependencies = TRUE, repos='https://cloud.r-project.org/')
@@ -565,7 +563,7 @@ We will pass the below mentioned model parameters along with torus training data
 * Dimensionality Reduction method = Sammon
 
 
-```{r torus hvt first,warning=FALSE,fig.show='hold',results='hide',message=FALSE}
+```{r torus hvt first,warning=FALSE,fig.show='hold',message=FALSE, results='asis'}
 hvt.torus <- trainHVT(
   torus_train,
   n_cells = 100,
@@ -578,12 +576,6 @@ hvt.torus <- trainHVT(
   dim_reduction_method = "sammon"
 )
 
-```
-
-Let's checkout the compression summary. 
-
-```{r compression summary torus first,warning=FALSE}
-displayTable(data = hvt.torus[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
 ```
 
 
@@ -610,7 +602,7 @@ Let's retry by increasing the n_cells parameter to 300 for torus training datase
 * Dimensionality Reduction method = Sammon
 
 
-```{r torus hvt second,warning=FALSE,fig.show='hold',results='hide',message=FALSE}
+```{r torus hvt second,warning=FALSE,fig.show='hold',message=FALSE, results='asis'}
 hvt.torus2 <- trainHVT(
   torus_train,
   n_cells = 300,
@@ -626,12 +618,6 @@ hvt.torus2 <- trainHVT(
 ```
 
 
-Let's checkout the compression summary again.
-
-```{r compression summary torus second,warning=FALSE}
-displayTable(data = hvt.torus2[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
-
-```
 **It can be observed from the table above that only 143 cells out of 300 i.e. `48%` of the cells reached the Quantization Error threshold. Therefore we can further subdivide the cells by increasing the n_cells parameters and then see if 80% compression is reached **
 
 ```{r, warning=FALSE,message=FALSE,fig.cap='Figure 5: Sammons 1D x Cell ID plot for layer 1 shown for the 300 cells in the torus training dataset',out.width="100%", out.height="60%"}
@@ -653,7 +639,7 @@ Since we are yet to achieve the compression of atleast 80%, lets try again by in
 * Dimensionality Reduction method = Sammon
 
 
-```{r torus hvt third ,warning=FALSE,fig.show='hold',results='hide',message=FALSE}
+```{r torus hvt third ,warning=FALSE,fig.show='hold',message=FALSE, results='asis'}
 set.seed(240)
 hvt.torus3 <- trainHVT(
   torus_train,
@@ -670,12 +656,6 @@ hvt.torus3 <- trainHVT(
 ```
 
 
-Let's check the compression summary for torus.
-
-```{r compression summary torus third,warning=FALSE}
-displayTable(data = hvt.torus3[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
-
-```
 
 **By increasing the number of cells to 500, we were successfully able to compress `90%` of the data, so we will not further subdivide the cells**
 
@@ -925,7 +905,7 @@ The parameters for the function `scoreHVT` are explained below:
 
 Now once we have built the model, let us try to score using our testing dataset (containing 2400 data points) which cell and which level each point belongs to.
 
-```{r scoreHVT torus,warning=FALSE,message=FALSE}
+```{r scoreHVT torus,warning=FALSE,message=FALSE, results='asis'}
 set.seed(240)
 scoring_torus <- scoreHVT(
   torus_test,
@@ -1149,7 +1129,7 @@ We will pass the below mentioned model parameters along with computers training 
 * Distance Metric = Euclidean
 * Dimensionality Reduction method = Sammon
 
-```{r level one computers,warning=FALSE,message=FALSE,results='asis'}
+```{r level one computers,warning=FALSE,message=FALSE, results='asis'}
 hvt.results <- trainHVT(trainComputers,   
                           n_cells = 300,
                           depth = 1,
@@ -1162,12 +1142,7 @@ hvt.results <- trainHVT(trainComputers,
 
 ```
 
-Now let's check the compression summary. The table below shows no of cells, no of cells having quantization error below threshold and percentage of cells having quantization error below threshold for each level.
 
-```{r compression summary level one computers,warning=FALSE}
-displayTable(data = hvt.results[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
-
-```
 
 
 **As it can be seen from the table above, __`91%`__ of the cells have reached the quantization threshold error. Since we are successfully able to attain the desired compression percentage, so we will not further subdivide the cells **
@@ -1376,7 +1351,7 @@ The parameters for the function `scoreHVT` are explained below:
 
 
 
-```{r scoreHVT hmap computers,warning=FALSE,message=FALSE}
+```{r scoreHVT hmap computers,warning=FALSE,message=FALSE, results='asis'}
 set.seed(240)
 scoring_comp <-scoreHVT(
   testComputers,

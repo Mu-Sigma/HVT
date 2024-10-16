@@ -508,7 +508,7 @@ We have passed the below mentioned model parameters along with depth=1, 2, 3 res
 
 **Performing t-SNE on the torus data using `trainHVT` function with depth=1**
 
-```{r tsne_example, message=FALSE, warning=FALSE, results="hide"}
+```{r tsne_example, message=FALSE, warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="tsne" and depth=1
   hvt_results_tsne1 <- trainHVT(
   dataset = torus_df1,
@@ -531,7 +531,7 @@ We have passed the below mentioned model parameters along with depth=1, 2, 3 res
 
 **Performing t-SNE on the torus data using `trainHVT` function with depth=2**
 
-```{r tsne_example2, message=FALSE, warning=FALSE, results="hide"}
+```{r tsne_example2, message=FALSE, warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="tsne" and depth=2
 hvt_results_tsne2 <- trainHVT(
   dataset = torus_df1,
@@ -554,7 +554,7 @@ hvt_results_tsne2 <- trainHVT(
 
 **Performing t-SNE on the torus data using `trainHVT` function with depth=3**
 
-```{r tsne_example3, message=FALSE, warning=FALSE, results="hide"}
+```{r tsne_example3, message=FALSE, warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="tsne" and depth=3
 hvt_results_tsne3 <- trainHVT(
   dataset = torus_df1,
@@ -718,7 +718,7 @@ We have passed the below mentioned model parameters along with depth=1, 2, 3 res
 
 **Performing UMAP on the torus data using `trainHVT` function with depth=1**
 
-```{r,message=FALSE,warning=FALSE, results='hide'}
+```{r,message=FALSE,warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="umap" and depth=1
 hvt_results_umap1 <- trainHVT(
   dataset = torus_df1,
@@ -738,7 +738,7 @@ hvt_results_umap1 <- trainHVT(
 
 **Performing UMAP on the torus data using `trainHVT` function with depth=2**
 
-```{r,message=FALSE,warning=FALSE, results='hide'}
+```{r,message=FALSE,warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="umap" and depth=2
 hvt_results_umap2 <- trainHVT(
   dataset = torus_df1,
@@ -758,7 +758,7 @@ hvt_results_umap2 <- trainHVT(
 
 **Performing UMAP on the torus data using `trainHVT` function with depth=3**
 
-```{r,message=FALSE,warning=FALSE, results='hide'}
+```{r,message=FALSE,warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="umap" and depth=3
 hvt_results_umap3 <- trainHVT(
   dataset = torus_df1,
@@ -919,7 +919,7 @@ We have passed the below mentioned model parameters along with depth=1, 2, 3 res
 
 **Performing Sammon's projection on the torus data using `trainHVT` function with depth=1**
 
-```{r,message=FALSE,warning=FALSE, results='hide'}
+```{r,message=FALSE,warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="sammon" and depth=1
 hvt_results_sammon1 <- trainHVT(
   dataset = torus_df1,
@@ -937,7 +937,7 @@ hvt_results_sammon1 <- trainHVT(
 
 **Performing Sammon's projection on the torus data using `trainHVT` function with depth=2**
 
-```{r,message=FALSE,warning=FALSE, results='hide'}
+```{r,message=FALSE,warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="sammon" and depth=2
 hvt_results_sammon2 <- trainHVT(
   dataset = torus_df1,
@@ -955,7 +955,7 @@ hvt_results_sammon2 <- trainHVT(
 
 **Performing Sammon's projection on the torus data using `trainHVT` function with depth=3**
 
-```{r,message=FALSE,warning=FALSE, results='hide'}
+```{r,message=FALSE,warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="sammon" and depth=3
 hvt_results_sammon3 <- trainHVT(
   dataset = torus_df1,
@@ -1160,7 +1160,7 @@ for dim_reduction_method = "umap",
 * umap_n_neighbors = 30,
 * umap_min_dist = 0.2
 
-```{r tsne_example1, message=FALSE, warning=FALSE, results="hide"}
+```{r tsne_example1, message=FALSE, warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="tsne", depth=1 and n_cells=100
 set.seed(123)
 hvt_results_tsne <- trainHVT(
@@ -1188,7 +1188,7 @@ displayTable(data = hvt_results_tsne[[3]][["compression_summary"]], tableType = 
   
 
 
-```{r,message=FALSE,warning=FALSE, results='hide'}
+```{r,message=FALSE,warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="umap", depth=1 and n_cells=100
 set.seed(123)
 hvt_results_umap <- trainHVT(
@@ -1212,7 +1212,7 @@ displayTable(data = hvt_results_umap[[3]][["compression_summary"]], tableType = 
   
 
 
-```{r,message=FALSE,warning=FALSE, results='hide'}
+```{r,message=FALSE,warning=FALSE}
 # Apply trainHVT to the simulated data with dim_reduction_method="sammon", depth=1 and n_cells=100
 set.seed(123)
 hvt_results_sammon <- trainHVT(

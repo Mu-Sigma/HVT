@@ -1047,7 +1047,7 @@ visualizing the output can be found
 In the section below, we build a Level 1 HVT model. The number of
 cells (`n_cells`) is set to 500.
 
-```{r level one sample data,warning=FALSE,message=FALSE,echo=TRUE,class.source = 'fold-show', results='hide'}
+```{r level one sample data,warning=FALSE,message=FALSE,echo=TRUE,class.source = 'fold-show'}
 hvt.results <-trainHVT(dataset_updated_train,
                           n_cells = 500,
                           depth = 1,

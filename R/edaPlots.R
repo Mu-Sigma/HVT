@@ -23,12 +23,9 @@
 #' @export edaPlots
 
 
-edaPlots <- function(df, time_column, output_type = NULL, n_cols = 2) {
+edaPlots <- function(df, time_column, output_type = "summary", n_cols = 3) {
   
-  if(is.null(output_type)){
-    stop("output_type argument is not provided")
-  }
-  
+ 
   a <- ncol(df)
   if(n_cols == 0 || n_cols > a){
     stop(paste0("n_cols argument should be from 1 to ", a))  }
@@ -46,12 +43,11 @@ edaPlots <- function(df, time_column, output_type = NULL, n_cols = 2) {
     result <- df %>%
       select(where(is.numeric)) %>%
       skimr::skim() %>%
-      mutate(across(where(is.numeric), ~round(., 4))) %>%
       rename_with(~sub("^(skim_|numeric\\.)", "", .)) %>%
       select(-type, -n_missing, -complete_rate) %>%
       mutate(n_row = format(nrow(df), scientific = FALSE), n_missing = missing_counts_vector) %>%
       dplyr::rename(min = p0, `1st Quartile` = p25, median = p50, `3rd Quartile` = p75, max = p100) %>%
-      dplyr::select(variable, min, `1st Quartile`, median, mean, sd, `3rd Quartile`, max, hist,n_row, n_missing)
+      dplyr::select(variable, min, `1st Quartile`, median, mean, sd, `3rd Quartile`, max, hist,n_row, n_missing) 
     
     calculate_dynamic_length_menu <- function(total_entries, base_step = 100) {
       max_option <- ceiling(total_entries / base_step) * base_step
@@ -207,7 +203,7 @@ edaPlots <- function(df, time_column, output_type = NULL, n_cols = 2) {
 
     #output_list <- list()
     
-    if (output_type == "summary") {
+    if (output_type == "summary")  {
       eda_table <- summary_eda(df)
       return( eda_table)
     }
