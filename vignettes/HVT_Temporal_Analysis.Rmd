@@ -351,7 +351,7 @@ We will use the `trainHVT` function to compress our dataset while preserving ess
 
 **NOTE:** *The compression takes place only for the X, Y and Z coordinates and not for U(velocity) and t(Timestamp). After training & Scoring, we merge back the U and t columns with the dataset.*
 
-```{r ,warning=FALSE,fig.show='hold',results='hide',message=FALSE}
+```{r ,warning=FALSE,fig.show='hold',message=FALSE}
 hvt.results <- trainHVT(
   trainDataset[,-c(4:5)],
   n_cells = 100,

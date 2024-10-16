@@ -181,7 +181,7 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
 ```{r, warning=FALSE, message=FALSE}
-list.of.packages <- c("dplyr","magrittr", "ggplot2", "kableExtra", "gridExtra","grid", "httr", "stats", 
+list.of.packages <- c("HVT", "dplyr","magrittr", "ggplot2", "kableExtra", "gridExtra","grid", "httr", "stats", 
                       "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly", "tidyr",
                       "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable")
 
@@ -683,7 +683,7 @@ edaPlots(dataset, output_type = "correlation",n_cols = 10)
 ### Summary Table 
 
 ```{r summary, figures-side, fig.show="hold", warning=FALSE, message=FALSE}
-#edaPlots(dataset, output_type = "summary", n_cols = 1536)
+edaPlots(dataset, output_type = "summary", n_cols = 1536)
 ```
 
 </br>
@@ -813,7 +813,7 @@ The error metric can be `mean` or `max`. For a specified number of cells, each c
 - Dimensionality Reduction method = Sammons
 
 
-```{r sammons, warning=FALSE, message=FALSE, results='hide'}
+```{r sammons, warning=FALSE, message=FALSE}
 hvt.results <- trainHVT(dataset, n_cells = 110, depth = 1, quant.err = 0.6, 
                         distance_metric = "L1_Norm", error_metric = "mean",
                         normalize = TRUE, quant_method="kmeans", dim_reduction_method = "sammon")
@@ -960,7 +960,7 @@ The [Function for generating Heatmaps for each column of a dataset](#function-fo
 
 ```{r tabset1, figures-side, fig.show="hold", fig.height=2, fig.width =3.1, warning=FALSE}
 no_of_cols <- 1:17
-#plot_columns(dataset, no_of_cols, hvt.results)
+plot_columns(dataset, no_of_cols, hvt.results)
 ```
 
 
@@ -975,7 +975,7 @@ no_of_cols <- 1:17
 
 ```{r tabset2, figures-side, fig.show="hold",  fig.height=2, fig.width =3.1, warning=FALSE}
 no_of_cols <- 18:34
-#plot_columns(dataset, no_of_cols, hvt.results)
+plot_columns(dataset, no_of_cols, hvt.results)
 ```
 
 
@@ -989,7 +989,7 @@ no_of_cols <- 18:34
 
 ```{r tabset3, figures-side, fig.show="hold",  fig.height=2, fig.width =3.1, warning=FALSE}
 no_of_cols <- 35:50
-#plot_columns(dataset, no_of_cols, hvt.results)
+plot_columns(dataset, no_of_cols, hvt.results)
 ```
 
 ### 6.2.5 plotHVT - 2D Interactive surface plot
