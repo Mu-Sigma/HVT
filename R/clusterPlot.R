@@ -1,4 +1,4 @@
-#' @name clustPlot
+#' @name clusterPlot
 
 clusterPlot <- function(dataset, hvt.results, domains.column)
   suppressWarnings({

@@ -198,28 +198,7 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 In this section, we are establishing all the functions that will be utilized in this notebook. The detailed explanation follows below:
 
-### 1. Function for generating display table in this notebook
-
-This is a function used to create tables to display dataframes in this notebook.
-```{r}
-scrollLimit <- function(noOfRows){
-  if(noOfRows<10){
-    swe = paste(as.character(noOfRows*50),"px")}
-  else{
-    swe = "400px"}
-  return(swe)}
-
-Table <- function(data,scroll = F, limit = NULL){
-  if(!is.null(limit)){
-    data <- head(data,limit)}
-kable_table <- data %>% kable(escape = F,align = "c") %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
-if(scroll == T){
-kable_table <- kable_table %>% scroll_box(width = "100%" , height = scrollLimit(nrow(data)))}
-return(kable_table)}
-```
-
-
-### 2. Function to Merge and Slice the data
+### 1. Function to Merge and Slice the data
 
 This function combines multiple CSV files (tweet csvs of each celebrities or influencers) in a directory to a single data frame, and slice the first 3 tweets per celebrity or influencer. It's used in [section 4](#dataset-understanding) as a first part of data processing.
 
@@ -243,7 +222,7 @@ merge_and_slice_data <- function(directory,output_path, num_users = 915) {
 }
 ```
 
-### 3. Function to clean the twitter data
+### 2. Function to clean the twitter data
 
 This is a python function used in **Twitter data processing notebook from  <a href="https://www.kaggle.com/code/ahmedshahriarsakib/twitter-celebrity-matcher-sbert-tweepy#4-Data-Preparation" target="_blank">kaggle</a>** to clean the data by removing the urls, retweet tags, convert the emoji to text and all the basic text cleaning process. It's used in [section 4](#dataset-understanding) as a second part of data processing.
 
@@ -337,7 +316,7 @@ def preprocess_twitter_data(input_path: str = None, output_path: str = None, df:
 ```
 
 
-### 4. Function for generating embeddings from textual data using OpenAI
+### 3. Function for generating embeddings from textual data using OpenAI
 
 This is the function used in [section 4](#dataset-understanding) to create embeddings from a textual tweets. This function uses **Open-AI's text-embedding-ada-002** model to create **1536 dimensional embedding space**. The output numerical embeddings data will be stored as a csv file in the given 'output_path' argument. 
 
@@ -394,7 +373,7 @@ create_embeddings <- function(input_path, output_path, api_key = Sys.getenv("OPE
 ```
 
 
-### 5. Function for generating Heatmaps for each column of a dataset
+### 4. Function for generating Heatmaps for each column of a dataset
 
 This is the function used in [section 6.2](#visualizing-using-plothvt) to plot the Heatmaps from the columns 1 to 50 of the dataset.
 
@@ -408,7 +387,7 @@ plot_columns <- function(dataset, no_of_cols, hvt.results) {
   invisible(plots)}
 ```
 
-### 6. Function for writing clusters as .txt files
+### 5. Function for writing clusters as .txt files
 
 This is the function used in [section 8](#hierarchical-clustering) before making an API call for the cluster's data. This function takes the tweets from each cluster and write it as .txt file externally which is later read while making the API call. 
 
@@ -432,7 +411,7 @@ create_and_write_clusters <- function(cluster_numbers, cluster_method) {
   }))}
 ```
 
-### 7. Function for making OpenAI-API Call to generate domain names
+### 6. Function for making OpenAI-API Call to generate domain names
 
 This is the function used in [section 8](#hierarchical-clustering) that runs the chat completions API to **OpenAI's gpt-3.5-turbo model** where the content of each cluster is provided in the prompt, and the model is requested to generate a domain name for each cluster. This API call runs 10 iterations per cluster, to generate the domain names and provide the highly repeated value/domain name for that cluster.
 
@@ -502,7 +481,7 @@ get_cluster_domains <- function(k, iterations = 10) {
 
   mode_results <- sapply(results, get_mode)
   results <- rbind(results, Mode = mode_results)
-  formatted_table <- Table(results, scroll = TRUE)
+  formatted_table <- displayTable(results, scroll = TRUE)
   return(list(raw_data = results, formatted_table = formatted_table, mode = mode_results))
 }
 ```
@@ -543,7 +522,7 @@ preprocessed_data = preprocess_twitter_data( input_path='./twitter_data/sliced_d
 ```{r}
 selected_csv <- read.csv("./twitter_data/selected_data.csv")
 selected_csv <- selected_csv[,-1] #removing the s.no column
-Table(selected_csv[1:10,])
+displayTable(selected_csv[1:10,])
 ```
 
 
@@ -582,7 +561,7 @@ Here we load the generated embeddings dataset. Below is a table displaying the f
 
 ```{r}
 data <- read.csv("./twitter_data/final_embeddings.csv")
-Table(data[1:10,], scroll = T)
+displayTable(data[1:10,], scroll = T)
 ```
 
 
@@ -615,7 +594,7 @@ The dimension of `dataset_raw` is 297 rows and 1538 columns (1536 numerical + 2 
 
 Here we are displaying the `dataset_raw` with the first 10 rows and 1538 columns.
 ```{r}
-Table(dataset_raw[1:10,], scroll = T)
+displayTable(dataset_raw[1:10,], scroll = T)
 ```
 
 
@@ -629,7 +608,7 @@ The dimension of `dataset` is 297 rows and 1536 columns (only numerical).
 
 Here we are displaying `dataset` with the first 10 rows and 1536 columns.
 ```{r}
-Table(dataset[1:10,],scroll = T)
+displayTable(dataset[1:10,],scroll = T)
 ```
 
 
@@ -1145,7 +1124,7 @@ Let's look at the scored data table. For the sake of brevity we are displaying t
 ```{r}
 Act_pred_Table <- scoring[["scoredPredictedData"]]
 rownames(Act_pred_Table) <- NULL
-Act_pred_Table[1:10,]  %>%as.data.frame() %>%Table(scroll = TRUE) 
+Act_pred_Table[1:10,]  %>%as.data.frame() %>%displayTable(scroll = TRUE) 
 ```
 
 
@@ -1251,7 +1230,7 @@ dim(hclust_data_1)
 The data has 110 rows and 2 columns (x and y coordinates). Let's have a look at the data.
 
 ```{r}
-Table(hclust_data_1, scroll = T)
+displayTable(hclust_data_1, scroll = T)
 ```
 
 ### 8.2.2 Clustering Analysis
@@ -1437,7 +1416,7 @@ The dimension of the centroid data is 110 rows and 1538 columns (1536 columns + 
 Let's have a look at the data. For the sake of brevity, we are displaying only the first 10 rows and all the 1538 columns.
 
 ```{r}
-Table(hclust_data_2[1:10,], scroll = T)
+displayTable(hclust_data_2[1:10,], scroll = T)
 ```
 
 ### 8.3.2 Clustering Analysis
