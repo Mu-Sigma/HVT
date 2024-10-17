@@ -71,7 +71,7 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
 ```{r, warning=FALSE, message=FALSE}
-list.of.packages <- c("plyr", "dplyr", "reactable", "kableExtra", "geozoo", "plotly", "purrr", "HVT", "data.table", "gridExtra", "tidyr")
+list.of.packages <- c("plyr", "dplyr", "reactable", "kableExtra", "geozoo", "plotly", "purrr", "data.table", "gridExtra", "tidyr","HVT")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
@@ -107,7 +107,7 @@ torus <- geozoo::torus(p = 3,n = 12000)
 torus_df <- data.frame(torus$points)
 colnames(torus_df) <- c("x","y","z")
 torus_df <- torus_df %>% round(4)
-displayTable(head(torus_df), scroll = FALSE)
+displayTable(head(torus_df))
 ```
 
 
@@ -178,7 +178,7 @@ Now, lets have a look at the selected **training dataset** containing (9600 data
 
 ```{r torus head, warning=FALSE}
 rownames(torus_train) <- NULL
-displayTable(head(torus_train), scroll= FALSE)
+displayTable(head(torus_train))
 ```
 
 Now lets have a look at **structure** of the training dataset.
@@ -212,7 +212,7 @@ Now, lets have a look at **testing dataset containing(2400 data points)**.For th
 
 ```{r torus 2 head, warning=FALSE,message=FALSE}
 rownames(torus_test) <- NULL
-displayTable(head(torus_test), scroll = FALSE)
+displayTable(head(torus_test))
 ```
 
 Now lets have a look at **structure** of the testing dataset.
@@ -379,14 +379,13 @@ torus_mapA <- trainHVT(
   quant_method = "kmeans",
   dim_reduction_method = "sammon"
 )
-
 ```
 
 
 Let's check the compression summary for torus.
 
 ```{r compression summary torus third,warning=FALSE}
-displayTable(data = torus_mapA[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
+displayTable(data = torus_mapA[[3]]$compression_summary)
 ```
 
 We successfully compressed 90% of the data using n_cells parameter as 500, the next step involves performing data projection on the compressed data. In this step, the compressed data will be transformed and projected onto a lower-dimensional space to visualize and analyze the data in a more manageable form.
@@ -396,7 +395,7 @@ As per the manual, **`torus_mapA[[3]]`** gives us detailed information about the
 The datatable displayed below is the **summary from torus_mapA** showing Cell.ID, Centroids and Quantization Error for each of the 500 cells. For the sake of brevity, we are displaying only the first 100 rows.
 
 ```{r hvt_mapA display results, warning=FALSE, echo=TRUE}
-displayTable(data =torus_mapA[[3]][['summary']], columnName= 'Quant.Error', value = 0.1, tableType = "summary", scroll = TRUE)
+displayTable(data =torus_mapA[[3]][['summary']])
 
 ```
 
@@ -425,8 +424,6 @@ plotHVT <-(hvt.results, line.width, color.vec, pch1, centroid.size,
            quant.error.hmap, n_cells.hmap, label.size, 
            sepration_width, layer_opacity, cell_id,
            dim_size, plot.type = '2Dhvt')
-
-
 ```
 
 *  **`hvt.results`** - (1D/2Dproj/2Dhvt/2Dheatmap/surface_plot)  A list obtained from the trainHVT function while performing hierarchical vector quantization on training dataset. This list provides an overview of the hierarchical vector quantized data, including diagnostics, tessellation details, Sammon's projection coordinates, and model input information.
@@ -486,7 +483,6 @@ The heatmaps displayed below provides a visual representation of the spatial cha
 
 
 ```{r hvt_mapA hmp level x torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 4: The Voronoi Tessellation with the heat map overlaid for variable ’x’ in the ’torus’ dataset',fig.width = 7, fig.height = 5}
-
   plotHVT(
   torus_mapA,
   child.level = 1,
@@ -494,13 +490,10 @@ The heatmaps displayed below provides a visual representation of the spatial cha
   line.width = c(0.2),
   color.vec = c("navy blue"),
   centroid.size = 0.1,
-  plot.type = '2Dheatmap'
-) 
-
+  plot.type = '2Dheatmap') 
 ```
 
 ```{r hvt_mapA hmp level y torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 5: The Voronoi Tessellation with the heat map overlaid for variable ’y’ in the ’torus’ dataset',fig.width = 7, fig.height = 5}
-
   plotHVT(
   torus_mapA,
   child.level = 1,
@@ -508,14 +501,10 @@ The heatmaps displayed below provides a visual representation of the spatial cha
   line.width = c(0.2),
   color.vec = c("navy blue"),
   centroid.size = 0.1,
-  plot.type = '2Dheatmap'
-) 
-
+  plot.type = '2Dheatmap') 
 ```
 
 ```{r hvt_mapA hmp level z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 6: The Voronoi Tessellation with the heat map overlaid for variable ’z’ in the ’torus’ dataset',fig.width = 7, fig.height = 5}
-
-
   plotHVT(
   torus_mapA,
   child.level = 1,
@@ -523,9 +512,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
   line.width = c(0.2),
   color.vec = c("navy blue"),
   centroid.size = 0.1,
-  plot.type = '2Dheatmap'
-) 
-
+  plot.type = '2Dheatmap') 
 ```
 
 
@@ -566,7 +553,7 @@ novelty_data <- data_with_novelty
 novelty_data$Row.No <- row.names(novelty_data)
 novelty_data <- novelty_data %>% dplyr::select("Row.No","Cell.ID","Cell.Number","x","y","z")
 colnames(novelty_data) <- c("Row.No","Cell.ID","Segment.Child","x","y","z")
-displayTable(novelty_data,scroll = TRUE)
+displayTable(novelty_data)
 ```
 
 ```{=html}
@@ -616,13 +603,13 @@ torus_mapB <- trainHVT(data_with_novelty,
 The datatable displayed below is the **summary from map B (layer 2)** showing Cell.ID, Centroids and Quantization Error for each of the 11 cells.
 
 ```{r, message=FALSE,warning=FALSE}
-displayTable(data =torus_mapB[[3]][['summary']], columnName= 'Quant.Error', value = 0.1, tableType = "summary")
+displayTable(data =torus_mapB[[3]][['summary']])
 ```
 
 Now let's check the compression summary for HVT (torus_mapB). The table below shows no of cells, no of cells having quantization error below threshold and percentage of cells having quantization error below threshold for each level.
 
 ```{r hvt_map_B compression summary,warning=FALSE}
-displayTable(data = torus_mapB[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
+displayTable(data = torus_mapB[[3]]$compression_summary)
 ```
 
 **As it can be seen from the table above, `91%`** of the cells have hit the quantization threshold error.Since we are successfully able to attain the desired compression percentage, so we will not further subdivide the cells
@@ -665,8 +652,7 @@ torus_mapC <- trainHVT(dataset  = data_without_novelty,
 Now let's check the compression summary for HVT (torus_mapC) where n_cell was set to 15. The table below shows no of cells, no of cells having quantization error below threshold and percentage of cells having quantization error below threshold for each level.
 
 ```{r hvt_map_C compression summary,warning=FALSE}
-displayTable(data = torus_mapC[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
-
+displayTable(data = torus_mapC[[3]]$compression_summary)
 ```
 
 **As it can be seen from the table above, `0%`** of the cells have hit the quantization threshold error in level 1 and **`0%`** of the cells have hit the quantization threshold error in level 2
@@ -700,13 +686,13 @@ torus_mapC <- trainHVT(data_without_novelty,
 The datatable displayed below is the **summary from map C (layer2)**. showing Cell.ID, Centroids and Quantization Error.
 
 ```{r,message=FALSE,warning=FALSE}
-displayTable(data =torus_mapC[[3]][['summary']], columnName= 'Quant.Error', value = 0.1, tableType = "summary", scroll = T)
+displayTable(data =torus_mapC[[3]][['summary']])
 ```
 
 Now let's check the **compression summary** for HVT (torus_mapC). The table below shows no of cells, no of cells having quantization error below threshold and percentage of cells having quantization error below threshold for each level.
 
 ```{r hvt_mapC compression summary,warning=FALSE}
-displayTable(data = torus_mapC[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
+displayTable(data = torus_mapC[[3]]$compression_summary)
 ```
 
 **As it can be seen from the table above, `0%`** of the cells have hit the quantization threshold error in level 1 and **`83%`** of the cells have hit the quantization threshold error in level 2
@@ -742,9 +728,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
   line.width = c(0.2,0.1),
   color.vec = c("navyblue","steelblue"),
   centroid.size = 0.1,
-  plot.type = '2Dheatmap'
-) 
-
+  plot.type = '2Dheatmap') 
 ```
 
 
@@ -758,9 +742,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
   line.width = c(0.2,0.1),
   color.vec = c("navyblue","steelblue"),
   centroid.size = 0.1,
-  plot.type = '2Dheatmap'
-) 
-
+  plot.type = '2Dheatmap') 
 ```
 
 ```{r hvt_mapC hmp level one z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 14: The Voronoi Tessellation with the heat map overlaid for feature `z` in the ’torus’ dataset',fig.width = 7, fig.height = 5}
@@ -772,9 +754,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
   line.width = c(0.2,0.1),
   color.vec = c("navyblue","steelblue"),
   centroid.size = 0.1,
-  plot.type = '2Dheatmap'
-) 
-
+  plot.type = '2Dheatmap') 
 ```
 
 
@@ -861,20 +841,17 @@ new_score <- scoreLayeredHVT(
     hvt_mapA = torus_mapA,
     hvt_mapB = torus_mapB,
     hvt_mapC = torus_mapC,
-    normalize = FALSE
-  )
+    normalize = FALSE )
 ```
 
 Let's see which cell and layer each point belongs to and check the Mean Absolute Difference for each of the **2400 records**. For the sake of brevity, we are only displaying the first 100 rows.
 
 ```{r}
-act_pred <- new_score[["actual_predictedTable"]]
-rownames(act_pred) <- NULL
-act_pred %>% head(100) %>%as.data.frame() %>%displayTable(scroll = TRUE)
+displayTable(new_score[["actual_predictedTable"]])
 ```
 
 ```{r,message=FALSE,warning=FALSE,fig.cap='Figure 16: Mean Absolute Difference',fig.width = 7, fig.height = 5}
-hist(act_pred$diff, breaks = 30, col = "blue", main = "Mean Absolute Difference", xlab = "Difference")
+hist(new_score[["actual_predictedTable"]]$diff, breaks = 30, col = "blue", main = "Mean Absolute Difference", xlab = "Difference")
 ```
 
 # 8. Executive Summary

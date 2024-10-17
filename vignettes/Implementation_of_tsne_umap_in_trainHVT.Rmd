@@ -232,7 +232,8 @@ These six metrics are organized into three main categories. Below is a brief ove
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
 ```{r lib, warning=FALSE, message=FALSE,error=FALSE}
-list.of.packages <- c("DT","plotly", "magrittr", "data.table", "tidyverse", "crosstalk", "kableExtra", "cowplot","gdata","tidyverse", "ggplot2", "gridExtra","tibble", "HVT")
+list.of.packages <- c("DT","plotly", "magrittr", "data.table", "tidyverse", "crosstalk",
+                      "kableExtra", "cowplot","gdata","tidyverse", "ggplot2", "gridExtra","tibble","HVT")
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages)){install.packages(new.packages, repos='https://cloud.r-project.org/')}
@@ -276,7 +277,7 @@ torus_df1 <- torus_df %>% round(4)
 colnames(torus_df1) <- c("x","y","z")
 torus_df1$Row.No <- as.numeric(row.names(torus_df))
 torus_df1 <- torus_df1 %>% dplyr::select(x,y,z)
-displayTable(head(torus_df1, 10), scroll = FALSE)
+displayTable(head(torus_df1, 10))
 ```
 
 Now, let’s try to visualize the torus dataset in 3D.
@@ -1183,7 +1184,7 @@ hvt_results_tsne <- trainHVT(
 
 Compression summary
 ```{r}
-displayTable(data = hvt_results_tsne[[3]][["compression_summary"]], tableType = "compression")
+displayTable(hvt_results_tsne[[3]][["compression_summary"]])
 ```
   
 
@@ -1207,7 +1208,7 @@ hvt_results_umap <- trainHVT(
 
 Compression summary
 ```{r}
-displayTable(data = hvt_results_umap[[3]][["compression_summary"]], tableType = "compression")
+displayTable(hvt_results_umap[[3]][["compression_summary"]])
 ```
   
 
@@ -1230,7 +1231,7 @@ hvt_results_sammon <- trainHVT(
 
 Compression summary
 ```{r}
-displayTable(data = hvt_results_sammon[[3]][["compression_summary"]], tableType = "compression")
+displayTable(hvt_results_sammon[[3]][["compression_summary"]])
 ```
   
 
@@ -1425,7 +1426,7 @@ metrics_table <- data.frame(
   UMAP = c(metrics_table_umap[1], metrics_table_umap[2], metrics_table_umap[3], metrics_table_umap[4], umap_score,"NA", metrics_table_umap[5], metrics_table_umap[6],metrics_table_umap[7]),
   Sammon = c(metrics_table_sammon[1], metrics_table_sammon[2], metrics_table_sammon[3], metrics_table_sammon[4], sammon_score, "NA",metrics_table_sammon[5], metrics_table_sammon[6], metrics_table_sammon[7])
 )
-displayTable(data = metrics_table,tableType= "metrics")
+displayTable(data = metrics_table)
 
 ```
 

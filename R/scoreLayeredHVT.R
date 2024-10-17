@@ -260,9 +260,9 @@ scoreLayeredHVT <- function(data,
     predictLayer_Output = scoredPredictionsData_CellID,
     actual_predictedTable = df_reordered
   )
-  summary_table <- displayTable(df_reordered, scroll = TRUE, limit = 100)
+  #summary_table <- displayTable(df_reordered, scroll = TRUE, limit = 100)
   
-  print(summary_table)
+  #print(summary_table)
 
   return(prediction_list)
 }

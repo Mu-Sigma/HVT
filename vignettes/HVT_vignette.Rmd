@@ -228,7 +228,7 @@ The Scoring algorithm recursively calculates the distance between each point in 
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
 ```{r, warning = FALSE, message=FALSE}
-list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr",  "data.table", "gridExtra","plyr", "HVT")
+list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr",  "data.table", "gridExtra","plyr","HVT")
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
   install.packages(new.packages, dependencies = TRUE, repos='https://cloud.r-project.org/')
@@ -578,6 +578,9 @@ hvt.torus <- trainHVT(
 
 ```
 
+```{r}
+displayTable(hvt.torus[[3]]$compression_summary)
+```
 
 **As it can be seen from the table above, none of the 100 cells have reached the quantization threshold error. Therefore we can further subdivide the cells by increasing the n_cells parameters and then see if desired compression (80%) is reached**
 
@@ -617,6 +620,9 @@ hvt.torus2 <- trainHVT(
 
 ```
 
+```{r}
+displayTable(hvt.torus2[[3]]$compression_summary)
+```
 
 **It can be observed from the table above that only 143 cells out of 300 i.e. `48%` of the cells reached the Quantization Error threshold. Therefore we can further subdivide the cells by increasing the n_cells parameters and then see if 80% compression is reached **
 
@@ -655,7 +661,9 @@ hvt.torus3 <- trainHVT(
 
 ```
 
-
+```{r}
+displayTable(hvt.torus3[[3]]$compression_summary)
+```
 
 **By increasing the number of cells to 500, we were successfully able to compress `90%` of the data, so we will not further subdivide the cells**
 
@@ -923,16 +931,12 @@ Let's see which cell and level each point belongs to and check the mean absolute
 
 
 ```{r}
-Act_pred_Table <- scoring_torus[["scoredPredictedData"]]
-rownames(Act_pred_Table) <- NULL
-Act_pred_Table %>% head(100) %>%as.data.frame() %>%displayTable(scroll = TRUE, limit = 100)
+displayTable(scoring_torus[["scoredPredictedData"]])
 ```
 
 
 ```{r, warning=FALSE,message=FALSE,fig.cap='Figure 17: Mean Absolute Difference', fig.width=7, fig.height=5}
-hist(Act_pred_Table$diff, breaks = 20, col = "blue", main = "Mean Absolute Difference", xlab = "Difference",xlim = c(0,0.20), ylim = c(0,500))
-
-
+hist(scoring_torus[["actual_predictedTable"]]$diff, breaks = 20, col = "blue", main = "Mean Absolute Difference", xlab = "Difference",xlim = c(0,0.20), ylim = c(0,500))
 ```
 
 # 8. Example II: HVT with the Personal Computer dataset
@@ -1143,6 +1147,9 @@ hvt.results <- trainHVT(trainComputers,
 ```
 
 
+```{r}
+displayTable(hvt.results[[3]]$compression_summary)
+```
 
 
 **As it can be seen from the table above, __`91%`__ of the cells have reached the quantization threshold error. Since we are successfully able to attain the desired compression percentage, so we will not further subdivide the cells **
@@ -1156,7 +1163,7 @@ The datatable displayed below is the summary from hvt.results showing Cell.IDs, 
 For the sake of brevity, we are displaying only the first 100 rows.
 
 ```{r summary level one computers,warning=FALSE}
-displayTable(data =hvt.results[[3]][['summary']], columnName= 'Quant.Error', value = 0.2, tableType = "summary", scroll = TRUE)
+displayTable(data =hvt.results[[3]][['summary']])
 
 ```
 
@@ -1372,14 +1379,12 @@ scoring_comp <-scoreHVT(
 Let's see which cell and level each point belongs to and check the mean absolute difference of each of the **1252 records**. For the sake of brevity, we will only show the first 100 rows.
 
 ```{r}
-Act_pred_Table <- scoring_comp[["actual_predictedTable"]]
-rownames(Act_pred_Table) <- NULL
-Act_pred_Table %>% head(100) %>%as.data.frame() %>%displayTable(scroll = TRUE, limit = 100)
+displayTable(scoring_comp[["scoredPredictedData"]])
 ```
 
 
 ```{r,message=FALSE,warning=FALSE,fig.cap='Figure 27: Mean Absolute Difference', fig.width=7, fig.height=5}
-hist(Act_pred_Table$diff, breaks = 20, col = "blue", main = "Mean Absolute Difference", xlab = "Difference",xlim = c(0,0.6), ylim = c(0,250))
+hist(scoring_comp[["actual_predictedTable"]]$diff, breaks = 20, col = "blue", main = "Mean Absolute Difference", xlab = "Difference",xlim = c(0,0.6), ylim = c(0,250))
 ```
 
 # 9. Executive Summary

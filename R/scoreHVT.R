@@ -695,9 +695,9 @@ if(analysis.plots) {
   prediction_list$model_mad_plots <- model_mad_plots
   
   
-  summary_table <- displayTable(predict_test_data3, scroll = TRUE, limit = 100)
+  #summary_table <- displayTable(predict_test_data3, scroll = TRUE, limit = 100)
   
-  print(summary_table)
+ # print(summary_table)
 
   return(prediction_list)
 }

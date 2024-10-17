@@ -668,10 +668,10 @@ trainHVT <-
       fin_out[[3]]$summary <- getCellId(hvt.results=fin_out)
       fin_out[[3]]$summary <- fin_out[[3]]$summary %>% select(Segment.Level, Segment.Parent, Segment.Child, n, Cell.ID, Quant.Error, colnames(dataset))
       
-      compression_summary_table <- displayTable(data = hvt.results[[3]]$compression_summary,
-                                                columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
-                                                value = 0.8, tableType = "compression")
-      print(compression_summary_table)
+     # compression_summary_table <- displayTable(data = hvq_k$compression_summary,
+                                               # columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
+                                               # value = 0.8, tableType = "compression")
+      #print(compression_summary_table)
       
       return(fin_out)
       
@@ -967,10 +967,12 @@ trainHVT <-
       fin_out[[3]]$summary <- getCellId(hvt.results=fin_out)
       fin_out[[3]]$summary <- fin_out[[3]]$summary %>% select(Segment.Level, Segment.Parent, Segment.Child, n, Cell.ID, Quant.Error, colnames(dataset))
      
-      compression_summary_table <- knitr::kable(hvq_k$compression_summary, format = "html") %>%
-        kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+      #compression_summary_table  <- displayTable(data = hvq_k$compression_summary,
+                                              #  columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
+                                               # value = 0.8, tableType = "compression")
+
       
-      print(compression_summary_table)
+     # print(compression_summary_table)
       
       
       
