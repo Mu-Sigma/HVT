@@ -61,33 +61,7 @@ img {
 }
 ```
 
-```{r setup, warning = FALSE,echo=FALSE}
-knitr::opts_chunk$set(echo = TRUE,
-                      collapse = FALSE,
-                      message = FALSE,
-                      warning = FALSE,
-                      comment = NA)
 
-
-options=list(paging = TRUE,       # Paging of the data table
-escape = FALSE, 
-scrollX = TRUE,      # Horizontal scroll for the tables
-searching = FALSE, # Search option at each column
-lengthChange = FALSE,
-      dom = 'prlti',
-      initComplete = DT::JS(
-        "function(settings, json) {",
-        "$(this.api().table().header()).css({'font-size': '14px',
-                                                        'background-color': '#8b9194', 'color': '#fff'});",
-        "}"
-      ),
-      columnDefs = list(list(
-        className = 'dt-center', targets = "_all"
-      )),
-      autowidth = TRUE
-    )
-
-```
 
 # 1. Abstract
 
@@ -299,7 +273,7 @@ the parent polygon. This is done for all the subsequent levels.
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
 ```{r, message=FALSE, warning=FALSE}
-list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr", "HVT", "DT")
+list.of.packages <- c("dplyr","HVT", "kableExtra", "geozoo", "plotly", "purrr", "DT")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
@@ -309,6 +283,7 @@ if (length(new.packages))
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
+
 
 
 
@@ -369,7 +344,7 @@ colnames(dataset_updated) <- c("x","y","z")
     paste0( "Dataset having ", nrow(dataset_updated), " row(s) and ", ncol(dataset_updated), " column(s)",  "simulated successfully. ") %>% cat("\n")  
     dataset_updated <- dataset_updated %>% mutate_if(is.numeric, round, digits = 4) 
     paste0("Code chunk executed successfully. The table below is showing first 10 row(s) of the dataset.") %>% cat("\n")
-    dataset_updated %>% head(10) %>%as.data.frame() %>%displayTable(limit = 10)
+    dataset_updated %>% head(10) %>%as.data.frame() %>%displayTable()
   }
 }
 ```
@@ -534,9 +509,9 @@ cat_cols <- colnames( dataset_updated)[unlist(sapply( dataset_updated,
 
 ### Removing Date Column from the list of categorical column
 paste0("Code chunk executed successfully, list of numeric and categorical variables created.") %>% cat()
-paste0("\n\n Numerical Column(s): \n Count : ", length(numeric_cols), "\n") %>% cat()
+paste0("Numerical Column(s): \n Count : ", length(numeric_cols), "\n") %>% cat()
 paste0(numeric_cols) %>% print()
-paste0("\n Categorical Column(s): \n Count : ", length(cat_cols), "\n") %>% cat()
+paste0("Categorical Column(s): \n Count : ", length(cat_cols), "\n") %>% cat()
 paste0(cat_cols) %>% print()
 ```
 
@@ -782,7 +757,7 @@ data <- dataset_updated %>% dplyr::summarise_if(is.numeric, var) %>% t() %>%
   data.frame() %>% round(3) #%>% DT::datatable(colnames = "Variance")
 
 colnames(data) <- c("Variance")
-displayTable(data,scroll = TRUE, limit = 20)
+displayTable(data)
 
 ```
 
@@ -805,9 +780,7 @@ nums <- colnames(dataset_updated)[unlist(lapply(dataset_updated, is.numeric))]
 cat(paste0("Final data frame contains ", nrow( dataset_updated), " row(s) and ", ncol( dataset_updated), " column(s).","Code chunk executed. Below table showing first 10 row(s) of the dataset."))
 dataset_updated <-  dataset_updated %>% mutate_if(is.numeric, round, digits = 4)
 
-dataset_updated %>% head(10) %>%
-  as.data.frame() %>%
-  displayTable(limit = 10)
+displayTable(dataset_updated[1:10,])
 
 ```
 
@@ -1047,7 +1020,7 @@ visualizing the output can be found
 In the section below, we build a Level 1 HVT model. The number of
 cells (`n_cells`) is set to 500.
 
-```{r level one sample data,warning=FALSE,message=FALSE,echo=TRUE,class.source = 'fold-show'}
+```{r level one sample data,warning=FALSE,message=FALSE,results='asis'}
 hvt.results <-trainHVT(dataset_updated_train,
                           n_cells = 500,
                           depth = 1,
@@ -1062,6 +1035,28 @@ hvt.results <-trainHVT(dataset_updated_train,
                           dim_reduction_method = "sammon")
 ```
 
+
+```{r}
+displayTable(hvt.results[[3]][['compression_summary']])
+```
+
+As seen in the above table, 90% of the cells have a quantization error
+below the threshold.
+
+
+```{r}
+displayTable(data =hvt.results[[3]][['summary']])
+```
+
+
+Let's have a closer look at `Quant.Error` variable
+in the above table. The values for `Quant.Error` of the cells which have
+hit the Quantization Error threshold are shown in red. Here we are
+showing just top 100 rows for the sake of brevity.
+
+
+Let's take a look at the 2D HVT plot.
+
 ```{r fig.height=4, fig.width=6,fig.align='center', warning=FALSE, message=FALSE}
 plotHVT(hvt.results,
         line.width = c(0.6 ),
@@ -1069,25 +1064,6 @@ plotHVT(hvt.results,
         centroid.size = 1,
         maxDepth = 1, 
         plot.type = '2Dhvt')
-```
-
-The table below shows number of cells having quantization error below
-threshold and percentage of cells having quantization error below
-threshold.
-
-```{r}
-displayTable(data = hvt.results[[3]]$compression_summary,columnName = 'percentOfCellsBelowQuantizationErrorThreshold', value = 0.8, tableType = "compression")
-```
-
-As seen in the above table, 94% of the cells have a quantization error
-below the threshold. Let's have a closer look at `Quant.Error` variable
-in the below table. The values for `Quant.Error` of the cells which have
-hit the Quantization Error threshold are shown in red. Here we are
-showing just top 100 rows for the sake of brevity.
-
-```{r}
-displayTable(data =hvt.results[[3]][['summary']], columnName= 'Quant.Error', value = 0.1, tableType = "summary", scroll = T)
-
 ```
 
 ## 8.1 Model Diagnostics and Validation
@@ -1378,7 +1354,7 @@ Here the mad_threshold has been selected as 0.8 which is based on Mean
 of Minimum Intra-Centroid Distance plot from above.
 </p>
 
-```{r,class.source = 'fold-show', warning=FALSE, message=FALSE}
+```{r,class.source = 'fold-show', warning=FALSE, message=FALSE, results='asis'}
 hvt.score <- scoreHVT(dataset_updated_test,
                       hvt.results,
                       child.level = 1,
@@ -1388,6 +1364,13 @@ hvt.score <- scoreHVT(dataset_updated_test,
                       distance_metric = "L1_Norm",
                       error_metric = "max")
 ```
+
+
+```{r}
+displayTable(hvt.score[["scoredPredictedData"]], value = 0.8)
+```
+
+
 
 The `plotModelDiagnostics()` function can be called for scoring object as well.
 Shown below is the comparison of Mean Absolute Deviation Plot for train
@@ -1399,18 +1382,7 @@ plotModelDiagnostics(hvt.score)
 ```
 :::
 
-```{r scoreHVT2 hotel,warning=FALSE,message=FALSE}
 
-QEdata=hvt.results[[3]]$summary
-
-Quant.Error.Actual <- QEdata %>% 
-      mutate(Quant.Error =  Quant.Error * n) %>% 
-      select(Quant.Error, n) %>% 
-      summarise_all(sum) %>% 
-      transmute(Quant.Error = Quant.Error/ n) %>% 
-      unlist()%>%round(4)
-
-```
 
 ### 9.3.1 Quantization Error Comparison (Train vs. Test)
 
@@ -1420,7 +1392,16 @@ greater than the same of assigned centroid based on error metric.
 Comparison between scored/test and fitted Quantization error of cell(s)
 is provided for further insights.
 
-```{r out.width="100%"}
+```{r out.width="100%", echo=FALSE}
+QEdata=hvt.results[[3]]$summary
+
+Quant.Error.Actual <- QEdata %>% 
+      mutate(Quant.Error =  Quant.Error * n) %>% 
+      select(Quant.Error, n) %>% 
+      summarise_all(sum) %>% 
+      transmute(Quant.Error = Quant.Error/ n) %>% 
+      unlist()%>%round(4)
+
 QECompareDf <- hvt.score$QECompareDf %>% filter(anomalyFlag == 1)
 percentageAnomalies = formatC((sum(QECompareDf$n) / nrow(dataset_updated_test)) *
                                 100, digits = 2, format = "f") %>% paste0("%")
@@ -1446,99 +1427,12 @@ NOTE: **Since there are no anomaly found in torus dataset that we use, the table
 
 
 ```{r,echo=TRUE,eval=TRUE, warning=FALSE, message=FALSE}
-
 QECompareDf <- hvt.score$QECompareDf %>% filter(anomalyFlag == 1)
-# adding cell ID to table
-QECompareDf1 <-
-  left_join(
-    QECompareDf,
-    hvt.results[[3]]$summary,
-    by = c("Segment.Level", "Segment.Parent", "Segment.Child")
-  )
-QECompareDf1 <-
-  QECompareDf1 %>% select(
-    "Segment.Level",
-    "Segment.Parent",
-    "Segment.Child",
-    # "Cell.ID",
-    "anomalyFlag",
-    "n.x" ,
-    "Fitted.Quant.Error" ,
-    "Scored.Quant.Error" ,
-    "Quant.Error.Diff",
-    "Quant.Error.Diff (%)"
-  )
-colnames(QECompareDf1) <- c(
-    "Segment.Level",
-    "Segment.Parent",
-    "Segment.Child",
-    # "Cell.ID",
-    "anomalyFlag",
-    "No.Of.Points" ,
-    "Fitted.Quant.Error" ,
-    "Scored.Quant.Error" ,
-    "Quant.Error.Diff",
-    "Quant.Error.Diff (%)"
-  )
-QECompareDf1$flag <-
-  ifelse(QECompareDf1$anomalyFlag == 1, 1, 0)
-DT::datatable(
-  QECompareDf1 %>%
-    mutate_if(is.numeric, ~ round(., 4)) %>%
-    select(-c(`Quant.Error.Diff (%)`)),
-  class = 'cell-border stripe',
-  rownames = FALSE,
-  filter = "top",
-  escape = FALSE,
-  selection = "none",
-  options = options,
-  callback = htmlwidgets::JS(
-    "var tips = ['Segment Level based on the hierarchical structure of the HVT model output',
-                        'Segment Parent based on the hierarchical structure of the HVT model output',
-                        'Segment Child based on the hierarchical structure of the HVT model output',
-                        'Cell ID based on the hierarchical structure of the HVT model output',
-                        'Flag indicating whether data points are anomalous or not',
-                        'Number of anomalous scored data points for each centroid in the HVT map',
-                        'Quantization Error for the highlighted cell built on the fitted data',
-                        'Quantization Error for the highlighted cell built on the scored data',
-                        'Change in Quantization Error between scored and the fitted model'],
-                            header = table.columns().header();
-                        for (var i = 0; i < tips.length; i++) {
-                          $(header[i]).attr('title', tips[i]);
-                        }"
-  )
-) %>%
-  formatStyle('flag',
-              target = 'row',
-              backgroundColor = styleEqual(c(1), c('lightcoral')))
-
-```
-
-```{r, echo=FALSE}
-df1 <-  QECompareDf1 %>%
-    mutate_if(is.numeric, ~ round(., 4)) %>%
-    select(-c(`Quant.Error.Diff (%)`)) 
-displayTable(df1,scroll = TRUE, limit = 10)
-
+displayTable(QECompareDf)
 ```
 
 
-
-
-# 10. Download Scored data
-
-The scored data from the above sections can be downloaded in section
-below. The downloaded scored data can be found in the output(LOCAL)
-folder.
-
-```{r}
-predictClusterData <- hvt.score[["scoredPredictedData"]]%>%as.data.frame()
- predictClusterData  %>% head(100) %>% round(2)%>%
-      as.data.frame() %>%
-      displayTable(scroll = TRUE, limit = 100)
-```
-
-# 11. Applications
+# 10. Applications
 
 1.  Pricing Segmentation - The package can be used to discover groups of
     similar customers based on the customer spend pattern and understand
@@ -1565,7 +1459,7 @@ predictClusterData <- hvt.score[["scoredPredictedData"]]%>%as.data.frame()
 6.  Using the base idea of Systems Dynamics, these diagrams can also be
     used to depict customer state changes over a period of time
 
-# 12. References
+# 11. References
 
 1. <a href="https://users.ics.aalto.fi/jhollmen/dippa/node9.html" target="_blank">Topology Preserving Maps</a>
 

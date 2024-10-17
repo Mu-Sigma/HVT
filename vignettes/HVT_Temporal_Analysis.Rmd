@@ -119,7 +119,7 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr", "kableExtra", "plotly", "purrr", "data.table", "gridExtra", "grid", "reactable", "reshape", "tidyr", 
-                      "stringr", "DT", "knitr", "feather", "HVT")
+                      "stringr", "DT", "knitr", "feather","HVT")
 
 new.packages <-
   list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
@@ -141,7 +141,7 @@ file_path <- ("./sample_dataset/lorenz_attractor.feather")
 dataset <- read_feather(file_path) %>% as.data.frame()
 dataset <- dataset %>% select(X,Y,Z,U,t)
 dataset$t <- round(dataset$t, 5)
-displayTable(dataset, limit = 10)
+displayTable(head(dataset, 10))
 ```
 
 Now, let's try to visualize the Lorenz attractor (overlapping spirals) in  3D Space.
@@ -242,7 +242,7 @@ rownames(testDataset) <- NULL
 Let's have a look at the Training dataset containing 160,000 data points. For the sake of brevity, we are displaying the first 10 rows.
 
 ```{r,warning=FALSE,message=FALSE}
-displayTable(trainDataset, limit = 10)
+displayTable(head(trainDataset, 10))
 ```
 
 Now, let's have a look at the **structure** of the training dataset.
@@ -291,7 +291,7 @@ edaPlots(trainDataset, output_type = 'correlation', n_cols = 5)
 Let's have a look at the Testing dataset containing 40,000 data points. For the sake of brevity, we are displaying first the 10 rows.
 
 ```{r, warning=FALSE,message=FALSE}
-displayTable(testDataset, limit = 10)
+displayTable(head(testDataset,10))
 ```
 
 Now, let's have a look at the **structure** of the testing dataset.
@@ -368,11 +368,8 @@ hvt.results <- trainHVT(
 
 Let's check out the compression summary. 
 
-In the `displayTable` function, the 'columnName' argument takes any of the column names that have to be highlighted greater than the given 'value' based on the provided data.
 ```{r compression summary torus first,warning=FALSE}
-displayTable(data = hvt.results[[3]]$compression_summary,
-             columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
-             value = 0.8, tableType = "compression")
+displayTable(data = hvt.results[[3]]$compression_summary)
 ```
 **NOTE:** *Based on the provided table, it's evident that the 'percentOfCellsBelowQuantizationErrorThreshold' value is zero, indicating that compression hasn't taken place for the specified number of cells, which is 100. Typically, we would continue increasing the number of cells until at least 80% compression occurs. However, in this vignette demonstration, we're not doing so, because the plots generated from temporal analysis functions would become cluttered and complex, making explanations less clear.*
 
@@ -423,8 +420,7 @@ Let’s see the output of `scoreHVT()` which has scored the cells for all the da
 
 In the `displayTable` function, the 'columnName' argument takes any of the column names that have to be highlighted greater than the given 'value' based on the provided data.
 ```{r scoreHVT,warning=FALSE}
-displayTable(data =scoring$scoredPredictedData, columnName= 'Quant.Error', 
-             value = 0.1, tableType = "summary", limit =100, scroll = T)
+displayTable(scoring$scoredPredictedData)
 ```
 
 Let's look at the scored model summary from `scoreHVT()`
@@ -519,7 +515,7 @@ trans_table <- getTransitionProbability(df = temporal_data,
 
 ```{r}
 combined_df <- do.call(rbind, trans_table)
-displayTable(combined_df, limit = 10)
+displayTable(head(combined_df,10))
 ```
 
 
@@ -573,7 +569,7 @@ reconcile_plots[[1]]
 **Reconciliation table of transition probability with self-state**
   
 ```{r hmap2, fig.align = "center", fig.show ='hold', message=FALSE, out.width='70%', results='asis', warning=FALSE}
-displayTable(reconcile_plots[[2]], scroll = TRUE)
+displayTable(reconcile_plots[[2]], limit = 217)
 ```
 **Reconciliation plots of transition probability without self-state**
 
@@ -587,7 +583,7 @@ reconcile_plots[[3]]
 
 **Reconciliation table of transition probability without self-state**
 ```{r hmap4, fig.align = "center", fig.show ='hold', message=FALSE, out.width='70%', results='asis', warning=FALSE}
-displayTable(reconcile_plots[[4]], scroll = TRUE)
+displayTable(reconcile_plots[[4]], limit = 217)
 ```
 
 
@@ -655,7 +651,7 @@ knitr::opts_chunk$set(
 flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
                                      transition_probability_df =trans_table,
                                      df = temporal_data, 
-                                     animation = 'All' , flow_map = 'All',
+                                     animation = NULL , flow_map = 'All',
                                      fps_time = 30, fps_state =  5, 
                                      time_duration = 180,state_duration = 20,
                                      cellid_column = "Cell.ID", time_column = "t")

@@ -193,6 +193,8 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
+
+
 ## 3.1 User-defined Functions
 
 In this section, we are establishing all the functions that will be utilized in this notebook. The detailed explanation follows below:
@@ -480,7 +482,7 @@ get_cluster_domains <- function(k, iterations = 10) {
 
   mode_results <- sapply(results, get_mode)
   results <- rbind(results, Mode = mode_results)
-  formatted_table <- displayTable(results, scroll = TRUE)
+  formatted_table <- displayTable(results)
   return(list(raw_data = results, formatted_table = formatted_table, mode = mode_results))
 }
 ```
@@ -560,7 +562,7 @@ Here we load the generated embeddings dataset. Below is a table displaying the f
 
 ```{r}
 data <- read.csv("./twitter_data/final_embeddings.csv")
-displayTable(data[1:10,], scroll = T)
+displayTable(data[1:10,])
 ```
 
 
@@ -593,7 +595,7 @@ The dimension of `dataset_raw` is 297 rows and 1538 columns (1536 numerical + 2 
 
 Here we are displaying the `dataset_raw` with the first 10 rows and 1538 columns.
 ```{r}
-displayTable(dataset_raw[1:10,], scroll = T)
+displayTable(dataset_raw[1:10,])
 ```
 
 
@@ -607,7 +609,7 @@ The dimension of `dataset` is 297 rows and 1536 columns (only numerical).
 
 Here we are displaying `dataset` with the first 10 rows and 1536 columns.
 ```{r}
-displayTable(dataset[1:10,],scroll = T)
+displayTable(dataset[1:10,])
 ```
 
 
@@ -821,9 +823,7 @@ hvt.results <- trainHVT(dataset, n_cells = 110, depth = 1, quant.err = 0.6,
 
 Let's look at the **summary** table. 
 ```{r}
-displayTable(data = hvt.results[[3]]$compression_summary,
-             columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
-             value = 0.8, tableType = "compression", scroll = T)
+displayTable(data = hvt.results[[3]]$compression_summary)
 ```
 
 *NOTE: Based on the above table, the value of 'percentOfCellsBelowQuantizationErrorThreshold' indicates that 85% of compression has taken place for the specified number of cells (110) and the quantization error (0.6)*
@@ -832,7 +832,7 @@ Lets look at the dimensionality reduction evaluation metrics.
 
 
 ```{r}
-displayTable(data= hvt.results$model_info$distance_measures, tableType = 'metrics')
+displayTable(data= hvt.results$model_info$distance_measures)
 ```
 
 According to the values above we can conclude that the model has achieved a good balance between preserving the local neighborhood relationships, global structure, and pairwise distances in the low-dimensional embedding, with moderate reconstruction accuracy and cluster separation. 
@@ -1121,9 +1121,7 @@ Below are the newly added 9 columns after scoring using `scoreHVT`
 
 Let's look at the scored data table. For the sake of brevity we are displaying the first 10 rows and all the 1545 columns.
 ```{r}
-Act_pred_Table <- scoring[["scoredPredictedData"]]
-rownames(Act_pred_Table) <- NULL
-Act_pred_Table[1:10,]  %>%as.data.frame() %>%displayTable(scroll = TRUE) 
+displayTable(scoring[["scoredPredictedData"]], value = 0.7) 
 ```
 
 
@@ -1229,7 +1227,7 @@ dim(hclust_data_1)
 The data has 110 rows and 2 columns (x and y coordinates). Let's have a look at the data.
 
 ```{r}
-displayTable(hclust_data_1, scroll = T)
+displayTable(hclust_data_1)
 ```
 
 ### 8.2.2 Clustering Analysis
@@ -1415,7 +1413,7 @@ The dimension of the centroid data is 110 rows and 1538 columns (1536 columns + 
 Let's have a look at the data. For the sake of brevity, we are displaying only the first 10 rows and all the 1538 columns.
 
 ```{r}
-displayTable(hclust_data_2[1:10,], scroll = T)
+displayTable(hclust_data_2[1:10,])
 ```
 
 ### 8.3.2 Clustering Analysis
