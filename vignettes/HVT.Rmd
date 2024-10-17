@@ -91,7 +91,7 @@ Following are the links to the vignettes for the HVT package:
 
 1. <a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html" target="_blank">**HVT Vignette**</a> (10/18/2024): Contains descriptions of the functions used for vector quantization and construction of Hierarchical Voronoi Tessellations for data analysis.
 
-2. <a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html" target="_blank">**HVT Model Diagnostics Vignette**</a>(10/18/2024): Contains descriptions of functions used to perform model diagnostics and validation for the HVT model.
+2. <a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html" target="_blank">**HVT Model Diagnostics Vignette**</a> (10/18/2024): Contains descriptions of functions used to perform model diagnostics and validation for the HVT model.
 
 3. <a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html" target="_blank">**HVT Scoring Cells with Layers using scoreLayeredHVT**</a> (10/18/2024): Contains descriptions of the functions used for scoring cells with layers based on a sequence of maps using scoreLayeredHVT.
 
@@ -199,7 +199,7 @@ This version of the HVT package offers features for both training an HVT model a
 
 # 4. Installation of HVT (v24.9.1)
 
-**CRAN installation**
+**CRAN Installation**
 
 ``` r
 install.packages("HVT")

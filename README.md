@@ -236,8 +236,15 @@ This version of HVT package offers features for both training an HVT model and e
 
 <div class="sourceCode" id="cb1">
 
-    library(devtools)
-    devtools::install_github(repo = "Mu-Sigma/HVT")
+**CRAN Installation**
+
+`install.packages("HVT")`
+
+**Git Hub Installation**
+
+`library(devtools)`
+
+`devtools::install_github(repo = "Mu-Sigma/HVT")`
 
 </div>
 

@@ -1043,16 +1043,16 @@ displayTable(hvt.results[[3]][['compression_summary']])
 As seen in the above table, 90% of the cells have a quantization error
 below the threshold.
 
+Let's have a closer look at `Quant.Error` of the cells. Here we are
+showing just top 100 rows for the sake of brevity.
 
 ```{r}
 displayTable(data =hvt.results[[3]][['summary']])
 ```
 
 
-Let's have a closer look at `Quant.Error` variable
-in the above table. The values for `Quant.Error` of the cells which have
-hit the Quantization Error threshold are shown in red. Here we are
-showing just top 100 rows for the sake of brevity.
+
+
 
 
 Let's take a look at the 2D HVT plot.

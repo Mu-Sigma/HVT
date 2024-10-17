@@ -651,7 +651,7 @@ knitr::opts_chunk$set(
 flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
                                      transition_probability_df =trans_table,
                                      df = temporal_data, 
-                                     animation = NULL , flow_map = 'All',
+                                     animation = 'All' , flow_map = 'All',
                                      fps_time = 30, fps_state =  5, 
                                      time_duration = 180,state_duration = 20,
                                      cellid_column = "Cell.ID", time_column = "t")
