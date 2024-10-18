@@ -72,7 +72,6 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("plyr", "dplyr", "reactable", "kableExtra", "geozoo",
-                      
                       "plotly", "purrr", "data.table", "gridExtra", "tidyr","HVT")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]

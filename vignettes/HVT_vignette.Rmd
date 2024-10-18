@@ -228,7 +228,8 @@ The Scoring algorithm recursively calculates the distance between each point in 
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
 ```{r, warning = FALSE, message=FALSE}
-list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr",  "data.table", "gridExtra","plyr","HVT")
+list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr",  
+                      "data.table", "gridExtra","plyr","HVT")
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
   install.packages(new.packages, dependencies = TRUE, repos='https://cloud.r-project.org/')
