@@ -23,9 +23,12 @@
 #' @export edaPlots
 
 
-edaPlots <- function(df, time_column, output_type = "summary", n_cols = 3) {
+edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1) {
   
- 
+  if(n_cols = -1){
+    n_cols = ncol(df)
+  }
+  
   a <- ncol(df)
   if(n_cols == 0 || n_cols > a){
     stop(paste0("n_cols argument should be from 1 to ", a))  }
