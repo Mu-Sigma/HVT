@@ -25,7 +25,7 @@
 
 edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1) {
   
-  if(n_cols = -1){
+  if(n_cols == -1){
     n_cols = ncol(df)
   }
   
