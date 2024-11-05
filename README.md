@@ -244,7 +244,7 @@ This version of HVT package offers features for both training an HVT model and e
 
 `library(devtools)`
 
-#To increase the timeout when installing for the first time
+##Extend the timeout duration for initial installation
 
 `options(timeout = 1200)`
 
