@@ -3047,7 +3047,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">HVT Model diagnostics and validation</h1>
 <h4 class="author">Zubin Dowlaty, Shubhra Prakash, Sunuganty Achyut Raj,
 Praditi Shah, Somya Shambhawi,Vishwavani</h4>
-<h4 class="date">Built on: 10/18/2024</h4>
+<h4 class="date">Built on: 11/08/2024</h4>
 
 
 <div id="TOC">
@@ -3191,8 +3191,8 @@ objective</p></li>
 compressed cells to 1D,2D and Interactive surface plot with the Sammons
 Nonlinear Algorithm. This step creates topology preserving map(also
 called as
-<a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embedding
-</a> coordinates into the desired output dimension.</p></li>
+<a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">
+embedding </a> coordinates into the desired output dimension.</p></li>
 <li><p><strong>Tessellation</strong>: Create cells required for object
 visualization using the Voronoi Tessellation method, package includes
 heatmap plots for hierarchical Voronoi tessellations (HVT). This step
@@ -4160,7 +4160,7 @@ the above-mentioned four objects.</p>
 <div id="summary-table" class="section level2">
 <h2>Summary Table</h2>
 <div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">edaPlots</span>(dataset_updated, <span class="at">output_type =</span> <span class="st">&quot;summary&quot;</span>, <span class="at">n_cols =</span> <span class="dv">3</span>)</span></code></pre></div>
-<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-14160de722901ecac1c0" style="width:100%;height:auto;"></div>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-14160de722901ecac1c0" style="width:100%;height:auto;"></div>
 <script type="application/json" data-for="htmlwidget-14160de722901ecac1c0">{"x":{"filter":"none","vertical":false,"data":[["1","2","3"],["x","y","z"],[-2.9991,-2.9999,-1],[-1.132525,-1.110575,-0.716225],[0.00855,-0.02285,-0.01775],[-0.003785033333333333,-0.01101361666666667,-0.01075775],[1.496389685664114,1.487874606447049,0.7064375722738924],[1.121475,1.106025,0.6971750000000001],[2.9993,2.9997,1],["▅▇▇▇▅","▅▇▇▇▅","▇▃▃▃▇"],["12000","12000","12000"],[0,0,0]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>variable<\/th>\n      <th>min<\/th>\n      <th>1st Quartile<\/th>\n      <th>median<\/th>\n      <th>mean<\/th>\n      <th>sd<\/th>\n      <th>3rd Quartile<\/th>\n      <th>max<\/th>\n      <th>hist<\/th>\n      <th>n_row<\/th>\n      <th>n_missing<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"lengthMenu":[10,100],"scrollX":true,"scrollY":true,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7,8,11]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"variable","targets":1},{"name":"min","targets":2},{"name":"1st Quartile","targets":3},{"name":"median","targets":4},{"name":"mean","targets":5},{"name":"sd","targets":6},{"name":"3rd Quartile","targets":7},{"name":"max","targets":8},{"name":"hist","targets":9},{"name":"n_row","targets":10},{"name":"n_missing","targets":11}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="histograms" class="section level2">
@@ -4198,7 +4198,7 @@ contains 2400 rows and 3 columns.</p>
 <div id="summary-table-1" class="section level4">
 <h4>Summary Table</h4>
 <div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">edaPlots</span>(dataset_updated_train, <span class="at">output_type =</span> <span class="st">&quot;summary&quot;</span>, <span class="at">n_cols =</span> <span class="dv">3</span>)</span></code></pre></div>
-<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-a37f0e2671295aa5a53f" style="width:100%;height:auto;"></div>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-a37f0e2671295aa5a53f" style="width:100%;height:auto;"></div>
 <script type="application/json" data-for="htmlwidget-a37f0e2671295aa5a53f">{"x":{"filter":"none","vertical":false,"data":[["1","2","3"],["x","y","z"],[-2.9991,-2.9999,-1],[-1.12285,-1.111325,-0.709425],[0.0174,-0.0013,-0.0122],[0.000866416666666667,-0.002505239583333334,-0.007637677083333334],[1.498520129713113,1.493063003175641,0.7059621305996785],[1.120525,1.125675,0.700225],[2.9993,2.9979,1],["▅▇▇▇▅","▅▇▇▇▅","▇▃▃▃▇"],["9600","9600","9600"],[0,0,0]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>variable<\/th>\n      <th>min<\/th>\n      <th>1st Quartile<\/th>\n      <th>median<\/th>\n      <th>mean<\/th>\n      <th>sd<\/th>\n      <th>3rd Quartile<\/th>\n      <th>max<\/th>\n      <th>hist<\/th>\n      <th>n_row<\/th>\n      <th>n_missing<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"lengthMenu":[10,100],"scrollX":true,"scrollY":true,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7,8,11]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"variable","targets":1},{"name":"min","targets":2},{"name":"1st Quartile","targets":3},{"name":"median","targets":4},{"name":"mean","targets":5},{"name":"sd","targets":6},{"name":"3rd Quartile","targets":7},{"name":"max","targets":8},{"name":"hist","targets":9},{"name":"n_row","targets":10},{"name":"n_missing","targets":11}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="histograms-1" class="section level4">
@@ -4222,7 +4222,7 @@ contains 2400 rows and 3 columns.</p>
 <div id="summary-table-2" class="section level4">
 <h4>Summary Table</h4>
 <div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">edaPlots</span>(dataset_updated_test, <span class="at">output_type =</span> <span class="st">&quot;summary&quot;</span>, <span class="at">n_cols =</span> <span class="dv">3</span>)</span></code></pre></div>
-<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-9627ff31e6262bb68a63" style="width:100%;height:auto;"></div>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-9627ff31e6262bb68a63" style="width:100%;height:auto;"></div>
 <script type="application/json" data-for="htmlwidget-9627ff31e6262bb68a63">{"x":{"filter":"none","vertical":false,"data":[["1","2","3"],["x","y","z"],[-2.9919,-2.9911,-1],[-1.158475,-1.104275,-0.73695],[-0.04135,-0.06815,-0.05185],[-0.02239083333333333,-0.045047125,-0.02323804166666667],[1.488002904091156,1.466751748492206,0.7083460916701136],[1.1232,1.03735,0.6869999999999999],[2.9945,2.9997,1],["▅▇▇▇▃","▅▇▇▇▃","▇▃▃▃▇"],["2400","2400","2400"],[0,0,0]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>variable<\/th>\n      <th>min<\/th>\n      <th>1st Quartile<\/th>\n      <th>median<\/th>\n      <th>mean<\/th>\n      <th>sd<\/th>\n      <th>3rd Quartile<\/th>\n      <th>max<\/th>\n      <th>hist<\/th>\n      <th>n_row<\/th>\n      <th>n_missing<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":10,"lengthMenu":[10,100],"scrollX":true,"scrollY":true,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5,6,7,8,11]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"variable","targets":1},{"name":"min","targets":2},{"name":"1st Quartile","targets":3},{"name":"median","targets":4},{"name":"mean","targets":5},{"name":"sd","targets":6},{"name":"3rd Quartile","targets":7},{"name":"max","targets":8},{"name":"hist","targets":9},{"name":"n_row","targets":10},{"name":"n_missing","targets":11}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="histograms-2" class="section level4">
