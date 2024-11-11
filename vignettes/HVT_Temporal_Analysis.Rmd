@@ -1,7 +1,7 @@
 ---
 title: "Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT (Hierarchical Voronoi Tessellation)"
 author: "Zubin Dowlaty, Pon Anureka Seenivasan, Vishwavani"
-date: "`r Sys.Date()`"
+date: "Created Date: 2023-10-26  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
 output:
@@ -119,7 +119,7 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr", "kableExtra", "plotly", "purrr", "data.table", "gridExtra", "grid", "reactable",
-                      "reshape", "tidyr",  "stringr", "DT", "knitr", "feather","HVT")
+                    "reshape", "tidyr",  "stringr", "DT", "knitr", "feather","HVT","gganimate","gifski")
 
 new.packages <-
   list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
@@ -129,7 +129,12 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
-
+```{r, include=FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 
 # 4. Data Understanding
 
@@ -192,28 +197,22 @@ It uses an inbuilt function called `edaPlots` to display the above-mentioned fou
 *NOTE: The input dataset should be a data frame object and the columns should be only numeric type.*
 
 
-```{r, plot twotime, warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
-edaPlots(dataset, time_column = "t", output_type = "timeseries", n_cols = 5)
-```
-
-</br>
-
 ```{r plot twotab,warning = FALSE, message=FALSE}
-edaPlots(dataset, output_type = 'summary', n_cols = 5)
+edaPlots(dataset)
 ```
 
 </br>
 
 
 ```{r plot twohist,figures-side,  warning = FALSE, message=FALSE}
-edaPlots(dataset, output_type = 'histogram', n_cols = 5)
+edaPlots(dataset, output_type = 'histogram')
 ```
 
 </br>
 
 
 ```{r plot twobox,figures-side, warning = FALSE, message=FALSE}
-edaPlots(dataset, output_type = 'boxplot', n_cols = 5)
+edaPlots(dataset, output_type = 'boxplot')
 ```
 
 
@@ -221,7 +220,14 @@ edaPlots(dataset, output_type = 'boxplot', n_cols = 5)
 
 
 ```{r plot twocor, fig.show="hold", fig.width = 7, fig.height = 5, fig.align='center', warning = FALSE, message=FALSE}
-edaPlots(dataset, output_type = 'correlation', n_cols = 5)
+edaPlots(dataset, output_type = 'correlation')
+```
+
+</br>
+
+
+```{r, plot twotime, warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
+edaPlots(dataset, time_column = "t", output_type = "timeseries")
 ```
 
 **Train - Test Split**
@@ -239,10 +245,10 @@ rownames(testDataset) <- NULL
 
 ## 4.1 Training dataset
 
-Let's have a look at the Training dataset containing 160,000 data points. For the sake of brevity, we are displaying the first 10 rows.
+Let's have a look at the Training dataset containing 160,000 data points. For the sake of brevity, we are displaying the first 20 rows.
 
 ```{r,warning=FALSE,message=FALSE}
-displayTable(head(trainDataset, 10))
+displayTable(trainDataset)
 ```
 
 Now, let's have a look at the **structure** of the training dataset.
@@ -253,28 +259,22 @@ str(trainDataset)
 
 **Data Distribution**
 
-```{r, plot tratime,  warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
-edaPlots(trainDataset, time_column = "t", output_type = "timeseries", n_cols = 5)
-```
-
-</br>
-
 ```{r plot tratab, warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'summary', n_cols = 5)
+edaPlots(trainDataset)
 ```
 
 </br>
 
 
 ```{r plot trahist,figures-side,  warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'histogram', n_cols = 5)
+edaPlots(trainDataset, output_type = 'histogram')
 ```
 
 </br>
 
 
 ```{r plot trabox,figures-side, warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'boxplot', n_cols = 5)
+edaPlots(trainDataset, output_type = 'boxplot')
 ```
 
 
@@ -282,16 +282,22 @@ edaPlots(trainDataset, output_type = 'boxplot', n_cols = 5)
 
 
 ```{r plot tracor,fig.width = 7, fig.height = 5, fig.align='center', warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'correlation', n_cols = 5)
+edaPlots(trainDataset, output_type = 'correlation')
+```
+
+</br>
+
+```{r, plot tratime,  warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
+edaPlots(trainDataset, time_column = "t", output_type = "timeseries")
 ```
 
 
 ## 4.2 Testing dataset
 
-Let's have a look at the Testing dataset containing 40,000 data points. For the sake of brevity, we are displaying first the 10 rows.
+Let's have a look at the Testing dataset containing 40,000 data points. For the sake of brevity, we are displaying first the 20 rows.
 
 ```{r, warning=FALSE,message=FALSE}
-displayTable(head(testDataset,10))
+displayTable(testDataset)
 ```
 
 Now, let's have a look at the **structure** of the testing dataset.
@@ -302,28 +308,24 @@ str(testDataset)
 
 
 **Data Distribution**
-```{r, plot testime,  warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
-edaPlots(testDataset, time_column = "t", output_type = "timeseries", n_cols = 5)
-```
 
-</br>
 
 ```{r plot testab, warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'summary', n_cols = 5)
+edaPlots(testDataset)
 ```
 
 </br>
 
 
 ```{r plot teshist,figures-side, warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'histogram', n_cols = 5)
+edaPlots(testDataset, output_type = 'histogram')
 ```
 
 </br>
 
 
 ```{r plot tesbox,figures-side, warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'boxplot', n_cols = 5)
+edaPlots(testDataset, output_type = 'boxplot')
 ```
 
 
@@ -331,9 +333,14 @@ edaPlots(testDataset, output_type = 'boxplot', n_cols = 5)
 
 
 ```{r plot tescor,fig.width = 7, fig.height = 5, fig.align='center', warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'correlation', n_cols = 5)
+edaPlots(testDataset, output_type = 'correlation')
 ```
 
+</br>
+
+```{r, plot testime,  warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
+edaPlots(testDataset, time_column = "t", output_type = "timeseries")
+```
 
 
 # 5. Model Training and Visualization
@@ -351,7 +358,7 @@ We will use the `trainHVT` function to compress our dataset while preserving ess
 
 **NOTE:** *The compression takes place only for the X, Y and Z coordinates and not for U(velocity) and t(Timestamp). After training & Scoring, we merge back the U and t columns with the dataset.*
 
-```{r ,warning=FALSE,fig.show='hold',message=FALSE}
+```{r ,warning=FALSE,fig.show='hold',message=FALSE, results='hide'}
 hvt.results <- trainHVT(
   trainDataset[,-c(4:5)],
   n_cells = 100,
@@ -369,16 +376,9 @@ hvt.results <- trainHVT(
 Let's check out the compression summary. 
 
 ```{r compression summary torus first,warning=FALSE}
-displayTable(data = hvt.results[[3]]$compression_summary)
+summary(hvt.results)
 ```
 **NOTE:** *Based on the provided table, it's evident that the 'percentOfCellsBelowQuantizationErrorThreshold' value is zero, indicating that compression hasn't taken place for the specified number of cells, which is 100. Typically, we would continue increasing the number of cells until at least 80% compression occurs. However, in this vignette demonstration, we're not doing so, because the plots generated from temporal analysis functions would become cluttered and complex, making explanations less clear.*
-
-Let's check out the model summary from `trainHVT()`. 
-
-```{r}
-hvt.results$model_info$input_parameters
-```
-
 
 
 Now, Let's plot the Voronoi tessellation for 100 cells.
@@ -389,7 +389,6 @@ plotHVT(
   centroid.size = c(0.6),
   plot.type = '2Dhvt',
   cell_id = FALSE)
-
 ```
 
 To understand how cell IDs are distributed across the map, we again plot Voronoi tessellation with `cell_id = TRUE`.
@@ -400,7 +399,6 @@ plotHVT(
   centroid.size = c(0.6),
   plot.type = '2Dhvt',
   cell_id = TRUE)
-
 ```
 
 # 6. Scoring
@@ -410,17 +408,15 @@ Now, once we have built the model, let us try to score using the model.
 NOTE: *we are using the training dataset plus the testing dataset i.e., the raw dataset here for the demo purpose.*
 
 ```{r scoreHVT function,warning=FALSE,message=FALSE}
-set.seed(240)
 scoring <- scoreHVT(dataset,
                     hvt.results,
                     child.level = 1)
 ```
 
-Let’s see the output of `scoreHVT()` which has scored the cells for all the data points in the dataset.  For the sake of brevity, we will only show the first 100 rows.
+Here we are displaying only the first 20 rows of the scored dataset.
 
-In the `displayTable` function, the 'columnName' argument takes any of the column names that have to be highlighted greater than the given 'value' based on the provided data.
 ```{r scoreHVT,warning=FALSE}
-displayTable(scoring$scoredPredictedData)
+summary(scoring)
 ```
 
 Let's look at the scored model summary from `scoreHVT()`
@@ -511,11 +507,11 @@ trans_table <- getTransitionProbability(df = temporal_data,
                                         time_column = "t")
 ```
 
-*NOTE: The output is stored as a nested list. For the purpose of demo, here we are displaying it as data frame with the first 10 rows.*
+*NOTE: The output is stored as a nested list. For the purpose of demo, here we are displaying it as data frame with the first 20 rows.*
 
 ```{r}
 combined_df <- do.call(rbind, trans_table)
-displayTable(head(combined_df,10))
+displayTable(combined_df)
 ```
 
 

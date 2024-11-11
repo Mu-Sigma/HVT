@@ -1,7 +1,7 @@
 ---
 title: "HVT Scoring Cells with Layers using scoreLayeredHVT"
 author: "Zubin Dowlaty, Srinivasan Sudarsanam, Somya Shambhawi, Vishwavani"
-date: "`r Sys.Date()`"
+date: "Created Date: 2023-05-16  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
 output:
@@ -80,6 +80,13 @@ if (length(new.packages))
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
+```{r, include=FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
+
 
 # 3. Example : HVT with the Torus dataset
 
@@ -145,19 +152,19 @@ This section displays four objects.
 It uses an inbuilt function called `edaPlots` to display the above-mentioned four objects.
 
 ```{r torustab, warning=FALSE, message=FALSE}
-edaPlots(torus_df, output_type = "summary", n_cols = 3)
+edaPlots(torus_df)
 ```
 
 ```{r twohisst, figures-side, fig.show="hold", out.width="30%", warning = FALSE, message=FALSE}
-edaPlots(torus_df, output_type = "histogram", n_cols = 3)
+edaPlots(torus_df, output_type = "histogram")
 ```
 
 ```{r plot twobox,figures-side, fig.show="hold", out.width="30%", warning = FALSE, message=FALSE}
-edaPlots(torus_df, output_type = "boxplot", n_cols = 3)
+edaPlots(torus_df, output_type = "boxplot")
 ```
 
 ```{r plot twocor,figures-side, fig.show="hold", fig.width = 7, fig.height = 5, fig.align='center', warning = FALSE, message=FALSE}
-edaPlots(torus_df, output_type = "correlation", n_cols = 3)
+edaPlots(torus_df, output_type = "correlation")
 ```
 
 **Train - Test Split**
@@ -191,19 +198,19 @@ str(torus_train)
 **Data Distribution**
 
 ```{r datatab, warning=FALSE,message=FALSE}
-edaPlots(torus_train, output_type = "summary", n_cols = 3)
+edaPlots(torus_train)
 ```
 
 ```{r twothist, figures-side, fig.show="hold", out.width="30%", warning = FALSE, message=FALSE}
-edaPlots(torus_train,output_type = "histogram", n_cols = 3)
+edaPlots(torus_train,output_type = "histogram")
 ```
 
 ```{r plot twottbox,figures-side, fig.show="hold", out.width="30%", warning = FALSE, message=FALSE}
-edaPlots(torus_train, output_type = "boxplot", n_cols = 3)
+edaPlots(torus_train, output_type = "boxplot")
 ```
 
 ```{r datacorr,figures-side, fig.show="hold",fig.height=5, fig.width=7, warning=FALSE,message=FALSE,fig.align='center'}
-edaPlots(torus_train, output_type = "correlation", n_cols = 3)
+edaPlots(torus_train, output_type = "correlation")
 ```
 
 **Testing Dataset**
@@ -225,19 +232,19 @@ str(torus_test)
 **Data Distribution**
 
 ```{r testdatatab, warning=FALSE,message=FALSE}
-edaPlots(torus_test, output_type = "summary", n_cols = 3)
+edaPlots(torus_test)
 ```
 
 ```{r twohist, figures-side, fig.show="hold", out.width="30%", warning = FALSE, message=FALSE}
-edaPlots(torus_test,output_type = "histogram", n_cols = 3)
+edaPlots(torus_test,output_type = "histogram")
 ```
 
 ```{r plot twotbox,figures-side, fig.show="hold", out.width="30%", warning = FALSE, message=FALSE}
-edaPlots(torus_test, output_type = "boxplot", n_cols = 3)
+edaPlots(torus_test, output_type = "boxplot")
 ```
 
 ```{r plot twotcor,figures-side, fig.show="hold", fig.width = 7, fig.height = 5, fig.align='center', warning = FALSE, message=FALSE}
-edaPlots(torus_test, output_type = "correlation", n_cols = 3)
+edaPlots(torus_test, output_type = "correlation")
 ```
 
 
@@ -386,17 +393,17 @@ torus_mapA <- trainHVT(
 Let's check the compression summary for torus.
 
 ```{r compression summary torus third,warning=FALSE}
-displayTable(data = torus_mapA[[3]]$compression_summary)
+summary(torus_mapA)
 ```
 
 We successfully compressed 90% of the data using n_cells parameter as 500, the next step involves performing data projection on the compressed data. In this step, the compressed data will be transformed and projected onto a lower-dimensional space to visualize and analyze the data in a more manageable form.
 
 As per the manual, **`torus_mapA[[3]]`** gives us detailed information about the hierarchical vector quantized data. **`torus_mapA[[3]][['summary']]`** gives a nice tabular data containing no of points, Quantization Error and the codebook.
 
-The datatable displayed below is the **summary from torus_mapA** showing Cell.ID, Centroids and Quantization Error for each of the 500 cells. For the sake of brevity, we are displaying only the first 100 rows.
+The datatable displayed below is the **summary from torus_mapA** showing Cell.ID, Centroids and Quantization Error for each of the 500 cells. For the sake of brevity, we are displaying only the first 20 rows.
 
 ```{r hvt_mapA display results, warning=FALSE, echo=TRUE}
-displayTable(data =torus_mapA[[3]][['summary']])
+displayTable(torus_mapA[[3]][['summary']])
 
 ```
 
@@ -467,7 +474,7 @@ be scaled.(default = 0.5)
 
 Let's plot the Voronoi tessellation for layer 1 (map A).
 
-```{r, warning=FALSE,message=FALSE,fig.cap='Figure 3: The Voronoi Tessellation for layer 1 (map A) shown for the 500 cells in the dataset ’torus’',fig.width = 7, fig.height = 5}
+```{r, warning=FALSE,message=FALSE,fig.cap='Figure 3: The Voronoi Tessellation for layer 1 (map A) shown for the 500 cells in the dataset ’torus’',fig.width = 7, fig.height = 5, fig.align='center'}
 plotHVT(torus_mapA,
         line.width = c(0.4), 
         color.vec = c("navy blue"),
@@ -483,7 +490,7 @@ Now let's plot the Voronoi Tessellation with the heatmap overlaid for all the fe
 The heatmaps displayed below provides a visual representation of the spatial characteristics of the torus dataset, allowing us to observe patterns and trends in the distribution of each of the features (x,y,z). The sheer green shades highlight regions with higher values in each of the heatmaps, while the indigo shades indicate areas with the lowest values in each of the heatmaps. By analyzing these heatmaps, we can gain insights into the variations and relationships between each of these features within the torus dataset.
 
 
-```{r hvt_mapA hmp level x torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 4: The Voronoi Tessellation with the heat map overlaid for variable ’x’ in the ’torus’ dataset',fig.width = 7, fig.height = 5}
+```{r hvt_mapA hmp level x torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 4: The Voronoi Tessellation with the heat map overlaid for variable ’x’ in the ’torus’ dataset',fig.width = 7, fig.height = 5,fig.align='center'}
   plotHVT(
   torus_mapA,
   child.level = 1,
@@ -494,7 +501,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
   plot.type = '2Dheatmap') 
 ```
 
-```{r hvt_mapA hmp level y torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 5: The Voronoi Tessellation with the heat map overlaid for variable ’y’ in the ’torus’ dataset',fig.width = 7, fig.height = 5}
+```{r hvt_mapA hmp level y torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 5: The Voronoi Tessellation with the heat map overlaid for variable ’y’ in the ’torus’ dataset',fig.width = 7, fig.height = 5,fig.align='center'}
   plotHVT(
   torus_mapA,
   child.level = 1,
@@ -505,7 +512,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
   plot.type = '2Dheatmap') 
 ```
 
-```{r hvt_mapA hmp level z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 6: The Voronoi Tessellation with the heat map overlaid for variable ’z’ in the ’torus’ dataset',fig.width = 7, fig.height = 5}
+```{r hvt_mapA hmp level z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 6: The Voronoi Tessellation with the heat map overlaid for variable ’z’ in the ’torus’ dataset',fig.width = 7, fig.height = 5,fig.align='center'}
   plotHVT(
   torus_mapA,
   child.level = 1,
@@ -554,7 +561,7 @@ novelty_data <- data_with_novelty
 novelty_data$Row.No <- row.names(novelty_data)
 novelty_data <- novelty_data %>% dplyr::select("Row.No","Cell.ID","Cell.Number","x","y","z")
 colnames(novelty_data) <- c("Row.No","Cell.ID","Segment.Child","x","y","z")
-displayTable(novelty_data)
+displayTable(novelty_data, limit = 115)
 ```
 
 ```{=html}
@@ -569,7 +576,7 @@ table {
 
 The **`plotNovelCells`** function is used to plot the Voronoi tessellation using the compressed HVT map (torus_mapA) containing 500 cells and highlights the identified novelty cell(s) i.e 6 cells (containing 115 records) in red on the map.
 
-```{r compress_novelty_plot,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 9: The Voronoi Tessellation constructed using the compressed HVT map (map A) with the novelty cell(s) highlighted in red',fig.width = 7, fig.height = 5}
+```{r compress_novelty_plot,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 9: The Voronoi Tessellation constructed using the compressed HVT map (map A) with the novelty cell(s) highlighted in red',fig.width = 7, fig.height = 5,fig.align='center'}
 plotNovelCells(identified_Novelty_cells, torus_mapA,line.width = c(0.4),centroid.size = 0.01)
 ```
 
@@ -601,19 +608,20 @@ torus_mapB <- trainHVT(data_with_novelty,
 
 ```
 
+```{r hvt_map_B compression summary,warning=FALSE}
+summary(torus_mapB)
+```
+
+
+**As it can be seen from the table above, `91%`** of the cells have hit the quantization threshold error. Since we are successfully able to attain the desired compression percentage, so we will not further subdivide the cells
+
 The datatable displayed below is the **summary from map B (layer 2)** showing Cell.ID, Centroids and Quantization Error for each of the 11 cells.
 
 ```{r, message=FALSE,warning=FALSE}
-displayTable(data =torus_mapB[[3]][['summary']])
+displayTable(torus_mapB[[3]][['summary']])
 ```
 
-Now let's check the compression summary for HVT (torus_mapB). The table below shows no of cells, no of cells having quantization error below threshold and percentage of cells having quantization error below threshold for each level.
 
-```{r hvt_map_B compression summary,warning=FALSE}
-displayTable(data = torus_mapB[[3]]$compression_summary)
-```
-
-**As it can be seen from the table above, `91%`** of the cells have hit the quantization threshold error.Since we are successfully able to attain the desired compression percentage, so we will not further subdivide the cells
 
 # 6. Map C : Compressed Map without Novelty
 
@@ -653,7 +661,7 @@ torus_mapC <- trainHVT(dataset  = data_without_novelty,
 Now let's check the compression summary for HVT (torus_mapC) where n_cell was set to 15. The table below shows no of cells, no of cells having quantization error below threshold and percentage of cells having quantization error below threshold for each level.
 
 ```{r hvt_map_C compression summary,warning=FALSE}
-displayTable(data = torus_mapC[[3]]$compression_summary)
+summary(torus_mapC)
 ```
 
 **As it can be seen from the table above, `0%`** of the cells have hit the quantization threshold error in level 1 and **`0%`** of the cells have hit the quantization threshold error in level 2
@@ -684,23 +692,25 @@ torus_mapC <- trainHVT(data_without_novelty,
                   dim_reduction_method = "sammon")
 ```
 
+```{r hvt_mapC compression summary,warning=FALSE}
+summary(torus_mapC)
+```
+
+**As it can be seen from the table above, `0%`** of the cells have hit the quantization threshold error in level 1 and **`83%`** of the cells have hit the quantization threshold error in level 2.
+
+
 The datatable displayed below is the **summary from map C (layer2)**. showing Cell.ID, Centroids and Quantization Error.
 
 ```{r,message=FALSE,warning=FALSE}
 displayTable(data =torus_mapC[[3]][['summary']])
 ```
 
-Now let's check the **compression summary** for HVT (torus_mapC). The table below shows no of cells, no of cells having quantization error below threshold and percentage of cells having quantization error below threshold for each level.
 
-```{r hvt_mapC compression summary,warning=FALSE}
-displayTable(data = torus_mapC[[3]]$compression_summary)
-```
 
-**As it can be seen from the table above, `0%`** of the cells have hit the quantization threshold error in level 1 and **`83%`** of the cells have hit the quantization threshold error in level 2
 
 Let's plot the Voronoi tessellation for layer 2 (map C)
 
-```{r, warning=FALSE,message=FALSE,fig.cap='Figure 11: The Voronoi Tessellation for layer 2 (map C) shown for the 928 cells in the dataset ’torus’ at level 2',fig.width = 7, fig.height = 5}
+```{r, warning=FALSE,message=FALSE,fig.cap='Figure 11: The Voronoi Tessellation for layer 2 (map C) shown for the 928 cells in the dataset ’torus’ at level 2',fig.align='center',fig.width = 7, fig.height = 5}
 plotHVT(torus_mapC,
         line.width = c(0.2,0.1), 
         color.vec = c("navyblue","steelblue"),
@@ -721,7 +731,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
 
 
 
-```{r hvt_mapC hmp level one x torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 12: The Voronoi Tessellation with the heat map overlaid for feature `x` in the ’torus’ dataset',fig.width = 7, fig.height = 5}
+```{r hvt_mapC hmp level one x torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 12: The Voronoi Tessellation with the heat map overlaid for feature `x` in the ’torus’ dataset',fig.width = 7, fig.height = 5,fig.align='center'}
   plotHVT(
   torus_mapC,
   child.level = 2,
@@ -734,7 +744,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
 
 
 
-```{r hvt_mapC hmp levelonetorus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 13: The Voronoi Tessellation with the heat map overlaid for feature `y` in the ’torus’ dataset',fig.width = 7, fig.height = 5}
+```{r hvt_mapC hmp levelonetorus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 13: The Voronoi Tessellation with the heat map overlaid for feature `y` in the ’torus’ dataset',fig.width = 7, fig.height = 5,fig.align='center'}
 
   plotHVT(
   torus_mapC,
@@ -746,7 +756,7 @@ The heatmaps displayed below provides a visual representation of the spatial cha
   plot.type = '2Dheatmap') 
 ```
 
-```{r hvt_mapC hmp level one z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 14: The Voronoi Tessellation with the heat map overlaid for feature `z` in the ’torus’ dataset',fig.width = 7, fig.height = 5}
+```{r hvt_mapC hmp level one z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 14: The Voronoi Tessellation with the heat map overlaid for feature `z` in the ’torus’ dataset',fig.width = 7, fig.height = 5,fig.align='center'}
 
   plotHVT(
   torus_mapC,
@@ -845,15 +855,21 @@ new_score <- scoreLayeredHVT(
     normalize = FALSE )
 ```
 
-Let's see which cell and layer each point belongs to and check the Mean Absolute Difference for each of the **2400 records**. For the sake of brevity, we are only displaying the first 100 rows.
+Let's see which cell and layer each point belongs to and check the Mean Absolute Difference for each of the **2400 records**. 
 
 ```{r}
-displayTable(new_score[["actual_predictedTable"]])
+summary(new_score)
 ```
 
-```{r,message=FALSE,warning=FALSE,fig.cap='Figure 16: Mean Absolute Difference',fig.width = 7, fig.height = 5}
-hist(new_score[["actual_predictedTable"]]$diff, breaks = 30, col = "blue", main = "Mean Absolute Difference", xlab = "Difference")
+```{r,message=FALSE,warning=FALSE,fig.cap='Figure 16: Mean Absolute Difference',fig.width = 7, fig.height = 5,fig.align='center'}
+hist(new_score[["actual_predictedTable"]]$diff, 
+     breaks = 30, col = "blue", main = "Mean Absolute Difference",
+     xlab = "Difference")
 ```
+
+
+</br>
+
 
 # 8. Executive Summary
 

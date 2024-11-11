@@ -1,7 +1,7 @@
 ---
 title: "Visualizing LLM Embeddings using HVT (Hierarchical Voronoi Tessellation)"
 author: "Chepuri Gopi Krishna, Vishwavani"
-date: "`r Sys.Date()`"
+date: "Created Date: 2024-05-16  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
 output:
@@ -193,7 +193,12 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
-
+```{r, include=FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 
 ## 3.1 User-defined Functions
 
@@ -646,6 +651,15 @@ It uses an inbuilt function called `edaPlots` to display the above-mentioned fou
 
 </br>
 
+### Summary Table 
+
+```{r summary, figures-side, fig.show="hold", warning=FALSE, message=FALSE}
+edaPlots(dataset)
+```
+
+</br>
+
+
 ### Histograms 
 
 ```{r hist, figures-side, fig.show="hold", fig.height=2.2, fig.width =2.95, warning=FALSE, message=FALSE}
@@ -680,18 +694,6 @@ edaPlots(dataset, output_type = "correlation",n_cols = 10)
 </br>
 
 
-</br>
-
-### Summary Table 
-
-```{r summary, figures-side, fig.show="hold", warning=FALSE, message=FALSE}
-edaPlots(dataset, output_type = "summary", n_cols = 1536)
-```
-
-</br>
-
-
-</br>
 
 # 5. Model Training
 
@@ -815,7 +817,7 @@ The error metric can be `mean` or `max`. For a specified number of cells, each c
 - Dimensionality Reduction method = Sammons
 
 
-```{r sammons, warning=FALSE, message=FALSE}
+```{r sammons, warning=FALSE, message=FALSE, results='hide'}
 hvt.results <- trainHVT(dataset, n_cells = 110, depth = 1, quant.err = 0.6, 
                         distance_metric = "L1_Norm", error_metric = "mean",
                         normalize = TRUE, quant_method="kmeans", dim_reduction_method = "sammon")
@@ -823,7 +825,7 @@ hvt.results <- trainHVT(dataset, n_cells = 110, depth = 1, quant.err = 0.6,
 
 Let's look at the **summary** table. 
 ```{r}
-displayTable(data = hvt.results[[3]]$compression_summary)
+summary(hvt.results)
 ```
 
 *NOTE: Based on the above table, the value of 'percentOfCellsBelowQuantizationErrorThreshold' indicates that 85% of compression has taken place for the specified number of cells (110) and the quantization error (0.6)*
@@ -832,7 +834,7 @@ Lets look at the dimensionality reduction evaluation metrics.
 
 
 ```{r}
-displayTable(data= hvt.results$model_info$distance_measures)
+displayTable(hvt.results$model_info$distance_measures)
 ```
 
 According to the values above we can conclude that the model has achieved a good balance between preserving the local neighborhood relationships, global structure, and pairwise distances in the low-dimensional embedding, with moderate reconstruction accuracy and cluster separation. 
@@ -1119,9 +1121,9 @@ Below are the newly added 9 columns after scoring using `scoreHVT`
 - **anomalyFlag**: The binary value that says the cell is an anomaly or not. (if the Quant.Error is greater than mad.threshold then it is = 1 (anomaly) else = 0(not an anomaly))
  
 
-Let's look at the scored data table. For the sake of brevity we are displaying the first 10 rows and all the 1545 columns.
+Let's look at the scored data table. 
 ```{r}
-displayTable(scoring[["scoredPredictedData"]], value = 0.7) 
+summary(scoring) 
 ```
 
 
@@ -1227,7 +1229,7 @@ dim(hclust_data_1)
 The data has 110 rows and 2 columns (x and y coordinates). Let's have a look at the data.
 
 ```{r}
-displayTable(hclust_data_1)
+displayTable(hclust_data_1, limit = 110)
 ```
 
 ### 8.2.2 Clustering Analysis

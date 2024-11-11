@@ -425,7 +425,7 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
     labs(x = "x-coordinates", y = "y-coordinates", color = "Time Transition")
 
   dot_anim <- dot_anim +
-    transition_time(Timestamp) +
+  transition_time(Timestamp) +
     labs(title = "Animation showing state transitions considering self state transitions",
          subtitle = "\n\ntime(t): {(round(frame_time,3))} seconds\nLatency: {((anime_data$latency[frame]))} seconds") +
   shadow_wake(wake_length = 0.05, alpha = FALSE,wrap = FALSE)+

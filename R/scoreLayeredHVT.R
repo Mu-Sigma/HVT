@@ -263,6 +263,6 @@ scoreLayeredHVT <- function(data,
   #summary_table <- displayTable(df_reordered, scroll = TRUE, limit = 100)
   
   #print(summary_table)
-
+  class(prediction_list) <- "hvt.object"
   return(prediction_list)
 }

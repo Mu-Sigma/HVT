@@ -1,7 +1,7 @@
 ---
 title: "HVT Model diagnostics and validation"
 author: "Zubin Dowlaty, Shubhra Prakash, Sunuganty Achyut Raj, Praditi Shah, Somya Shambhawi,Vishwavani"
-date: "Built on: `r format(Sys.Date(), '%m/%d/%Y')`"
+date: "Created Date: 2018-05-17  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
 output:
@@ -283,7 +283,12 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
 
-
+```{r, include=FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 
 # 5. Data Importing
 
@@ -458,7 +463,7 @@ if(want_to_change_column_type == "yes" && change_column_to_type == "character"){
   paste0("Datatype of columns have not been changed.") %>% cat("\n")
 }
 dataset_updated <- do.call(data.frame, dataset_updated)
-str( dataset_updated)
+str(dataset_updated)
 
 ```
 
@@ -811,22 +816,22 @@ It uses an inbuilt function called `edaPlots` to display the above-mentioned fou
 
 ## Summary Table
 ```{r}
-edaPlots(dataset_updated, output_type = "summary", n_cols = 3)
+edaPlots(dataset_updated)
 ```
 
 ## Histograms
 ```{r hist, figures-side, fig.show="hold", fig.height=2.2, fig.width =2.95, warning=FALSE, message=FALSE}
-edaPlots(dataset_updated, output_type = "histogram", n_cols = 3)
+edaPlots(dataset_updated, output_type = "histogram")
 ```
 
 ## Box Plots
 ```{r  boxx, figures-side, fig.show="hold",fig.height=2.2, fig.width = 2.95,warning=FALSE, message=FALSE}
-edaPlots(dataset_updated, output_type = "boxplot", n_cols = 3)
+edaPlots(dataset_updated, output_type = "boxplot")
 ```
 
 ## Correlation Plot
 ```{r corr, warning=FALSE, message=FALSE, fig.align='center', fig.height = 4, fig.width = 4}
-edaPlots(dataset_updated, output_type = "correlation", n_cols = 3)
+edaPlots(dataset_updated, output_type = "correlation")
 ```
 
 
@@ -856,44 +861,44 @@ columns.
 
 #### Summary Table
 ```{r}
-edaPlots(dataset_updated_train, output_type = "summary", n_cols = 3)
+edaPlots(dataset_updated_train)
 ```
 
 #### Histograms
 ```{r histtrain, figures-side, fig.show="hold", fig.height=2.2, fig.width =2.95, warning=FALSE, message=FALSE}
-edaPlots(dataset_updated_train, output_type = "histogram", n_cols = 3)
+edaPlots(dataset_updated_train, output_type = "histogram")
 ```
 
 #### Box Plots
 ```{r  boxxtrain, figures-side, fig.show="hold",fig.height=2.2, fig.width = 2.95,warning=FALSE, message=FALSE}
-edaPlots(dataset_updated_train, output_type = "boxplot", n_cols = 3)
+edaPlots(dataset_updated_train, output_type = "boxplot")
 ```
 
 #### Correlation Plot
 ```{r corrtrain, warning=FALSE, message=FALSE, fig.align='center', fig.height = 4, fig.width = 4}
-edaPlots(dataset_updated_train, output_type = "correlation", n_cols = 3)
+edaPlots(dataset_updated_train, output_type = "correlation")
 ```
 
 ### 7.1.2 Test Distribution {.tabset}
 
 #### Summary Table
 ```{r}
-edaPlots(dataset_updated_test, output_type = "summary", n_cols = 3)
+edaPlots(dataset_updated_test)
 ```
 
 #### Histograms
 ```{r histtest, figures-side, fig.show="hold", fig.height=2.2, fig.width =2.95, warning=FALSE, message=FALSE}
-edaPlots(dataset_updated_test, output_type = "histogram", n_cols = 3)
+edaPlots(dataset_updated_test, output_type = "histogram")
 ```
 
 #### Box Plots
 ```{r  boxxtest, figures-side, fig.show="hold",fig.height=2.2, fig.width = 2.95,warning=FALSE, message=FALSE}
-edaPlots(dataset_updated_test, output_type = "boxplot", n_cols = 3)
+edaPlots(dataset_updated_test, output_type = "boxplot")
 ```
 
 #### Correlation Plot
 ```{r corrtest, warning=FALSE, message=FALSE, fig.align='center', fig.height = 4, fig.width = 4}
-edaPlots(dataset_updated_test, output_type = "correlation", n_cols = 3)
+edaPlots(dataset_updated_test, output_type = "correlation")
 ```
 
 
@@ -1018,7 +1023,7 @@ visualizing the output can be found
 In the section below, we build a Level 1 HVT model. The number of
 cells (`n_cells`) is set to 500.
 
-```{r level one sample data,warning=FALSE,message=FALSE,results='asis'}
+```{r level one sample data,warning=FALSE,message=FALSE,results='hide'}
 hvt.results <-trainHVT(dataset_updated_train,
                           n_cells = 500,
                           depth = 1,
@@ -1035,17 +1040,17 @@ hvt.results <-trainHVT(dataset_updated_train,
 
 
 ```{r}
-displayTable(hvt.results[[3]][['compression_summary']])
+summary(hvt.results)
 ```
 
 As seen in the above table, 90% of the cells have a quantization error
 below the threshold.
 
 Let's have a closer look at `Quant.Error` of the cells. Here we are
-showing just top 100 rows for the sake of brevity.
+showing just top 20 rows for the sake of brevity.
 
 ```{r}
-displayTable(data =hvt.results[[3]][['summary']])
+displayTable(hvt.results[[3]][['summary']])
 ```
 
 
@@ -1365,7 +1370,7 @@ hvt.score <- scoreHVT(dataset_updated_test,
 
 
 ```{r}
-displayTable(hvt.score[["scoredPredictedData"]], value = 0.8)
+summary(hvt.score)
 ```
 
 

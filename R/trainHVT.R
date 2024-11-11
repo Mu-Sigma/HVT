@@ -672,7 +672,7 @@ trainHVT <-
                                                # columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
                                                # value = 0.8, tableType = "compression")
       #print(compression_summary_table)
-      
+      class(fin_out) <- "hvt.object"
       return(fin_out)
       
     } else { 
@@ -975,7 +975,7 @@ trainHVT <-
      # print(compression_summary_table)
       
       
-      
+      class(fin_out) <- "hvt.object"
       return(fin_out)
       
     }

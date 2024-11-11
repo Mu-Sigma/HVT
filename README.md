@@ -2,7 +2,9 @@
 
 #### Zubin Dowlaty
 
-#### 2024-10-18
+##### Created Date: 2018-11-15
+##### Modified Date: 2024-11-11
+
 
 <div id="TOC">
 
@@ -32,7 +34,7 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 
 1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
 
-2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank"> embeddings</a>) coordinates into the desired output dimension. 
+2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
 
 3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
 
@@ -62,7 +64,7 @@ Following are the links to the vignettes for the HVT package:
 
 ## <span class="header-section-number">2.1</span> HVT Vignette
 
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html" target="_blank">**HVT Vignette:(18-Oct-2024)**</a> Contains descriptions of the functions used for vector quantization and construction of hierarchical voronoi tessellations for data analysis.
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html" target="_blank">**HVT Vignette (Created at: 17-May-2018):**</a> Contains descriptions of the functions used for vector quantization and construction of hierarchical voronoi tessellations for data analysis.
 
 
 </div>
@@ -71,7 +73,7 @@ Following are the links to the vignettes for the HVT package:
 
 ## <span class="header-section-number">2.2</span> HVT Model Diagnostics Vignette
 
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html" target="_blank">**HVT Model Diagnostics Vignette:(18-Oct-2024)**</a> Contains descriptions of functions used to perform model diagnostics and validation for HVT model.
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html" target="_blank">**HVT Model Diagnostics Vignette (Created at: 17-May-2018):**</a> Contains descriptions of functions used to perform model diagnostics and validation for HVT model.
 
 </div>
 
@@ -79,7 +81,7 @@ Following are the links to the vignettes for the HVT package:
 
 ## <span class="header-section-number">2.3</span> HVT Scoring Cells with Layers using scoreLayeredHVT
 
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html" target="_blank">**HVT Scoring Cells with Layers using scoreLayeredHVT:(18-Oct-2024)**</a> Contains descriptions of the functions used for scoring cells with layers based on a sequence of maps using scoreLayeredHVT.
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html" target="_blank">**HVT Scoring Cells with Layers using scoreLayeredHVT (Created at: 16-May-2023):**</a> Contains descriptions of the functions used for scoring cells with layers based on a sequence of maps using scoreLayeredHVT.
 
 </div>
 
@@ -87,7 +89,7 @@ Following are the links to the vignettes for the HVT package:
 
 ## <span class="header-section-number">2.4</span> Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT
 
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_Temporal_Analysis.html" target="_blank">**Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT:(18-Oct-2024)**</a> Contains descriptions of the functions used for analyzing time series data and its flow maps.
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_Temporal_Analysis.html" target="_blank">**Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT (Created at: 26-Oct-2023):**</a> Contains descriptions of the functions used for analyzing time series data and its flow maps.
 
 </div>
 
@@ -96,7 +98,7 @@ Following are the links to the vignettes for the HVT package:
 
 ## <span class="header-section-number">2.5</span> Visualizing LLM Embeddings using HVT (Hierarchical Voronoi Tessellation)
 
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/LLM_Embeddings_in_HVT.html" target="_blank">**Visualizing LLM Embeddings using HVT (Hierarchical Voronoi Tessellation):(18-Oct-2024)**</a> Contains the implementation and analysis of hierarchical clustering using the `clustHVT` function to evaluate and visualize token embeddings generated by OpenAI.
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/LLM_Embeddings_in_HVT.html" target="_blank">**Visualizing LLM Embeddings using HVT  (Created at: 16-May-2024):**</a> Contains the implementation and analysis of hierarchical clustering using the `clustHVT` function to evaluate and visualize token embeddings generated by OpenAI.
 </div>
 
 <div id="#26-implementation-of-t-sne-and-umap-to-trainhvt-function" class="section level2" number="2.6">
@@ -105,7 +107,7 @@ Following are the links to the vignettes for the HVT package:
 ## <span class="header-section-number">2.6</span> Implementation of t-SNE and UMAP to trainHVT function
 
 
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html" target="_blank">**Implementation of t-SNE and UMAP in trainHVT function:(18-Oct-2024)**</a> Contains enhancements to the `trainHVT` function with advanced dimensionality reduction techniques such as t-SNE and UMAP, and includes a table of evaluation metrics to improve analysis, visualization, and interpretability.
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html" target="_blank">**Implementation of t-SNE and UMAP in trainHVT function (Created at: 14-Aug-2024):**</a> Contains enhancements to the `trainHVT` function with advanced dimensionality reduction techniques such as t-SNE and UMAP, and includes a table of evaluation metrics to improve analysis, visualization, and interpretability.
 
 </div>
 

@@ -1,7 +1,7 @@
 ---
 title: "Implementation of t-SNE and UMAP in trainHVT function"
 author: "Bidesh Ghosh, Alimpan Dey"
-date: "`r Sys.Date()`"
+date: "Created Date: 2024-08-14  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
 output:
@@ -240,7 +240,12 @@ if (length(new.packages)){install.packages(new.packages, repos='https://cloud.r-
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
-
+```{r, include=FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
   
 # 6. Data Understanding
 
@@ -265,7 +270,7 @@ The torus dataset includes the following columns:
     torus.
 
 Lets, explore the raw torus dataset containing 12000 points. For the
-sake of brevity, we are displaying the 10 rows.
+sake of brevity, we are displaying the 20 rows.
 
 ```{r}
 set.seed(124)
@@ -277,7 +282,7 @@ torus_df1 <- torus_df %>% round(4)
 colnames(torus_df1) <- c("x","y","z")
 torus_df1$Row.No <- as.numeric(row.names(torus_df))
 torus_df1 <- torus_df1 %>% dplyr::select(x,y,z)
-displayTable(head(torus_df1, 10))
+displayTable(torus_df1)
 ```
 
 Now, let’s try to visualize the torus dataset in 3D.
@@ -525,8 +530,7 @@ We have passed the below mentioned model parameters along with depth=1, 2, 3 res
   tsne_theta = 0.5,
   tsne_verbose = TRUE,
   tsne_eta = 200,
-  tsne_max_iter = 1000
-  )
+  tsne_max_iter = 1000 )
 ```
 
 
@@ -548,8 +552,7 @@ hvt_results_tsne2 <- trainHVT(
   tsne_theta = 0.5,
   tsne_verbose = TRUE,
   tsne_eta = 200,
-  tsne_max_iter = 1000
-)
+  tsne_max_iter = 1000)
 ```
 
 
@@ -571,8 +574,7 @@ hvt_results_tsne3 <- trainHVT(
   tsne_theta = 0.5,
   tsne_verbose = TRUE,
   tsne_eta = 200,
-  tsne_max_iter = 1000
-)
+  tsne_max_iter = 1000)
 ```
 
 
@@ -732,8 +734,7 @@ hvt_results_umap1 <- trainHVT(
   quant_method = "kmeans",   
   dim_reduction_method = "umap",
   umap_n_neighbors = 6,
-  umap_min_dist = 0.2
-)
+  umap_min_dist = 0.2)
 ```
 
 
@@ -752,8 +753,7 @@ hvt_results_umap2 <- trainHVT(
   quant_method = "kmeans",   
   dim_reduction_method = "umap",
   umap_n_neighbors = 6,
-  umap_min_dist = 0.2
-)
+  umap_min_dist = 0.2)
 ```
 
 
@@ -772,8 +772,7 @@ hvt_results_umap3 <- trainHVT(
   quant_method = "kmeans",   
   dim_reduction_method = "umap",
   umap_n_neighbors = 6,
-  umap_min_dist = 0.2
-)
+  umap_min_dist = 0.2)
 ```
 
 
@@ -931,8 +930,7 @@ hvt_results_sammon1 <- trainHVT(
   distance_metric = "L2_Norm",   
   error_metric = "mean",    
   quant_method = "kmeans",   
-  dim_reduction_method = "sammon" 
-)
+  dim_reduction_method = "sammon" )
 ```
 
 
@@ -949,8 +947,7 @@ hvt_results_sammon2 <- trainHVT(
   distance_metric = "L2_Norm",   
   error_metric = "mean",    
   quant_method = "kmeans",   
-  dim_reduction_method = "sammon" 
-)
+  dim_reduction_method = "sammon" )
 ```
 
 
@@ -967,8 +964,7 @@ hvt_results_sammon3 <- trainHVT(
   distance_metric = "L2_Norm",   
   error_metric = "mean",    
   quant_method = "kmeans",   
-  dim_reduction_method = "sammon" 
-)
+  dim_reduction_method = "sammon" )
 ```
 
 #### 7.4.2 Plotting the outcome of `trainHVT` function with dim_reduction_method="sammon" using `plotHVT` {.tabset}
@@ -1178,13 +1174,12 @@ hvt_results_tsne <- trainHVT(
   tsne_theta = 0.5,
   tsne_verbose = TRUE,
   tsne_eta = 200,
-  tsne_max_iter = 1000
-  )
+  tsne_max_iter = 1000 )
 ```
 
 Compression summary
 ```{r}
-displayTable(hvt_results_tsne[[3]][["compression_summary"]])
+summary(hvt_results_tsne)
 ```
   
 
@@ -1208,7 +1203,7 @@ hvt_results_umap <- trainHVT(
 
 Compression summary
 ```{r}
-displayTable(hvt_results_umap[[3]][["compression_summary"]])
+summary(hvt_results_umap)
 ```
   
 
@@ -1225,13 +1220,12 @@ hvt_results_sammon <- trainHVT(
   distance_metric = "L2_Norm",   
   error_metric = "mean",    
   quant_method = "kmeans",   
-  dim_reduction_method = "sammon" 
-)
+  dim_reduction_method = "sammon" )
 ```
 
 Compression summary
 ```{r}
-displayTable(hvt_results_sammon[[3]][["compression_summary"]])
+summary(hvt_results_sammon)
 ```
   
 
@@ -1370,16 +1364,14 @@ data <- data.frame(
   Participant = c("Person 1", "Person 2", "Person 3", "Person 4", "Person 5"),
   tSNE = c(1, 2, 1, 2, 1),
   UMAP = c(1, 1, 2, 1, 2),
-  Sammon = c(3, 3, 3, 3, 3)
-)
+  Sammon = c(3, 3, 3, 3, 3))
 
 # Calculate the average for each method
 averages <- data.frame(
   Participant = "Average",
   tSNE = mean(data$tSNE),
   UMAP = mean(data$UMAP),
-  Sammon = mean(data$Sammon)
-)
+  Sammon = mean(data$Sammon))
 
 # Combine the original data with the averages
 combined_data <- rbind(data, averages)
