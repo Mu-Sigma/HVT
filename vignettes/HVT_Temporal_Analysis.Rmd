@@ -230,118 +230,6 @@ edaPlots(dataset, output_type = 'correlation')
 edaPlots(dataset, time_column = "t", output_type = "timeseries")
 ```
 
-**Train - Test Split**
-
-Let us split the dataset into train and test. We will orderly select 80% of the data as train and the remaining as test.
-
-```{r}
-noOfPoints <- dim(dataset)[1]
-trainLength <- as.integer(noOfPoints * 0.8)
-trainDataset <- dataset[1:trainLength,]
-testDataset <- dataset[(trainLength+1):noOfPoints,]
-rownames(testDataset) <- NULL
-```
-
-
-## 4.1 Training dataset
-
-Let's have a look at the Training dataset containing 160,000 data points. For the sake of brevity, we are displaying the first 20 rows.
-
-```{r,warning=FALSE,message=FALSE}
-displayTable(trainDataset)
-```
-
-Now, let's have a look at the **structure** of the training dataset.
-
-```{r train structure, warning=FALSE}
-str(trainDataset)
-```
-
-**Data Distribution**
-
-```{r plot tratab, warning = FALSE, message=FALSE}
-edaPlots(trainDataset)
-```
-
-</br>
-
-
-```{r plot trahist,figures-side,  warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'histogram')
-```
-
-</br>
-
-
-```{r plot trabox,figures-side, warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'boxplot')
-```
-
-
-</br>
-
-
-```{r plot tracor,fig.width = 7, fig.height = 5, fig.align='center', warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'correlation')
-```
-
-</br>
-
-```{r, plot tratime,  warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
-edaPlots(trainDataset, time_column = "t", output_type = "timeseries")
-```
-
-
-## 4.2 Testing dataset
-
-Let's have a look at the Testing dataset containing 40,000 data points. For the sake of brevity, we are displaying first the 20 rows.
-
-```{r, warning=FALSE,message=FALSE}
-displayTable(testDataset)
-```
-
-Now, let's have a look at the **structure** of the testing dataset.
-
-```{r test structure, warning=FALSE}
-str(testDataset)
-```
-
-
-**Data Distribution**
-
-
-```{r plot testab, warning = FALSE, message=FALSE}
-edaPlots(testDataset)
-```
-
-</br>
-
-
-```{r plot teshist,figures-side, warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'histogram')
-```
-
-</br>
-
-
-```{r plot tesbox,figures-side, warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'boxplot')
-```
-
-
-</br>
-
-
-```{r plot tescor,fig.width = 7, fig.height = 5, fig.align='center', warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'correlation')
-```
-
-</br>
-
-```{r, plot testime,  warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
-edaPlots(testDataset, time_column = "t", output_type = "timeseries")
-```
-
 
 # 5. Model Training and Visualization
 
@@ -360,7 +248,7 @@ We will use the `trainHVT` function to compress our dataset while preserving ess
 
 ```{r ,warning=FALSE,fig.show='hold',message=FALSE, results='hide'}
 hvt.results <- trainHVT(
-  trainDataset[,-c(4:5)],
+  dataset[,-c(4:5)],
   n_cells = 100,
   depth = 1,
   quant.err = 0.1,
@@ -378,20 +266,10 @@ Let's check out the compression summary.
 ```{r compression summary torus first,warning=FALSE}
 summary(hvt.results)
 ```
-**NOTE:** *Based on the provided table, it's evident that the 'percentOfCellsBelowQuantizationErrorThreshold' value is zero, indicating that compression hasn't taken place for the specified number of cells, which is 100. Typically, we would continue increasing the number of cells until at least 80% compression occurs. However, in this vignette demonstration, we're not doing so, because the plots generated from temporal analysis functions would become cluttered and complex, making explanations less clear.*
+**NOTE:** *Based on the provided table, it's evident that the 'percentOfCellsBelowQuantizationErrorThreshold' value is 0.02, indicating that compression has taken place only for 2 percentage. Typically, we would continue increasing the number of cells until at least 80% compression occurs. However, in this vignette demonstration, we're not doing so, because the plots generated from temporal analysis functions would become cluttered and complex, making explanations less clear.*
 
 
 Now, Let's plot the Voronoi tessellation for 100 cells.
-
-```{r, warning=FALSE,message=FALSE,fig.cap='Figure 2: The Voronoi tessellation for layer 1 shown for the 100 cells in the dataset ’Lorenz attractor’', fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 7.5, fig.height = 5}
-plotHVT(
-  hvt.results,
-  centroid.size = c(0.6),
-  plot.type = '2Dhvt',
-  cell_id = FALSE)
-```
-
-To understand how cell IDs are distributed across the map, we again plot Voronoi tessellation with `cell_id = TRUE`.
 
 ```{r, warning=FALSE,message=FALSE,fig.cap='Figure 3: The Voronoi tessellation for layer 1 shown for the 100 cells in the dataset ’Lorenz attractor’ with Cell ID', fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 7.5, fig.height = 5 }
 plotHVT(
