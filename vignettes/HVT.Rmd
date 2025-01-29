@@ -77,11 +77,15 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 
 4.  **Scoring**: Scoring new data sets or test data and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
 
-5. **Temporal Analysis and Visualization**: A Collection of new functions that leverages the capacity of the HVT package by analyzing time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations with Markov Chain (MSM), enabling predictions and analyzes for time-series data.
+
+
 
 The HVT package allows creation of visually stunning tessellations, showcasing the power of topology preserving maps. below is an image depicting a captivating tessellation of a torus.
 
-```{r predictlayer_flow,echo=FALSE,warning=FALSE,fig.show='hold',message=FALSE,fig.cap='Figure 1:  Heatmap Visualization of a Torus with 900 Cells'}
+```{r predictlayer_flow,echo=FALSE,warning=FALSE,fig.show='hold',message=FALSE,fig.cap='Figure 1:  Heatmap Visualization of a Torus with 500 Cells'}
 knitr::include_graphics('./pngs/torus2.png')
 ```
 
@@ -101,9 +105,28 @@ Following are the links to the vignettes for the HVT package:
 
 6. <a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html" target="_blank">**Implementation of t-SNE and UMAP in trainHVT function (Created at: 14-Aug-2024):**</a> Contains enhancements to the `trainHVT` function with advanced dimensionality reduction techniques such as t-SNE and UMAP, and includes a table of evaluation metrics to improve analysis, visualization, and interpretability.
 
+7. <a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html" target="_blank">**Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT (Created at: 12-Nov-2024):**</a> Contains enhancements to the HVT package for dynamic forecasting using Monte Carlo Simulations of Markov Chain (MSM) on macroeconomic time series dataset. 
+
 # 3. Version History
 
-## HVT (v24.9.1) | What's New? {-}
+
+## HVT (v25.1.1) | What's New? {-}
+
+27th January, 2025
+
+In this version of the HVT package, the following new function and vignette have been introduced:
+
+**Function**
+
+1. **Dynamic Forecasting of a Time Series Dataset**: This update introduces a new function for dynamic forecasting of states using time series dataset, called Monte Carlo Simulations of Markov Chain - `msm`. It supports both ex-post and ex-ante forecasting, offering valuable insights into future trends while resolving state transition challenges through clustering and nearest-neighbor methods to enhance simulation accuracy.
+
+
+**Vignette** 
+
+1. **Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT**: This vignette illustrates the practical use of the new `msm` function on a macroeconomic dataset with 10 variables. It covers all steps, including data preparation, model training, scoring, and forecasting, while addressing challenges related to state transitions and evaluating performance using Mean Absolute Error (MAE).
+
+
+## HVT (v24.9.1) 
 
 4th September, 2024
 
@@ -197,7 +220,7 @@ This version of the HVT package offers features for both training an HVT model a
 
 
 
-# 4. Installation of HVT (v24.9.1)
+# 4. Installation of HVT (v25.1.1)
 
 **CRAN Installation**
 

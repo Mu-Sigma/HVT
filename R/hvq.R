@@ -11,7 +11,6 @@ hvq <-
             quant_method=c("kmeans","kmedoids")
   ) {    
     requireNamespace("dplyr")
-#browser()  
     rescl <- list()
     resid <- list()
     resm <- list()
@@ -103,7 +102,7 @@ hvq <-
       n_cells_optimal <- n_cells
     }
     
-#browser()    
+   
     # names(outkinit$val) <- seq_along(outkinit$val)
     rescl[[1]] <- outkinit$val
     tet <- lapply(outkinit$val, row.names) 

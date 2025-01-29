@@ -11,11 +11,10 @@ trainHVT(
   depth = 1,
   quant.err = 0.2,
   normalize = FALSE,
-  distance_metric = c("L1_Norm", "L2_Norm"),
-  error_metric = c("mean", "max"),
-  quant_method = c("kmeans", "kmedoids"),
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  quant_method = "kmeans",
   scale_summary = NA,
-  projection.scale = 10,
   diagnose = FALSE,
   hvt_validation = FALSE,
   train_validation_split_ratio = 0.8,
@@ -60,10 +59,6 @@ while Kmedoids uses actual data points (medoids) as cluster centers. kmeans is s
 
 \item{scale_summary}{List. A list with user-defined mean and standard deviation values for all the features in the dataset. 
 Pass the scale summary when normalize is set to FALSE.}
-
-\item{projection.scale}{Numeric. A number indicating the scale factor for the tessellations to visualize the sub-tessellations
-well enough. It helps in adjusting the visual representation of the hierarchy to make the sub-tessellations more visible.
-Default is 10.}
 
 \item{diagnose}{Logical. A logical value indicating whether user wants to perform diagnostics on the model. 
 Default value is FALSE.}

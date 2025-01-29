@@ -1,0 +1,1769 @@
+---
+title: "Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT"
+author: "Zubin Dowlaty, Chepuri Gopi Krishna, Siddharth Shorya, Vishwavani"
+date: "Created Date: 2024-11-12  <br> Modified Date: `r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth : 2
+    tabset: true 
+vignette: >
+  %\VignetteIndexEntry{Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+```{css, echo=FALSE}
+/* CSS for floating TOC on the left side */
+#TOC {
+    /* float: left; */
+    position: fixed;
+    margin-left: -17vw;
+    width: 15vw;
+    height: fit-content;
+    overflow-y: auto;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background-color: #f9f9f9;
+    border-right: 1px solid #ddd;
+    margin-top: -13em; 
+}
+.main-container {
+  margin-left: 250px; 
+  padding: 20px;
+  max-width: 1000px;/* Adjust this value to match the width of the TOC + some margin */
+}
+body{
+max-width:1800px;
+width: 60%;
+min-width: 700px;
+}
+p {
+text-align: justify;
+}
+
+.plotly {
+  margin: auto;
+  width: 100%;
+  height: 500px;
+}
+
+.caption {
+  text-align: center;
+}
+li {
+  padding-bottom: 5px;
+}
+ul {
+  margin-bottom: 0px !important;
+}
+img {
+  border: none;
+}
+
+
+g.legendlines {
+display:none;
+}
+
+
+.tab{
+   border: none !important;
+}
+
+#cells-3{
+  background-color: green;
+  font-size: 15px;
+}
+
+#cells-10{
+  background-color: green;
+  font-size: 15px;
+}
+ 
+```
+
+
+
+
+
+
+
+# 1. Background
+
+The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 3D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
+
+1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
+
+2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
+
+3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
+
+4.  **Scoring**: Scoring new data sets or test data and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
+
+5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
+
+<span style="font-size: 20px;">**What's New?**</span>
+
+- This notebook introduces a new feature `msm` in HVT package, which stands for **Monte Carlo Simulations of Markov Chain**, a feature designed for **Dynamic Forecasting of time series data**. 
+
+- This method relies on a transition probability matrix to forecast n states ahead in time series data. This notebook includes ex-post and ex-ante forecasting and provides a step-by-step walkthrough from data preparation to forecast generation.
+
+- It also examines challenges encountered during forecasting due to transition probability issues in certain states, proposes solutions to address these challenges, and assesses prediction accuracy using relevant metrics.
+
+# 2. Notebook Requirements
+
+This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, the code will install those packages and attach to the session environment.
+
+```{r, warning=FALSE, message=FALSE}
+list.of.packages <- c("dplyr", "tidyr","patchwork", "feather","ggplot2","kableExtra",
+                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust")
+
+new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+if (length(new.packages))
+  install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
+invisible(lapply(list.of.packages, library, character.only = TRUE))
+```
+
+Since all the functions for forecasting approaches are not public yet, we are sourcing the scripts here.
+
+```{r,message=FALSE, warning=FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
+
+
+Below is the function for more dynamic drop down display in the datatables.
+
+```{r}
+calculate_dynamic_length_menu <- function(total_entries, base_step = 100) {
+  max_option <- ceiling(total_entries / base_step) * base_step
+  max_option <- max(max_option, 100)
+  options <- seq(base_step, by = base_step, length.out = max_option / base_step)
+  options <- c(10, options)
+  return(options)}
+```
+
+
+# 3. Dataset Preparation and Exploration
+
+
+## 3.1 Dataset Loading
+
+Let's start with importing the dataset. The below code reads and displays the dataset.
+
+```{r,warning=FALSE,message=FALSE}
+entire_dataset <- read.csv("./sample_dataset/macro_eco_data_2024.csv")
+entire_dataset <-  entire_dataset %>% mutate(across(where(is.numeric), ~ round(., 4)))
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(entire_dataset))
+datatable(entire_dataset,options = list(pageLength = 10,scrollX = TRUE, lengthMenu = dynamic_length_menu), rownames = FALSE)
+```
+
+This dataset includes a collection of key economic and financial indicators. These indicators are essential for monitoring macroeconomic performance, analyzing market trends, and assessing financial stability. The dataset includes the following indicators, which have been renamed for ease of use:
+
+1) **CPI_U_All_Items_Less_Food_Energy** as **CPI_Food** - The Consumer Price Index for All Urban Consumers: All Items Less Food & Energy represents the aggregate prices paid by urban consumers for a standard basket of goods excluding food and energy costs.
+
+2) **Coincident_Index** as **COIN** - The Composite Index of Coincident Indicators consolidates economic indicators like employment, industrial production, retail sales and personal income into a unified measure.
+
+3) **Copper_ETF** as **Copper_ETF** - Copper ETF offers investors exposure to copper price movements through various means such as futures contracts, mining company stocks, and physical copper assets.
+
+4) **Risk_Premium** as **Risk_Premium** - A risk premium is the investment return an asset is expected to yield more than the risk-free rate of return. It's calculated by dividing the effective yield of high-yield bonds by the yield of a 10-year Treasury note yield to quantify the compensation for bearing additional risk.
+
+5) **SnP500_ETF** as **SnP500_ETF** - The S&P 500 ETF mirrors the S&P 500 index consolidating the performance of 500 prominent U.S. company's stocks
+
+6) **Spot_Oil_Price_West_Texas_Intermediate** as **Spot_Oil** - The Spot Oil Price: West Texas Intermediate (WTI) indicator represents the current market price of West Texas Intermediate crude oil.
+
+7) **US_Dollar_Index** as **USD_Index** - US Dollar Index is a real-time price index provided by Intercontinental Exchange(ICE) Futures representing the value of the US dollar against a basket of major global currencies.
+
+8) **Unemployment_Rate** as **Unemp_Rate** - The Unemployment rate is the percentage of unemployed individuals among the total labor force.
+
+9) **10_Year_Treasury_Note_Yield** as **Y10_Note** - 10-Year Treasury Note Yield is the interest rate at which the United States government borrows money through 10-year Treasury securities.
+
+10) **Yield_Curve** as **Yield_Curve** - The yield curve illustrates the relationship between bond yields and their respective maturities. It's calculated as the ratio of the yields of 10-year and 2-year U.S. Treasury bonds.
+
+This dataset supports scenario analysis and predicting future trends by leveraging relationships between economic and financial indicators. It aids in market strategy, risk management, and macroeconomic forecasting. The data ranges from **January 1997 to December 2024.**
+
+
+## 3.2 Dataset Preprocessing
+
+Before proceeding, it is crucial to examine the structure of the dataset. This involves verifying the data types of the columns and resolving any inconsistencies. Make sure all data types are accurate and suitable for the intended functions.
+
+```{r}
+str(entire_dataset)
+```
+
+
+Since the time column is in 'Character' format, we are changing it to 'datetime' (POSIXct) format.
+
+```{r}
+entire_dataset$t <- as.POSIXct(paste0(entire_dataset$t, "/01"), format = "%Y/%m/%d")
+```
+
+
+## 3.3 Dataset Transformation
+
+We transform the data to compute the 12-month rate of change, which standardizes the features and brings them to a comparable scale, simplifying the analysis of their relative changes. Log differencing reduces variability and removes trends, stabilizing the data for more accurate forecasting.
+
+The Rate of change is calculated as follows:
+
+$$
+\text{Rate of Change} = \log(\text{Current Value}) - \log(\text{12-Month Lag Value})
+$$
+
+
+```{r}
+features_data <- entire_dataset %>% select(-t) %>% colnames()
+entire_dataset[features_data] <- lapply(entire_dataset[features_data], function(x) as.numeric(as.character(x)))
+
+invisible(lapply(features_data, function(col) {
+  entire_dataset[[col]] <<- entire_dataset[[col]] %>% log()
+  entire_dataset[[col]] <<- c(rep(NA, 12), round(diff(entire_dataset[[col]], 12),4))}))
+entire_dataset <- entire_dataset %>% na.omit() %>% data.frame()
+rownames(entire_dataset) <- NULL
+```
+
+After the log difference of 12 datapoints (months), the dataset ranges from **January 1998 to December 2024**. Below is the table displaying the transformed dataset.
+
+```{r}
+entire_dataset$t <- as.character(entire_dataset$t)
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(entire_dataset))
+datatable(entire_dataset,options = list(pageLength = 10,scrollX = TRUE,lengthMenu = dynamic_length_menu,columnDefs = list(list(width = '150px', targets = 0))),
+class = "nowrap display",rownames = FALSE)
+entire_dataset$t <- as.POSIXct(entire_dataset$t, format = "%Y-%m-%d")
+```
+
+
+## 3.4 Ex-post and Ex-ante Period
+
+The ultimate goal of this notebook is to dynamically forecast the HVT states in both ex-post and ex-ante scenarios. To structure the analysis, we will define the timelines based on the main topics of interest:
+
+- **Constructing HVT Model:** 1998-01-01 to 2024-12-01  
+
+- **Scoring Data Points Using HVT Model:** 1998-01-01 to 2024-12-01  
+
+- **Dynamic Forecasting**
+  - *Transition Probability Matrix:* 1998-01-01 to 2024-12-01  
+  - *Ex-Post Forecasting:* 2023-01-01 to 2024-12-01  
+  - *Ex-Ante Forecasting:* 2025-01-01 to 2025-12-01  
+
+```{r}
+expost_forecasting <- entire_dataset[entire_dataset$t > "2022-12-01" & entire_dataset$t <= "2024-12-01", ]
+```
+
+
+## 3.5 EDA Plots {.tabset}
+
+For the Exploratory Data Analysis (EDA), we will create a statistic table and series of plots to visualize the dataset's distribution, trends, and relationships. These plots provide insights into the data structure, enabling a better understanding of the underlying patterns and correlations.
+
+**Dataset used for EDA: 1998-01-01 to 2024-12-01**
+
+For creating tabsets, follow this markdown syntax;
+
+```{r, eval=FALSE}
+## Main Heading {.tabset}
+### Tab 1
+ - Content for Tab 1.
+### Tab 2
+ - Content for Tab 2.
+## Next Section
+```
+
+
+
+### Summary Table
+
+```{r}
+edaPlots(entire_dataset)
+```
+
+### Histograms
+
+```{r plot twohist,figures-side,  warning = FALSE, message=FALSE}
+edaPlots(entire_dataset, output_type = 'histogram')
+```
+
+</br>
+
+### Boxplots  
+
+
+```{r plot twobox,figures-side, warning = FALSE, message=FALSE}
+edaPlots(entire_dataset, output_type = 'boxplot')
+```
+
+
+</br>
+
+### Correlation Plot
+
+```{r plot twocor, fig.show="hold", fig.width = 8, fig.height = 8, fig.align='center', warning = FALSE, message=FALSE}
+edaPlots(entire_dataset, output_type = 'correlation')
+```
+
+</br>
+
+### Time Series Plots 
+
+```{r, plot twotime, warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 15}
+recession_periods <- list(c("2001-03-01", "2001-11-01"),c("2007-12-01", "2009-06-01"),c("2020-02-01", "2020-04-01"))
+recession_periods <- lapply(recession_periods, function(x) as.POSIXct(x))
+edaPlots(entire_dataset, time_column = "t", output_type = "timeseries", grey_bars = recession_periods)
+```
+
+
+</br>
+
+
+
+</br>
+
+
+# 4. Constructing and Visualizing the HVT Model
+
+The dataset is prepped and ready for constructing the HVT model, which is the first and most prominent step. Model Training involves applying Hierarchical Vector Quantization (HVQ) to iteratively compress and project data into a hierarchy of cells. The process uses a quantization error threshold to determine the number of cells and levels in the hierarchy. The compressed data is then projected onto a 2D space, and the resulting tessellation provides a visual representation of the data distribution, enabling insights into the underlying patterns and relationships.
+
+We use the `trainHVT` function to compress the dataset, and timestamp feature is not needed for this process.
+
+**Input Parameters**
+
+* Dataset (1998-01-01 to 2024-12-01)
+* Number of Cells = 76
+* Depth = 1
+* Quantization Error Threshold = 0.25
+* Error Metric = Max
+* Distance Metric = L1_Norm/Manhattan
+* Dimension Reduction Metric = Sammon
+* Normalization = TRUE (Z-score)
+
+```{r ,warning=FALSE,fig.show='hold',message=FALSE, results='hide'}
+hvt.results <- trainHVT(
+  entire_dataset[,-1],
+  n_cells = 76,
+  depth = 1,
+  quant.err = 0.25,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  quant_method = "kmeans",
+  dim_reduction_method = "sammon")
+```
+
+
+```{r compression summary torus first,warning=FALSE}
+summary(hvt.results)
+```
+
+The value of `percentOfCellsBelowQuantizationErrorThreshold` is crucial for evaluating the model's performance and the quality of the compression. It is recommended to construct a model where atleast 80% of the cells fall below the quantization error threshold.
+
+The value `r round(hvt.results[[3]]$compression_summary$percentOfCellsBelowQuantizationErrorThreshold,2)`, indicates that **`r round((hvt.results[[3]]$compression_summary$percentOfCellsBelowQuantizationErrorThreshold),2) * 100`% compression** has been achieved, hence the model is valid.
+
+
+
+### Visual Stability & Aesthetics {.tabset}
+
+For the visual stability and aesthetic check, we will plot and compare our current model with tessellations from 3 cells above and below our current cell count of 76. This comparison helps ensure the model's structural integrity across a similar range of cells and allows for the identification of any significant sudden structural changes.
+
+#### 79 Cells
+
+```{r, warning=FALSE, message=FALSE, results = "hide", include=FALSE, eval=TRUE}
+hvt.results_1 <- trainHVT(
+  entire_dataset[,-1],
+  n_cells = 79,
+  depth = 1,
+  quant.err = 0.25,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  quant_method = "kmeans",
+  dim_reduction_method = "sammon")
+```
+
+
+```{r,warning = FALSE, message = FALSE, fig.align = "center",fig.width = 8, fig.height = 6.5}
+plotHVT(hvt.results_1,plot.type = '2Dhvt', cell_id = TRUE)
+```
+
+#### 78 Cells
+
+```{r, warning=FALSE, message=FALSE, results = "hide", include=FALSE, eval=TRUE}
+hvt.results_2 <- trainHVT(
+  entire_dataset[,-1],
+  n_cells = 78,
+  depth = 1,
+  quant.err = 0.25,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  quant_method = "kmeans",
+  dim_reduction_method = "sammon")
+```
+
+
+```{r,warning = FALSE, message = FALSE, fig.align = "center",fig.width = 8, fig.height = 6.5}
+plotHVT(hvt.results_2,plot.type = '2Dhvt', cell_id = TRUE)
+```
+
+#### 77 Cells
+
+```{r, warning=FALSE, message=FALSE, results = "hide", include=FALSE, eval=TRUE}
+hvt.results_3 <- trainHVT(
+  entire_dataset[,-1],
+  n_cells = 77,
+  depth = 1,
+  quant.err = 0.25,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  quant_method = "kmeans",
+  dim_reduction_method = "sammon")
+```
+
+
+```{r,warning = FALSE, message = FALSE, fig.align = "center",fig.width = 8, fig.height = 6.5}
+plotHVT(hvt.results_3,plot.type = '2Dhvt', cell_id = TRUE)
+```
+
+#### 76 Cells
+
+```{r,warning = FALSE, message = FALSE, fig.align = "center",fig.width = 8, fig.height = 6.5}
+plotHVT(hvt.results,plot.type = '2Dhvt', cell_id = TRUE)
+```
+
+#### 75 Cells
+
+```{r, warning=FALSE, message=FALSE, results = "hide", include=FALSE, eval=TRUE}
+hvt.results_5 <- trainHVT(
+  entire_dataset[,-1],
+  n_cells = 75,
+  depth = 1,
+  quant.err = 0.25,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  quant_method = "kmeans",
+  dim_reduction_method = "sammon")
+```
+
+
+```{r,warning = FALSE, message = FALSE, fig.align = "center",fig.width = 8, fig.height = 6.5}
+plotHVT(hvt.results_5,plot.type = '2Dhvt', cell_id = TRUE)
+```
+
+#### 74 Cells
+
+```{r, warning=FALSE, message=FALSE, results = "hide", include=FALSE, eval=TRUE}
+hvt.results_6 <- trainHVT(
+  entire_dataset[,-1],
+  n_cells = 74,
+  depth = 1,
+  quant.err = 0.25,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  quant_method = "kmeans",
+  dim_reduction_method = "sammon")
+```
+
+
+```{r,warning = FALSE, message = FALSE, fig.align = "center",fig.width = 8, fig.height = 6.5}
+plotHVT(hvt.results_6,plot.type = '2Dhvt', cell_id = TRUE)
+```
+
+#### 73 Cells
+
+```{r, warning=FALSE, message=FALSE, results = "hide", include=FALSE, eval=TRUE}
+hvt.results_7 <- trainHVT(
+  entire_dataset[,-1],
+  n_cells = 73,
+  depth = 1,
+  quant.err = 0.25,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  quant_method = "kmeans",
+  dim_reduction_method = "sammon")
+```
+
+
+```{r,warning = FALSE, message = FALSE, fig.align = "center",fig.width = 8, fig.height = 6.5}
+plotHVT(hvt.results_7,plot.type = '2Dhvt', cell_id = TRUE)
+```
+
+
+### Conclusion
+
+Although some tessellations are slightly crowded in the center, we can identify the cells 1 and 2 on the left and the cells 73 to 79 on the right in all plots. This alignment ensures no significant flips or structural disruptions, confirming that we can proceed confidently with 76 cells.
+
+### Heatmaps {.tabset}
+
+Below are the heatmaps for the trained HVT model, including those for 'n' (the number of records in a cell) and each feature.
+
+#### Heatmap for n
+
+```{r, warning=FALSE,message=FALSE, fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8, fig.height = 6.5}
+plotHVT(hvt.results,hmap.cols = "n",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+#### Heatmap for CPI_Food
+
+```{r, warning=FALSE,message=FALSE, fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8, fig.height = 6.5}
+plotHVT(hvt.results,hmap.cols = "CPI_Food",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+#### Heatmap for COIN
+
+```{r, warning=FALSE,message=FALSE, fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8, fig.height = 6.5}
+plotHVT(hvt.results,hmap.cols = "COIN",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+#### Heatmap for Copper_ETF
+
+```{r, warning=FALSE,message=FALSE,fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8.5, fig.height = 6.5 }
+plotHVT(hvt.results,hmap.cols = "Copper_ETF",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+#### Heatmap for Risk_Premium
+
+```{r, warning=FALSE,message=FALSE, fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8.5, fig.height = 6.5 }
+plotHVT(hvt.results,hmap.cols = "Risk_Premium",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+#### Heatmap for SnP500_ETF
+
+```{r, warning=FALSE,message=FALSE,fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8.5, fig.height = 6.5 }
+plotHVT(hvt.results,hmap.cols = "SnP500_ETF",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+
+
+#### Heatmap for Spot_Oil
+ 
+```{r, warning=FALSE,message=FALSE, fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8.5, fig.height = 6.5 }
+plotHVT(hvt.results,hmap.cols = "Spot_Oil",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+#### Heatmap for USD_Index
+ 
+```{r, warning=FALSE,message=FALSE,fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8.5, fig.height = 6.5 }
+plotHVT(hvt.results,hmap.cols = "USD_Index",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+#### Heatmap for Unemp_Rate
+ 
+```{r, warning=FALSE,message=FALSE,fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8.5, fig.height = 6.5 }
+plotHVT(hvt.results,hmap.cols = "Unemp_Rate",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+#### Heatmap for Y10_Note
+ 
+```{r, warning=FALSE,message=FALSE, fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8.5, fig.height = 6.5 }
+plotHVT(hvt.results,hmap.cols = "Y10_Note",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+#### Heatmap for Yield_Curve
+ 
+```{r, warning=FALSE,message=FALSE,fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8.5, fig.height = 6.5 }
+plotHVT(hvt.results,hmap.cols = "Yield_Curve",plot.type = '2Dheatmap', cell_id = TRUE)
+```
+
+### Centroid Table 
+
+The centroid of a cell is the average value of all the data points within that cell in the multidimensional space. Below is the table displaying the centroids of all 76 cells of the trained HVT Model. In this table, *n* represents the number of records contained within each cell.
+
+```{r, warning=FALSE,message=FALSE}
+col_names <- c("Cell.ID","n" ,features_data)
+data <- hvt.results[[3]][["summary"]] %>% select(col_names) %>% arrange(Cell.ID) %>% round(2)
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(data))
+datatable(data, options = list(pageLength = 10, scrollX = TRUE,lengthMenu = dynamic_length_menu), 
+rownames = FALSE )
+```
+
+
+### Z-Score Plots
+
+A Z-score plot visualizes how many standard deviations a data point is from the mean. The plot helps to identify outliers and assess the distribution of data. Here, we are plotting the Z-scores with a confidence interval of +1.65 and -1.65.
+
+Let's look at the signature and parameters of the `plotZscore` function.
+
+```{r plotStateTransition function, echo=TRUE, eval=FALSE}
+plotZscore(data,
+           cell_range,
+           segment_size,
+           reference_lines)
+```
+
+
+* __`data`__  - A data frame of cell id and features. 
+
+* __`cell_range`__ - A numeric vector of cell id range for which the plot should be displayed. Default is NULL, which plots all the cells.
+
+* __`segment_size`__ - A numeric value to indicate the size of the bars in the plot. Default is 2.
+
+* __`reference_lines`__ - A numeric vector of confidence interval values for the reference lines in the plot. Default is c(-1.65, 1.65).
+
+
+Below are the Z-score plots of all features in the dataset for cells 1 to 76.
+
+```{r, warning=FALSE,message=FALSE, fig.height=40, fig.width=12, out.width="100%"}
+data <- data %>% select(-n)
+invisible(plotZscore(data))
+```
+
+
+
+
+# 5. Scoring the trained HVT Model
+
+Once the model is constructed, the next key step is scoring the data points using the trained HVT model. Scoring involves assigning each data point to a specific cell based on the trained model. This process helps map data points to their correct hierarchical cell without the need for forecasting.
+
+The scoring is performed on the **Dataset (1998-01-01 to 2024-12-01)**. This is crucial for time series analysis and forecasting, as it provides the data of cells over time.
+
+```{r scoreHVT function,warning=FALSE,message=FALSE}
+scoring <- scoreHVT(entire_dataset,hvt.results,analysis.plots = TRUE,names.column = entire_dataset[,1])
+scoring$scoredPredictedData$t <- format(entire_dataset$t, "%Y-%m-%d")
+scoring$scoredPredictedData <- scoring$scoredPredictedData %>% dplyr::select(c(t, everything()))
+```
+
+Below is the table displaying scored data.
+
+```{r}
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(scoring$scoredPredictedData))
+datatable(scoring$scoredPredictedData,options = list(pageLength = 10,scrollX = TRUE,lengthMenu = dynamic_length_menu,
+columnDefs = list(list(width = '150px', targets = 0))),class = "nowrap display",rownames = FALSE)
+```
+
+These are the brief explanation of all the features in the above table.
+
+- **Segment Level**: The tier or depth of a segment in the hierarchical structure.
+
+- **Segment Parent**: The ID of the larger segment that this segment is part of in the level above.
+
+- **Segment Child**: The IDs of smaller segments that are contained within this segment in the level below.
+
+- **n**: The number of entities/data points from the uploaded dataset that are present inside that Segment child.
+
+- **Cell.ID**: The ID of the child which is the result of sorted 1D Sammon's.
+
+- **Quant.Error**: The quantization error of that cell.
+
+- **centroidRadius**: The maximum quantization error values as radius for anomalies.
+
+- **diff**: The difference between centroidRadius and Quant.Error.
+
+- **anomalyFlag**: The binary value that says the cell is an anomaly or not. (if the Quant.Error is greater than mad.threshold then it is = 1 (anomaly) else = 0 (not an anomaly))
+
+
+Below is the plotly of scored data. On Hovering over the plot, the Cell.ID, Number of observations of a cell & the timestamps of those observations are displayed.
+
+```{r, warning=FALSE, fig.width = 8, fig.height = 6.5}
+scoring$scoredPlotly
+```
+
+
+# 6. Temporal Analysis and Visualization
+
+Now that scoring is complete, we have a time series of state transitions, that captures the progression of states over time, enabling the analysis of transitions and patterns for the forecasting process. We will prepare this dataset by combining the `t` timestamp column with the scored dataset.
+
+**Dataset used for Temporal Analysis: 1998-01-01 to 2024-12-01**
+
+```{r}
+temporal_data <-scoring$scoredPredictedData %>% select(t,Cell.ID)
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(temporal_data))
+datatable(temporal_data,rownames = FALSE,options=list(lengthMenu = dynamic_length_menu))
+temporal_data$t <- as.POSIXct(temporal_data$t, format = "%Y-%m-%d")
+```
+
+
+
+### State Transition Plots {.tabset}
+
+In this section, we will visualize the transitions of states of the dataset over time from 
+**1998-01-01 to 2024-12-01**.
+
+
+
+#### Heatmap line plot
+
+```{r, warning=FALSE,message=FALSE, fig.width = 11.5, fig.height = 6,out.width="1200px" }
+plotStateTransition(df = temporal_data,cellid_column = "Cell.ID",time_column = "t",sample_size = 1, line_plot = TRUE,time_periods = recession_periods)
+```
+
+#### Heatmap scatter plot
+```{r, warning=FALSE, fig.width = 11.5, fig.height = 6,out.width="1200px"}
+plotStateTransition(df = temporal_data,cellid_column = "Cell.ID",time_column = "t",sample_size = 1, time_periods =recession_periods)    
+```
+
+### Transition Probability Table
+
+Let's calculate the transition probability of `temporal_data` using the `getTransitionProbability` function **with self-states**.
+
+**Dataset for Transition Probability Matrix:  1998-01-01 to 2024-12-01**
+
+```{r, message=FALSE}
+prob_trans_matx <- getTransitionProbability(df = temporal_data,cellid_column = "Cell.ID",time_column = "t", type = "with_self_state")
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(prob_trans_matx))
+datatable(prob_trans_matx,rownames = FALSE,options =list(lengthMenu = dynamic_length_menu))
+```
+
+
+
+</br>
+
+Below are brief explanations of the features in the transition probability matrix.
+
+- *Current_State*: The cell in which the datapoint resides at a given time (t).
+
+- *Next_State*: The cell to which the datapoint moves at the next time unit (t+1).
+
+- *Relative_Frequency*: The number of times that the datapoint moves from that `Current_State` to that `Next_State`.
+
+- *Transition_Probability*: The probability calculated from the `Relative_Frequency`. Individual `Relative_Frequency` divided by the total of `Relative_Frequency` for a particular `Current_State`.
+
+- *Cumulative_Probability*: The sum of the `Transition_Probability` for all the `Next_State` for a particular `Current_State`.
+
+
+### Flowmaps & Animations {.tabset}
+
+Flowmaps visualize the flow of data between states over time including and excluding self states to identify patterns and trends. The animations provide a dynamic representation of the data flow, enabling a comprehensive understanding of state transitions and their evolution over time.
+
+- The Self State Flowmap including self-state transitions, is represented by the circle size around each cell, where larger sizes indicate a stronger likelihood of staying in the same cell.
+
+- The Non-Self State Flowmap, excluding self-state transitions, is represented by arrow sizes, where larger arrows indicate higher probabilities of transitioning to the next state, with arrow directions showing the target cell.
+
+- The Time-based Animation, including self-state transitions, is represented by a red point moving through cells over time, with blinks indicating the duration of staying in the same cell, as shown in the plot's sub-header.
+
+- The State-based Animation, excluding self-transitions, shows an arrow moving between cells, with its length indicating transition probabilities. The animation highlights movement between states over time.
+
+```{r, warning=FALSE,out.width = "672px", out.height = "480px", fig.width = 8.5, fig.height = 6.5,fig.align = "center"}
+flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
+                                     transition_probability_df =prob_trans_matx,
+                                     df = temporal_data,
+                                     animation = "All" , flow_map = "All",
+                                     fps_time = 10,time_duration = 30,
+                                     fps_state = 10,state_duration = 30,
+                                     cellid_column = "Cell.ID", time_column = "t")
+```
+
+#### Self State Flowmap
+
+```{r, warning=FALSE, fig.width=9,fig.height=5.5, fig.align='center'}
+flowmap_plots$self_state
+```
+
+
+#### Non-Self State Flowmap
+
+
+```{r, fig.width=9, fig.height=5.5,fig.align='center', warning=FALSE}
+flowmap_plots$without_self_state
+```
+
+#### Time-based Animation
+
+
+```{r,  warning=FALSE, fig.align='center'}
+flowmap_plots$time_based
+```
+
+#### State-based Animation
+
+
+```{r,  warning=FALSE, fig.align='center'}
+flowmap_plots$state_based
+```
+
+
+# 7. Ex-Post Dynamic Forecasting
+
+Now that temporal analysis is complete, we have a clear understanding of the data pattern over time. In this section, we will focus on the next key process: **Dynamic Forecasting of the states for the ex-post period** using the new function `msm` — Monte Carlo Simulations of the Markov Chain.
+
+**How MSM works?**
+
+This function uses a transition probability matrix with cumulative probabilities summing to 1. Given the initial state, a random number is generated from a uniform distribution of 0 to 1, and the next state is chosen based on where the random number is less than or equal to the cumulative probability. This next state becomes the new current state, and the process continues to simulate states throughout the given t+n period. 
+
+**MSM Function Parameters Explanation**
+
+* __`state_time_data`__ - A dataframe, with columns of Cell.ID and the timestamp.
+
+* __`forecast_type`__ - A Character vector to indicate the type of forecasting. It can be `ex-post` or `ex-ante`.
+
+* __`transition_probability_matrix`__  - A Dataframe of transition probabilities of all states from the `getTransitionProbability` function.
+
+* __`initial_state`__   - An integer, indicating the state at t0.
+
+* __`n_ahead_ante`__   - An integer, indicating the number of ahead periods for ex-ante forecasting. Default value is 10.
+
+* __`num_simulations`__ - An integer indicating the number of simulations to be performed. Default value is 100.
+
+* __`trainHVT_results`__	- A nested list containing the results from the trainHVT function. This parameter is used to retrieve the HVQ-compressed centroid points for feature forecast plots.
+
+* __`scoreHVT_results`__	- A nested list of the results from the `scoreHVT` function. This parameter is used to retrieve the centroid coordinates for feature forecast plots & Clustering analysis.
+
+* __`actual_data`__ - A DataFrame of the raw dataset for the ex-post forecasting period, used for plotting the Actual line in forecasting plots and calculating residuals for MAE. It is applicable only for 'Ex-Post'.
+
+* __`raw_dataset`__ - A DataFrame of the entire raw dataset, used to calculate the mean and standard deviation of all features for scaling up the predicted values.
+
+* __`handle_problematic_states`__ - A Logical flag to handle the state transition problems and proceed with Clustering analysis. Default value is FALSE.
+
+* __`k`__ - An integer to specify the number of clusters for the clustering algorithm. Default value is 5.
+    
+* __`n_nearest_neighbor`__ -  An integer to specify the number of nearest neighbors to be selected for the clustering algorithm. Default value is 1. If a number larger than the total states within a cluster is provided, the number of nearest neighbors will default to the total number of states in that cluster. For instance, if a cluster has 5 states including the 'problematic state' and 'n_nearest_neighbor' is set to 7, the number of nearest neighbors will only be 4.
+
+* __`show_simulation`__ - A Logical flag to display the simulation lines in plots. Default value is TRUE.
+
+* __`mae_metric`__ - A Character to indicate which central tendency measure should be selected for calculating residuals for studentized residual plot. Only 'mean', 'median' or 'mode' is allowed. Default value is 'median'.
+
+
+**Function Outputs**
+
+The function returns a list containing the following elements:
+
+1) *Simulation Plots*: A collection of plots illustrating the forecasted states and centroids for both Ex-Post and Ex-Ante analyses.
+
+- Ex-Post Plots: These plots compare actual states and predicted states, as well as actual raw values and predicted centroid-scaled values for each feature. The predicted states from the simulations are translated to respective feature centroids from the `trainHVT (HVQ compression)` and scaled to the raw dataset values by multiplying them by the standard deviation of the raw feature and adding the mean of the raw feature. The x-axis represents the time period, and the y-axis represents the states (in states plot) and Centroid-feature values. The studentized residuals plot displays standardized prediction errors (calculated by dividing the raw residuals (actual - predicted mae_metric) by their standard deviation) with blue dashed lines at ±1σ and a black dashed line at 0 to show control limits, helping identify where predictions significantly deviate from actual values.
+
+- Ex-Ante Plots: Similar to the Ex-Post plots, but without the actual data, showing only the predicted states. The x-axis represents the time period, and the y-axis represents the states (in states plot) and Centroid-feature values. Residual plots are not applicable since there are no actual values available.
+
+2) Additionally, when `handle_problematic_states` is TRUE, the function returns a Dendrogram plot, a Cluster Heatmap for the given `k`, and a table of problematic states with their nearest neighbors.
+
+
+
+Let's proceed with the Ex-Post Dynamic Forecasting using the `msm` function.
+
+**Ex-Post Period:**
+
+- Transition Probability Matrix: 1998-01-01 to 2024-12-01
+
+- Initial timestamp: 2022-12-01
+
+- Initial state: 74
+
+- Ex-Post Forecast: 2023-01-01 to 2024-12-01
+
+- Residuals: Actual - Predicted Median.
+
+NOTE: We have selected `Median` as the metric for calculating residuals throughout this notebook.
+
+```{r, warning=FALSE, message=FALSE,fig.align = "center",fig.width= 9, fig.height=5}
+ex_post <- msm(state_time_data = temporal_data,
+               forecast_type = "ex-post",
+               transition_probability_matrix = prob_trans_matx,
+               initial_state = temporal_data$Cell.ID[temporal_data$t == "2022-12-01"],
+               num_simulations = 500,
+               scoreHVT_results = scoring,
+               trainHVT_results = hvt.results,
+               actual_data = expost_forecasting,
+               raw_dataset = entire_dataset,
+               mae_metric = "median",
+               show_simulation = FALSE)
+```
+
+
+#### Ex- Post Plots without Simulation lines {.tabset}
+
+
+##### States
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[2]]$states_plots
+```
+
+
+
+
+##### centroid CPI_Food
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[1]]$centroids_plot
+```
+
+
+##### centroid COIN
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[2]]$centroids_plot
+```
+
+##### centroid Copper_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[3]]$centroids_plot
+```
+
+##### centroid Risk_Premium
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[4]]$centroids_plot
+```
+
+##### centroid SnP500_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[5]]$centroids_plot
+```
+
+##### centroid Spot_Oil
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[6]]$centroids_plot
+```
+
+
+##### centroid USD_Index
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[7]]$centroids_plot
+```
+
+##### centroid Unemp_Rate
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[8]]$centroids_plot
+```
+
+##### centroid Y10_Note
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[9]]$centroids_plot
+```
+
+##### centroid Yield_Curve
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[10]]$centroids_plot
+```
+
+#### Ex- Post Plots with Simulation lines {.tabset}
+
+Let's run the Ex-Post simulation with `show_simulation` set to `TRUE` to see the simulation lines in the plots.
+
+```{r}
+ex_post <- msm(state_time_data = temporal_data,
+               forecast_type = "ex-post",
+               transition_probability_matrix = prob_trans_matx,
+               initial_state = temporal_data$Cell.ID[temporal_data$t == "2022-12-01"],
+               num_simulations = 500,
+               scoreHVT_results = scoring,
+               trainHVT_results = hvt.results,
+               actual_data = expost_forecasting,
+               raw_dataset = entire_dataset,
+               mae_metric = "median",
+               show_simulation = TRUE)
+```
+
+##### States
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[2]]$states_plots
+```
+
+
+##### centroid CPI_Food
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[1]]$centroids_plot
+```
+
+
+##### centroid COIN
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[2]]$centroids_plot
+```
+
+##### centroid Copper_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[3]]$centroids_plot
+```
+
+##### centroid Risk_Premium
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[4]]$centroids_plot
+```
+
+##### centroid SnP500_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[5]]$centroids_plot
+```
+
+##### centroid Spot_Oil
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[6]]$centroids_plot
+```
+
+
+##### centroid USD_Index
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[7]]$centroids_plot
+```
+
+##### centroid Unemp_Rate
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[8]]$centroids_plot
+```
+
+##### centroid Y10_Note
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[9]]$centroids_plot
+```
+
+##### centroid Yield_Curve
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[10]]$centroids_plot
+```
+
+
+### MAE Table
+
+Below are the MAE (Mean Absolute Deviation) values for each feature and state. It is calculated as the absolute difference between the actual and predicted median, providing insights into the model's accuracy and performance.
+
+```{r}
+mae_values_centroid <- sapply(ex_post[["plots"]][[1]], function(x) x[["mae"]])
+mae_value_states <- ex_post[["plots"]][[2]][["mae"]]
+mean_mae <- round(mean(mae_values_centroid),4)
+mae_values <- c(mae_value_states,mae_values_centroid,mean_mae)
+mae_values <- c(mae_value_states,mae_values_centroid,mean_mae)
+plot_labels <- c(
+  "States","CPI_Food", "COIN", "Copper_ETF", "Risk_Premium", "SnP500_ETF", "Spot_Oil", "USD_Index", "Unemp_Rate", "Y10_Note", "Yield_Curve", "Mean of Variables' MAE")
+
+data_1 <- data.frame(Plot = plot_labels,MAE = mae_values)
+datatable(data_1, rownames = FALSE, options = list(pageLength = 12))
+```
+
+
+</br>
+
+
+# 8. Ex-Ante Dynamic Forecasting
+
+Now that Ex-Post is done, we now proceed with Ex-Ante Forecasting. In this section, we will predict the future states of the dataset using the `msm` - Monte Carlo Simulations of the Markov Chain. This process involves forecasting the states for the Ex-Ante period, enabling the identification of potential trends and patterns. 
+
+**Ex-Ante Period:**
+
+- Transition Probability Matrix: 1998-01-01 to 2024-12-01
+
+- Initial timestamp: 2024-12-01
+
+- Initial state: 56
+
+- Ex-Ante Forecast: t+12 (2025-01-01 to 2025-12-01)
+
+```{r, warning=FALSE}
+ex_ante_period <- seq.POSIXt(from = as.POSIXct("2025-01-01"),to = as.POSIXct("2025-12-01"),by = "1 month")
+ex_ante_period <- as.POSIXct(format(ex_ante_period, "%Y-%m-%d"), tz = "")
+
+ex_ante <- msm(state_time_data = temporal_data,
+               forecast_type = "ex-ante",
+               transition_probability_matrix = prob_trans_matx,
+               initial_state = tail(temporal_data$Cell.ID, 1),
+               n_ahead_ante = ex_ante_period,  
+               num_simulations = 500,
+               scoreHVT_results = scoring,
+               trainHVT_results = hvt.results,
+               raw_dataset = entire_dataset,
+               mae_metric = "median",
+               show_simulation= FALSE)
+```
+
+### Ex-Ante Plots {.tabset}
+
+##### States
+
+```{r,fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante[["plots"]][["states_plots"]]
+```
+
+
+##### centroid CPI_Food
+
+```{r, fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[1]]
+```
+
+
+##### centroid COIN
+
+```{r, fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[2]]
+```
+
+##### centroid Copper_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[3]]
+```
+
+##### centroid Risk_Premium
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[4]]
+```
+
+##### centroid SnP500_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[5]]
+```
+
+##### centroid Spot_Oil
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[6]]
+```
+
+
+##### centroid USD_Index
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[7]]
+```
+
+##### centroid Unemp_Rate
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[8]]
+```
+
+##### centroid Y10_Note
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[9]]
+```
+
+##### centroid Yield_Curve
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[10]]
+```
+
+### Observation
+
+The forecast seems unusual, showing some flat line and irregular pattern. We'll re-run it with the simulation lines visible to figure out what might be causing the issue.
+
+```{r}
+ex_ante <- msm(state_time_data = temporal_data,
+               forecast_type = "ex-ante",
+               transition_probability_matrix = prob_trans_matx,
+               initial_state = tail(temporal_data$Cell.ID, 1),
+               n_ahead_ante = ex_ante_period,  
+               num_simulations = 500,
+               scoreHVT_results = scoring,
+               trainHVT_results = hvt.results,
+               raw_dataset = entire_dataset,
+               mae_metric = "median",
+               show_simulation = TRUE)
+```
+
+### Ex-Ante Plots {.tabset}
+
+##### States
+
+```{r,fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante[["plots"]][["states_plots"]]
+```
+
+
+##### centroid CPI_Food
+
+```{r, fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[1]]
+```
+
+
+##### centroid COIN
+
+```{r, fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[2]]
+```
+
+##### centroid Copper_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[3]]
+```
+
+##### centroid Risk_Premium
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[4]]
+```
+
+##### centroid SnP500_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[5]]
+```
+
+##### centroid Spot_Oil
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[6]]
+```
+
+
+##### centroid USD_Index
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[7]]
+```
+
+##### centroid Unemp_Rate
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[8]]
+```
+
+##### centroid Y10_Note
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[9]]
+```
+
+##### centroid Yield_Curve
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[10]]
+```
+
+### Observation
+
+From the above plots, we can see that the **simulations are stuck between two states (43 & 56) across all 500 iterations**. Let's analyze the transition probability table of states 43 & 56, to understand the issue.
+
+```{r}
+data <- prob_trans_matx[prob_trans_matx$Current_State == 43,]
+datatable(data,rownames = FALSE)
+```
+
+
+</br>
+
+```{r}
+data <- prob_trans_matx[prob_trans_matx$Current_State == 56,]
+datatable(data,rownames = FALSE)
+```
+</br>
+
+
+From the above table, we can see that the states 43 & 56 are transitioning only to each other, which is why the simulations are in a zig-zag pattern. As a result, the central tendency measures (median and mode) are identical, with no variability. This is an undesired outcome, as it indicates a lack of variation in the simulation except two states. This scenario represents an edge case that requires attention. Below is an explanation of why this occurred, what it signifies, and how it can be addressed.
+
+## 8.1 State Transition Problem
+
+There are certain edge cases that may cause simulations as a straight line (stuck in a single state) or a zig-zag pattern (only between two states - back and forth) without any variability or exploring other states. We are naming this scenario as **State Transition Problem** and below are the cases that may lead to this issue.
+
+- **Case 1: Absence Transitions:** This occurs when a state lacks any outgoing transitions to other states or itself. Once the simulation reaches such a state, it becomes stuck because there is no path forward, effectively halting the simulation in the same state.
+
+- **Case 2: Self-State Only Transitions:** In this case, a state transitions exclusively to itself. When the simulation reaches such a state, it remains trapped in this state, unable to explore other states, causing stagnation.
+
+- **Case 3: Cyclic Transitions:** This refers to a situation where states transition back and forth between each other in a closed loop. While the simulation remains active, it is constrained within the cycle, preventing the exploration of states outside the cycle.
+
+We refer to the states that lead to any of these issues as **problematic states**. We are addressing the same solution approach for all the above three cases.
+
+
+### Resolving the State Transition Problem
+
+To resolve the State Transition Problem, we will conduct a **clustering analysis**. This involves grouping all states into *n* clusters by organizing states based on their proximity in the 2D space. This process will help identify nearby states to which a problematic state can potentially transition to. By enabling transitions to new states, this approach prevents the simulation from remaining stuck in a single state.
+
+Below is the approach used to address the state transition problem:
+
+- *Data and Clustering*
+
+The clustering process uses the `clustHVT` function from the HVT package, which performs Agglomerative Nesting (AGNES) Hierarchical Clustering with the `ward.D2` method. This method groups the 2D coordinates of cell centroids from the HVT map into `k` clusters. This function offers visualizations such as a dendrogram and a Cluster Heatmap, to aid in the interpretation of the clustering results. For more information on `clustHVT` visit <a href="https://cran.r-project.org/web/packages/HVT/HVT.pdf
+" target="_blank">here</a>. 
+
+
+- *Handling Problematic States*
+
+When a problematic state is encountered, we look for alternative states within its cluster. Using `Euclidean distance`, we identify n closest states (n is user-defined, defaults to 1). These nearest neighbors serve as potential next states for the simulation, enabling it to progress naturally. 
+
+
+- *Probability-Based State Selection*
+
+The `n` nearest neighbors are ranked by their distance, and each neighbor's selection weight is calculated by taking the inverse of its distance (with closer states receiving higher probabilities). These weights are then normalized by dividing each by the sum of all inverse distances. Cumulative probabilities are then computed, and a random number generator is used to select the next state based on this weighted voting scheme, where the closer neighbors (with higher weights) have a greater influence on the selection.
+
+*Outcome*
+
+This approach ensures the simulation can progress naturally. It prevents the system from getting stuck in problematic state patterns. The probability-weighted selection maintains realistic state transitions based on spatial proximity, enhancing the simulation's accuracy and reliability.
+
+### Demonstration
+
+Let’s consider the Ex-Ante Forecasting scenario to demonstrate the clustering analysis and address the State Transition Problem. In this case, the scenario encounters **Case-3: Cyclic Transitions**. 
+
+Below is the data table of the 2D Sammon's points of the HVT map centroids. This is the data used for clustering analysis.
+
+```{r}
+centroid_data <- scoring$centroidData
+hclust_data <- centroid_data[,1:3]
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(hclust_data))
+datatable(hclust_data,rownames = FALSE, options=list(lengthMenu = dynamic_length_menu))
+```
+
+Let's execute the simulation using the `msm` function with the `handle_problematic_states` parameter set to `TRUE`, enabling the identification of problematic states and performing clustering analysis. To achieve more detailed and stable clusters, we will set `k` to 6. Additionally, we will set `n_nearest_neighbor` to 3, so that 3 nearest neighbors are considered for each problematic state. This will help address the issues by enabling transitions to appropriate neighboring states based on the clustering results.
+
+```{r, warning=FALSE}
+ex_ante_period <- seq.POSIXt(from = as.POSIXct("2025-01-01"),to = as.POSIXct("2025-12-01"),by = "1 month")
+ex_ante_period <- as.POSIXct(format(ex_ante_period, "%Y-%m-%d"), tz = "")
+
+ex_ante <- msm(state_time_data = temporal_data,
+               forecast_type = "ex-ante",
+               transition_probability_matrix = prob_trans_matx,
+               initial_state = tail(temporal_data$Cell.ID, 1),
+               n_ahead_ante = ex_ante_period,  
+               num_simulations = 500,
+               scoreHVT_results = scoring,
+               trainHVT_results = hvt.results,
+               raw_dataset  = entire_dataset,
+               handle_problematic_states = TRUE,
+               k=6, n_nearest_neighbor = 3,
+               mae_metric = "median",
+               show_simulation = FALSE)
+```
+
+
+```{r}
+summary(ex_ante)
+```
+
+
+According to the summary from the 'msm' function, the state *43* is a problematic state and its 3 nearest neighbors are *44,39 & 48* and the state *56* is a problematic state and its 3 nearest neighbors are *55,50 & 49*. Below is the cluster dendrogram.
+
+```{r,fig.align = "center",fig.width= 11, fig.height=5,out.width="100%"}
+ex_ante$dendogram()
+```
+
+The dendrogram clearly shows that states **43, 44, 39, and 48** belong to the same cluster, which is the second-to-last cluster outlined with a dark blue border. Similarly, states **56, 55, 50, and 49** are part of a cluster of the same type. This is further confirmed in the heatmap below, where the group of states **43, 44, 39, and 48** and the group **56, 55, 50, and 49** (highlighted with white borders) are positioned one below the other near the center of the plot, within the same dark blue-colored cluster.
+
+```{r, warning=FALSE,message=FALSE, fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8, fig.height = 6.5}
+ex_ante$cluster_heatmap
+```
+
+Now when we look at the simulation below, we can see that there are no more Zig-Zag pattern in the simulations. The simulation is now exploring other states and not stuck between two states.
+
+#### Ex- Ante Plots without Simulation lines {.tabset}
+
+##### States
+
+```{r,fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante[["plots"]][["states_plots"]]
+```
+
+
+##### centroid CPI_Food
+
+```{r, fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[1]]
+```
+
+
+##### centroid COIN
+
+```{r, fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[2]]
+```
+
+##### centroid Copper_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[3]]
+```
+
+##### centroid Risk_Premium
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[4]]
+```
+
+##### centroid SnP500_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[5]]
+```
+
+##### centroid Spot_Oil
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[6]]
+```
+
+
+##### centroid USD_Index
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[7]]
+```
+
+##### centroid Unemp_Rate
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[8]]
+```
+
+##### centroid Y10_Note
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[9]]
+```
+
+##### centroid Yield_Curve
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[10]]
+```
+
+#### Ex-Ante Plots with Simulation lines {.tabset}
+
+Let's run the Ex-Ante simulation with `show_simulation` set to `TRUE` to see the simulation lines in the plots.
+
+```{r}
+ex_ante <- msm(state_time_data = temporal_data,
+               forecast_type = "ex-ante",
+               transition_probability_matrix = prob_trans_matx,
+               initial_state = tail(temporal_data$Cell.ID, 1),
+               n_ahead_ante = ex_ante_period,  
+               num_simulations = 500,
+               scoreHVT_results = scoring,
+               trainHVT_results = hvt.results,
+               raw_dataset  = entire_dataset,
+               handle_problematic_states = TRUE,
+               k=6, n_nearest_neighbor = 3,
+               mae_metric = "median",
+               show_simulation = TRUE)
+```
+
+##### States
+
+```{r,fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante[["plots"]][["states_plots"]]
+```
+
+
+##### centroid CPI_Food
+
+```{r, fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[1]]
+```
+
+
+##### centroid COIN
+
+```{r, fig.width=8.5, out.width='100%',fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[2]]
+```
+
+##### centroid Copper_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[3]]
+```
+
+##### centroid Risk_Premium
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[4]]
+```
+
+##### centroid SnP500_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[5]]
+```
+
+##### centroid Spot_Oil
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[6]]
+```
+
+
+##### centroid USD_Index
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[7]]
+```
+
+##### centroid Unemp_Rate
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[8]]
+```
+
+##### centroid Y10_Note
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[9]]
+```
+
+##### centroid Yield_Curve
+
+```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
+ex_ante$plots$centroids_plot[[10]]
+```
+
+# 9. Ex-Post Forecasting with Clustering Analysis
+
+Having completed the Ex-Ante Forecasting by addressing the problematic states, we now revisit the Ex-Post Forecasting with adjustments to handle these states and evaluate any improvements in the Mean Absolute Error (MAE) across all variables. 
+
+In this section, we rerun the Ex-Post Forecasting using the same parameters as before but enable the `handle_problematic_states` parameter by setting it to `TRUE`. This activates the identification of problematic states and incorporates clustering analysis to address them. The goal is to determine whether this adjustment enhances the accuracy of the simulations.
+
+**Ex-Post Period:**
+
+- Transition Probability Matrix: 1998-01-01 to 2024-12-01
+
+- Initial timestamp: 2022-12-01
+
+- Initial state: 74
+
+- Ex-Post Forecast: 2023-01-01 to 2024-12-01
+
+- Residuals: Actual - Predicted Median
+
+```{r, warning=FALSE, message=FALSE,fig.align = "center",fig.width= 9, fig.height=5}
+ex_post <- msm(state_time_data = temporal_data,
+               forecast_type = "ex-post",
+               transition_probability_matrix = prob_trans_matx,
+               initial_state = temporal_data$Cell.ID[temporal_data$t == "2022-12-01"],
+               num_simulations = 500,
+               scoreHVT_results = scoring,
+               trainHVT_results = hvt.results,
+               actual_data = expost_forecasting,
+               raw_dataset = entire_dataset,
+               handle_problematic_states = TRUE,
+               k = 6, n_nearest_neighbor = 3,
+               mae_metric = "median",
+               show_simulation = FALSE)
+```
+
+```{r}
+summary(ex_post)
+```
+
+#### Ex- Post Plots without Simulation lines {.tabset}
+
+
+##### States
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[2]]$states_plots
+```
+
+
+
+
+##### centroid CPI_Food
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[1]]$centroids_plot
+```
+
+
+##### centroid COIN
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[2]]$centroids_plot
+```
+
+##### centroid Copper_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[3]]$centroids_plot
+```
+
+##### centroid Risk_Premium
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[4]]$centroids_plot
+```
+
+##### centroid SnP500_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[5]]$centroids_plot
+```
+
+##### centroid Spot_Oil
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[6]]$centroids_plot
+```
+
+
+##### centroid USD_Index
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[7]]$centroids_plot
+```
+
+##### centroid Unemp_Rate
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[8]]$centroids_plot
+```
+
+##### centroid Y10_Note
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[9]]$centroids_plot
+```
+
+##### centroid Yield_Curve
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[10]]$centroids_plot
+```
+
+
+
+#### Ex-Post Plots with Simulation lines {.tabset}
+
+Let's run the Ex-Post simulation with `show_simulation` set to `TRUE` to see the simulation lines in the plots.
+
+```{r}
+ex_post <- msm(state_time_data = temporal_data,
+               forecast_type = "ex-post",
+               transition_probability_matrix = prob_trans_matx,
+               initial_state = temporal_data$Cell.ID[temporal_data$t == "2022-12-01"],
+               num_simulations = 500,
+               scoreHVT_results = scoring,
+               trainHVT_results = hvt.results,
+               actual_data = expost_forecasting,
+               raw_dataset = entire_dataset,
+               handle_problematic_states = TRUE,
+               mae_metric = "median",
+               k = 6, n_nearest_neighbor = 3)
+```
+
+
+##### States
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[2]]$states_plots
+```
+
+
+
+
+##### centroid CPI_Food
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[1]]$centroids_plot
+```
+
+
+##### centroid COIN
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[2]]$centroids_plot
+```
+
+##### centroid Copper_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[3]]$centroids_plot
+```
+
+##### centroid Risk_Premium
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[4]]$centroids_plot
+```
+
+##### centroid SnP500_ETF
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[5]]$centroids_plot
+```
+
+##### centroid Spot_Oil
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[6]]$centroids_plot
+```
+
+
+##### centroid USD_Index
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[7]]$centroids_plot
+```
+
+##### centroid Unemp_Rate
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[8]]$centroids_plot
+```
+
+##### centroid Y10_Note
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[9]]$centroids_plot
+```
+
+##### centroid Yield_Curve
+
+```{r, fig.width=8.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_post[["plots"]][[1]][[10]]$centroids_plot
+```
+
+### MAE Table
+
+Below are the MAE (Mean Absolute Deviation) values for each feature and state after handling the State Transition Problems. Here we are comparing the MAE values before and after handling the State Transition Problems.
+
+- MAE_post_fix: MAE values after handling the State Transition Problems.
+- MAE_no_fix: MAE values before handling the State Transition Problems.
+- Mean of Variables' MAE: Mean of all the MAE values.
+
+```{r}
+mae_values_centroid <- sapply(ex_post[["plots"]][[1]], function(x) x[["mae"]])
+mae_value_states <- ex_post[["plots"]][[2]][["mae"]]
+mean_mae <- round(mean(mae_values_centroid),4)
+mae_values <- c(mae_value_states,mae_values_centroid,mean_mae)
+plot_labels <- c(
+  "States","CPI_Food", "COIN", "Copper_ETF", "Risk_Premium", "SnP500_ETF", "Spot_Oil", "USD_Index", "Unemp_Rate", "Y10_Note", "Yield_Curve", "Mean of Variables' MAE")
+mae_before <- data_1$MAE
+
+data_2 <- data.frame(Plot = plot_labels, `MAE_post_fix` = mae_values, `MAE_no_fix` = mae_before)
+datatable(data_2, rownames = FALSE, options = list(pageLength = 12))
+```
+
+
+</br>
+
+Out of 10 variables, 7 variables showed improved MAE after addressing the state transition issue in Ex-Post Forecasting. The Mean MAE improved significantly from **0.1823** to **0.1188**, demonstrating that clustering analysis and handling problematic states effectively enhanced forecasting accuracy.
+
+# 10. Summary
+
+This notebook demonstrated the application of the HVT package for dynamic macroeconomic time series forecasting, encompassing data preprocessing, HVT model construction, hierarchical visualization, scoring, and forecasting using Monte Carlo Simulations of Markov Chains (MSM).  
+
+### Key Insights:  
+
+1. **Efficient Data Compression and Visualization**:  
+   The HVT model achieved an 80% compression ratio while retaining critical data structures, enabling the creation of intuitive and interpretable visualizations that captured macroeconomic patterns effectively.  
+
+2. **Challenges in Forecasting**:  
+   The forecasting process encountered common issues such as self-state stagnation, absence of transitions, and cyclic state patterns. These problems hindered accurate state evolution, leading to unrealistic or static predictions.  
+
+3. **Effective Resolutions**:  
+   Clustering analysis using hierarchical methods effectively resolved these challenges. By identifying problematic states and leveraging nearest-neighbor transitions within clusters, the model avoided stagnation and enabled smooth state transitions. This approach significantly reduced the Mean Absolute Error (MAE) from **0.1823** to **0.1188**, highlighting the improved forecasting accuracy.  
+
+
+
+The HVT package, with its use of `msm` techniques, has shown to be a useful tool for addressing forecasting challenges and analyzing trends. Adjusting the parameters further could help improve clustering strategies and explore additional applications to enhance performance and forecasting accuracy.
+
+
+
+
+
+

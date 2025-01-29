@@ -81,7 +81,6 @@ scoreLayeredHVT <- function(data,
                             error_metric = "max",
                             child.level = 1,
                             yVar = NULL) {
-  # browser()
 
   set.seed(seed)
   requireNamespace("dplyr")
@@ -148,18 +147,17 @@ scoreLayeredHVT <- function(data,
   )
 
 
-  # removed_outlier_cells <- as.vector(unique(map_B$Cell.Number))
 
   predictions_table$MapB.Cell.ID_original <- ifelse(
     (predictions_table$MapA.Segment.Child %in% identified_Novelty_cells),
-    paste0(predictions_table$MapB.Cell.ID), # if condition is met
-    NA # else put NA
+    paste0(predictions_table$MapB.Cell.ID), 
+    NA 
   )
 
   predictions_table$MapC.Cell.ID <- ifelse(
     (is.na(predictions_table$MapB.Cell.ID_original)),
-    paste0(predictions_table$MapC.Cell.ID), # if condition is met
-    NA # else put NA
+    paste0(predictions_table$MapC.Cell.ID), 
+    NA 
   )
 
   predictions_table$Row.Number <- as.integer(predictions_table$Row.Number)
@@ -260,9 +258,7 @@ scoreLayeredHVT <- function(data,
     predictLayer_Output = scoredPredictionsData_CellID,
     actual_predictedTable = df_reordered
   )
-  #summary_table <- displayTable(df_reordered, scroll = TRUE, limit = 100)
-  
-  #print(summary_table)
+
   class(prediction_list) <- "hvt.object"
   return(prediction_list)
 }

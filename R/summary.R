@@ -3,11 +3,11 @@
 #' @description This is the main function for displaying summary from model training and scoring
 #' @param data List. A listed object from trainHVT or scoreHVT
 #' @param limit Numeric. A value to indicate how many rows to display.
-#' Default value is 20.
-#' @return A consolidated table of summary from trainHVT and scoreHVT.
+#' @param scroll Logical. A value to indicate whether to display scroll bar or not. Default value is TRUE.
+#' @return A consolidated table of summary for training, scoring and forecasting
 #' @author Vishwavani <vishwavani@@mu-sigma.com>, Alimpan Dey <alimpan.dey@@mu-sigma.com>
 #' @importFrom dplyr mutate 
-#' @keywords Data Analysis
+#' @keywords Table_Formatting
 #' @examples
 #' data <- datasets::EuStockMarkets
 #' dataset <- as.data.frame(data)
@@ -20,7 +20,11 @@
 
 summary <- function(data, limit = 20, scroll = TRUE) {
   
-  if (class(data) == "hvt.object") {
+  
+  ##for cran warnings
+  Row_Number <- NULL
+  
+  if (inherits(data, "hvt.object")) {
     
     # Function to calculate scroll height based on the number of rows
     scrolLimit <- function(noOfRows) {
@@ -66,12 +70,14 @@ summary <- function(data, limit = 20, scroll = TRUE) {
       value <- data[["model_info"]][["scored_model_summary"]][["mad.threshold"]]
       
       table_2 <- scorehvt_table %>%
-        dplyr::mutate(Quant.Error = dplyr::case_when(
-          scorehvt_table$Quant.Error > value ~ 
-            kableExtra::cell_spec(Quant.Error, "html", color = "red"),
-          TRUE ~ 
-            kableExtra::cell_spec(Quant.Error, "html", color = "black")
-        ))
+        dplyr::mutate(
+          Row_Number = dplyr::row_number(),
+          Quant.Error = dplyr::case_when(
+            Quant.Error > value ~ kableExtra::cell_spec(Quant.Error, "html", color = "red"),
+            TRUE ~ kableExtra::cell_spec(Quant.Error, "html", color = "black")
+          )
+        ) %>%
+        dplyr::select(Row_Number, everything())
       
       table_2 <- knitr::kable(table_2, "html", escape = FALSE, align = "c") %>%
         kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "responsive")) %>%
@@ -83,12 +89,22 @@ summary <- function(data, limit = 20, scroll = TRUE) {
       scoreLayeredhvt_table <- data$actual_predictedTable %>% as.data.frame()
       scoreLayeredhvt_table <- apply_limit(scoreLayeredhvt_table, limit)
       
+      scoreLayeredhvt_table <- scoreLayeredhvt_table %>%
+        dplyr::mutate(Row_Number = dplyr::row_number()) %>%
+        dplyr::select(Row_Number, everything())
+      
       table_3 <- knitr::kable(scoreLayeredhvt_table, "html", escape = FALSE, align = "c") %>%
         kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "responsive")) %>%
         kableExtra::scroll_box(width = "100%", height = scrolLimit(nrow(scoreLayeredhvt_table)))
-      
       return(table_3)
-    }
+    } else if(!is.null(data$problematic_states_list)){
+      problematic_states_table <- data$problematic_states_list %>% as.data.frame()
+
+      table_4 <- knitr::kable(problematic_states_table, "html", escape = FALSE, align = "c") %>%
+        kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "responsive")) 
+       # kableExtra::scroll_box(width = "100%", height = scrolLimit(nrow(problematic_states_table)))
+      return(table_4)
+    } 
     
   } else {
     base::summary(data)

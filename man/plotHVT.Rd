@@ -8,21 +8,18 @@ plotHVT(
   hvt.results,
   line.width = 0.5,
   color.vec = "black",
-  pch1 = 21,
-  centroid.size = 1.5,
-  title = NULL,
-  maxDepth = NULL,
+  centroid.size = 0.6,
+  centroid.color = "black",
   child.level = 1,
   hmap.cols,
-  quant.error.hmap = NULL,
-  cell_id = FALSE,
-  n_cells.hmap = NULL,
-  label.size = 0.5,
-  sepration_width = 7,
+  separation_width = 7,
   layer_opacity = c(0.5, 0.75, 0.99),
   dim_size = 1000,
   plot.type = "2Dhvt",
-  centroid.color = "black"
+  quant.error.hmap = NULL,
+  cell_id = FALSE,
+  cell_id_position = "bottom",
+  cell_id_size = 2.6
 )
 }
 \arguments{
@@ -35,53 +32,45 @@ tessellation boundaries for each level.}
 \item{color.vec}{(2Dhvt/2Dheatmap) Vector. A vector indicating the colors of the boundaries of
 the tessellations at each level.}
 
-\item{pch1}{(2Dhvt/2Dheatmap) Numeric. Symbol of the centroids of the tessellations
-(parent levels). Default value is 21.}
-
 \item{centroid.size}{(2Dhvt/2Dheatmap) Numeric Vector. A vector indicating the size of centroids
 for each level.}
 
-\item{title}{(2Dhvt) Character. Set a title for the plot. (default = NULL)}
+\item{centroid.color}{(2Dhvt/2Dheatmap) Numeric Vector. A vector indicating the color of centroids
+for each level.}
 
-\item{maxDepth}{(2Dhvt) Numeric. An integer indicating the number of levels.}
-
-\item{child.level}{(2Dheatmap/surface_plot) Numeric. Indicating the level for which the heat map is
-to be plotted.}
+\item{child.level}{(2Dheatmap/surface_plot) Numeric. Indicating the level for which the plot should
+be displayed}
 
 \item{hmap.cols}{(2Dheatmap/surface_plot) Numeric or Character. The column number or column name from
-the dataset indicating the variables for which the heat map is to be
-plotted.}
+the dataset indicating the variables for which the heat map is to be plotted.}
 
-\item{quant.error.hmap}{(2Dheatmap) Numeric. A number indicating the quantization error
-threshold.}
+\item{separation_width}{(surface_plot) Numeric. An integer indicating the width between hierarchical levels in surface plot}
 
-\item{cell_id}{(2Dhvt) Logical. To indicate whether the plot should have Cell IDs or not for the first layer. 
-(default = FALSE)}
+\item{layer_opacity}{(surface_plot) Numeric. A vector indicating the opacity of each hierarchical levels in surface plot}
 
-\item{n_cells.hmap}{(2Dheatmap/surface_plot) Numeric. An integer indicating the number of
-cells/clusters per hierarchy (level)}
-
-\item{label.size}{(2Dheatmap) Numeric. The size by which the tessellation labels should
-be scaled. (default = 0.5)}
-
-\item{sepration_width}{(surface_plot) Numeric. An integer indicating the width between two levels}
-
-\item{layer_opacity}{(surface_plot) Numeric. A vector indicating the opacity of each layer/ level}
-
-\item{dim_size}{(surface_plot) Numeric. An integer indicating the dimension size used to create the matrix for the plot}
+\item{dim_size}{(surface_plot) Numeric. An integer controls the resolution or granularity of the 3D surface grid}
 
 \item{plot.type}{Character. An option to indicate which type of plot should be generated. Accepted entries are 
 '1D','2Dproj','2Dhvt','2Dheatmap'and 'surface_plot'. Default value is '2Dhvt'.}
 
-\item{centroid.color}{(2Dhvt/2Dheatmap) Numeric Vector. A vector indicating the color of centroids
-for each level.}
+\item{quant.error.hmap}{(2Dheatmap) Numeric. A number representing the quantization error threshold to be highlighted in the heatmap. 
+When a value is provided, it will emphasize cells with quantization errors equal or less than the specified threshold,
+indicating that these cells cannot be further subdivided in the next depth layer. The default value is NULL,
+meaning all cells will be colored in the heatmap across various depths.}
+
+\item{cell_id}{(2Dhvt/2Dheatmap) Logical. A logical indicating whether the cell IDs should be displayed}
+
+\item{cell_id_position}{(2Dhvt/2Dheatmap) Character. A character indicating the position of the cell IDs. Accepted entries are 'top' , 
+'bottom', 'left' and 'right'.}
+
+\item{cell_id_size}{(2Dhvt/2Dheatmap) Numeric. A numeric vector indicating the size of the cell IDs for all levels.}
 }
 \value{
 plot object containing the visualizations of reduced dimension(1D/2D) for the given dataset.
 }
 \description{
 This is the main plotting function to construct hierarchical voronoi tessellations in 1D,2D or
- Interactive surface plot.
+Interactive surface plot.
 }
 \examples{
 data("EuStockMarkets")
@@ -100,6 +89,6 @@ hmap.cols = "DAX", plot.type = '2Dheatmap')
 \code{\link{trainHVT}}
 }
 \author{
-Shubhra Prakash <shubhra.prakash@mu-sigma.com>, Sangeet Moy Das <sangeet.das@mu-sigma.com>
+Shubhra Prakash <shubhra.prakash@mu-sigma.com>, Sangeet Moy Das <sangeet.das@mu-sigma.com>, Vishwavani <vishwavani@mu-sigma.com>
 }
 \keyword{Tessellation_and_Heatmap}

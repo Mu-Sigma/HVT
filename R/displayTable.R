@@ -1,15 +1,15 @@
 #' @name displayTable
 #' @title function for displaying table
-#' @description This is the main function for displaying data in table formats
+#' @description This is the main function for displaying data in table format
 #' @param data Data frame. The dataframe to be displayed in table format.
 #' @param scroll Logical. A value to have a scroll or not in the table. 
 #' Default is TRUE. 
 #' @param limit Numeric. A value to indicate how many rows to display.
 #' Default is 20.
-#' @return A table with proper formatting for html notebooks.
+#' @return A table with proper formatting for html notebook
 #' @author Vishwavani <vishwavani@@mu-sigma.com>
 #' @importFrom dplyr mutate 
-#' @keywords EDA
+#' @keywords Table_Formatting
 #' @examples
 #' data <- datasets::EuStockMarkets
 #' dataset <- as.data.frame(data)
@@ -35,8 +35,7 @@ displayTable <- function(data, scroll = TRUE,limit= 20) {
   scroll <- nrow(data) > 10 || ncol(data) > 10
   
   # Limit the number of rows displayed
-  
-    limit <- if (nrow(data) > 20) 20 else nrow(data)
+    limit <- if (nrow(data) > 20) limit else nrow(data)
     data <- head(data, limit)
   
     table_3 <- knitr::kable(data, "html", escape = FALSE, align = "c") %>%

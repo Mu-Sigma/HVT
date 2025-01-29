@@ -35,7 +35,6 @@ plotQuantErrorHistogram <- function(hvt.results, hvt.scoring) {
   if (!requireNamespace("patchwork", quietly = TRUE)) {
     stop("Package 'patchwork' is required but not installed.")
   }
-  #browser()
   val <- hvt.results[[3]][["max_QE"]] %>%
     unlist() %>%
     as.numeric()
@@ -47,8 +46,6 @@ plotQuantErrorHistogram <- function(hvt.results, hvt.scoring) {
     ggplot2::geom_vline(xintercept = mean(val), colour = "red", linetype = "dashed") +
     ggplot2::ggtitle("1.Max QE Distribution: Train ") +
     ggplot2::xlab("Max QE values for cells: Train Data")
-  # +
-  #   ggtitle("Max QE Distribution (Train)")
 
 
 

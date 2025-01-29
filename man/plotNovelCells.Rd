@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotNovelCells.R
 \name{plotNovelCells}
 \alias{plotNovelCells}
-\title{Plot the identified outlier cell(s) in the voronoi tessellation map.}
+\title{Plot the identified outlier cells in the voronoi tessellation map.}
 \usage{
 plotNovelCells(
   plot.cells,

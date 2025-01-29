@@ -65,29 +65,20 @@ img {
 
 # 1. Abstract
 
-The HVT package is a collection of R functions to facilitate building
-<a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich
-multivariate data. Tending towards a big data preponderance, a large
-number of rows. A collection of R functions for this typical workflow is
-organized below :
+The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 3D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
 
-1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical
-    vector quantization) using means or medians. This step compresses
-    the rows (long data frame) using a compression objective
+1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
 
-2.  **Data Projection**: Dimension projection of the compressed cells to
-    1D,2D and Interactive surface plot with the Sammons Nonlinear Algorithm. This step creates
-    topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension.
+2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
 
-3.  **Tessellation**: Create cells required for object visualization
-    using the Voronoi Tessellation method, package includes heatmap
-    plots for hierarchical Voronoi tessellations (HVT). This step
-    enables data insights, visualization, and interaction with the
-    topology preserving map. Useful for semi-supervised tasks
+3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
 
-4.  **Scoring**: Scoring new data sets and recording their assignment
-    using the map objects from the above steps, in a sequence of maps if
-    required
+4.  **Scoring**: Scoring new data sets or test data and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
+
+5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
+
 
 # 2. Data Compression
 
@@ -964,8 +955,6 @@ Each of the parameters of trainHVT function have been explained below:
 
 * __`quant_method`__ - The quantization method can be `kmeans` or `kmedoids`. Kmeans uses means (centroids) as cluster centers while Kmedoids uses actual data points (medoids) as cluster centers. `kmeans` is selected by default.
 
-* __`projection.scale`__ - A number indicating the scale factor for the tessellations to visualize the sub-tessellations well enough. It helps in adjusting the visual representation of the hierarchy to make the sub-tessellations more visible. Default is 10.
-
 * __`dim_reduction_method`__ - The dimensionality reduction method to be chosen. options are 'tsne' , 'umap' & 'sammon'. Default is 'sammon'. 
 
 * __`scale_summary`__ -  A list with user defined mean and standard deviation values for all the features in the dataset. Pass the scale summary when normalize is set to FALSE.
@@ -1061,12 +1050,7 @@ displayTable(hvt.results[[3]][['summary']])
 Let's take a look at the 2D HVT plot.
 
 ```{r fig.height=4, fig.width=6,fig.align='center', warning=FALSE, message=FALSE}
-plotHVT(hvt.results,
-        line.width = c(0.6 ),
-        color.vec = c("black"),
-        centroid.size = 1,
-        maxDepth = 1, 
-        plot.type = '2Dhvt')
+plotHVT(hvt.results,plot.type = '2Dhvt')
 ```
 
 ## 8.1 Model Diagnostics and Validation

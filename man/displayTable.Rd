@@ -2,55 +2,31 @@
 % Please edit documentation in R/displayTable.R
 \name{displayTable}
 \alias{displayTable}
-\title{Table for displaying summary}
+\title{function for displaying table}
 \usage{
-displayTable(
-  data,
-  columnName = NULL,
-  value = NULL,
-  tableType = "summary",
-  scroll = FALSE,
-  limit = 100
-)
+displayTable(data, scroll = TRUE, limit = 20)
 }
 \arguments{
-\item{data}{List. A listed object from trainHVT or scoreHVT}
+\item{data}{Data frame. The dataframe to be displayed in table format.}
 
-\item{columnName}{Character. Name of the column that needs highlighting.}
-
-\item{value}{Numeric. The value above will be highlighted in red or green.}
-
-\item{tableType}{Character. Type of table to generate ('summary', 'compression' and 'metrics')}
-
-\item{scroll}{Logical. A value to have a scroll or not in the table.}
+\item{scroll}{Logical. A value to have a scroll or not in the table. 
+Default is TRUE.}
 
 \item{limit}{Numeric. A value to indicate how many rows to display.
-Applicable for summary tableType.}
+Default is 20.}
 }
 \value{
-A consolidated table of results from trainHVT and scoreHVT.
+A table with proper formatting for html notebook
 }
 \description{
-This is the main function for displaying summary from model training and scoring
+This is the main function for displaying data in table format
 }
 \examples{
 data <- datasets::EuStockMarkets
 dataset <- as.data.frame(data)
-#model training
-hvt.results <- trainHVT(dataset, n_cells = 60, depth = 1, quant.err = 0.1,
-                      distance_metric = "L1_Norm", error_metric = "max",
-                      normalize = TRUE, quant_method = "kmeans", dim_reduction_method = 'sammon')
-displayTable(data =  hvt.results$model_info$distance_measures, tableType = "metrics")
-displayTable(data = hvt.results[[3]]$compression_summary,
-columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
-value = 0.8, tableType = "compression")
-displayTable(data =hvt.results[[3]][['summary']], columnName= 'Quant.Error',
-value = 0.1, tableType = "summary", scroll = TRUE)
-}
-\seealso{
-\code{\link{trainHVT}}
+displayTable(dataset)
 }
 \author{
-Vishwavani <vishwavani@mu-sigma.com>, Alimpan Dey <alimpan.dey@mu-sigma.com>
+Vishwavani <vishwavani@mu-sigma.com>
 }
-\keyword{EDA}
+\keyword{Table_Formatting}

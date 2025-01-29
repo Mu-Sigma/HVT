@@ -54,17 +54,19 @@ ul {
 
 # 1. Abstract
 
-The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps </a> for rich multivariate data analysis. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
+The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 3D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
 
 1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
 
-2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension.
+2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
 
-3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map. Useful for semi-supervised tasks.
+3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
 
-4.  **Scoring**: Scoring new data sets and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
+4.  **Scoring**: Scoring new data sets or test data and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
 
-5. **Temporal Analysis and Visualization**: A Collection of new functions that leverages the capacity of the HVT package by analyzing time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
 
 # 2. Notebook Requirements
 
@@ -248,6 +250,10 @@ edaPlots(torus_test, output_type = "correlation")
 ```
 
 
+</br>
+
+</br>
+
 # 4. Map A : Base Compressed Map
 
 Let us try to visualize the compressed Map A from the diagram below.
@@ -284,7 +290,6 @@ trainHVT(
   diagnose = FALSE,
   hvt_validation = FALSE,
   train_validation_split_ratio = 0.8,
-  projection.scale,
   tsne_perplexity,tsne_theta,tsne_verbose,
   tsne_eta,tsne_max_iter,
   umap_n_neighbors,umap_min_dist
@@ -311,7 +316,6 @@ Each of the parameters of trainHVT function have been explained below:
 
 * __`quant_method`__ - The quantization method can be `kmeans` or `kmedoids`. Kmeans uses means (centroids) as cluster centers while Kmedoids uses actual data points (medoids) as cluster centers. `kmeans` is selected by default.
 
-* __`projection.scale`__ - A number indicating the scale factor for the tessellations to visualize the sub-tessellations well enough. It helps in adjusting the visual representation of the hierarchy to make the sub-tessellations more visible. Default is 10.
 
 * __`dim_reduction_method`__ - The dimensionality reduction method to be chosen. options are 'tsne' , 'umap' & 'sammon'. Default is 'sammon'. 
     
@@ -427,60 +431,52 @@ All the columns after this will contain centroids for each cell. They can also b
 Now let's try to understand **plotHVT** function. The parameters have been explained in detail below:
 
 ```{r plotHVT function,echo = TRUE, eval= FALSE}
-plotHVT <-(hvt.results, line.width, color.vec, pch1, centroid.size, 
-           centroid.color,title, maxDepth, child.level, hmap.cols,
-           quant.error.hmap, n_cells.hmap, label.size, 
-           sepration_width, layer_opacity, cell_id,
-           dim_size, plot.type = '2Dhvt')
+plotHVT <-(hvt.results,line.width,color.vec, 
+           centroid.size, centroid.color, 
+           child.level, hmap.cols, 
+           cell_id, cell_id_size,
+           cell_id_position, quant.error.hmap,
+           separation_width, layer_opacity,
+           dim_size, plot.type = '2Dhvt') 
 ```
 
-*  **`hvt.results`** - (1D/2Dproj/2Dhvt/2Dheatmap/surface_plot)  A list obtained from the trainHVT function while performing hierarchical vector quantization on training dataset. This list provides an overview of the hierarchical vector quantized data, including diagnostics, tessellation details, Sammon's projection coordinates, and model input information.
+* __`hvt.results`__ - (1D/2Dproj/2Dhvt/2Dheatmap/surface_plot)  A list obtained from the trainHVT function. This list provides an overview of the hierarchical vector quantized data, including diagnostics, tessellation details, Sammon's projection coordinates, and model input information.
 
-* **`line.width`**	- (2Dhvt/2Dheatmap) A vector indicating the line widths of the tessellation boundaries for each layer.
+* __`line.width`__	- (2Dhvt/2Dheatmap) A vector indicating the line widths of the tessellation boundaries for each layer.
 
-* **`color.vec`**	- (2Dhvt/2Dheatmap) A vector indicating the colors of the tessellations boundaries at each layer.
+* __`color.vec`__	- (2Dhvt/2Dheatmap) A vector indicating the colors of the tessellations boundaries at each layer.
 
-* **`pch1`**	- (2Dhvt/2Dheatmap) Symbol, It plots the centroids with a particular symbol such as (solid circle, bullet, filled square, filled diamond) in the tessellations.(default = 21 i.e filled circle).
+* __`centroid.size`__	- (2Dhvt/2Dheatmap) A vector of size of centroids for each level of tessellations.
 
-* **`centroid.size`**	- (2Dhvt/2Dheatmap) Vector of Size of centroids for each level of tessellations.
+* __`centroid.color`__	- (2Dhvt/2Dheatmap) A vector of color of centroids for each level of tessellations.
 
-* **`centroid.color`**	- (2Dhvt/2Dheatmap) Vector of color of centroids for each level of tessellations.
+* __`child.level`__ - (2Dhvt/2Dheatmap/surface_plot) A Number indicating the level for which the plot is to be plotted.
 
-* **`title`**	-  (2Dhvt) Set a title for the plot (default = NULL).
+* __`hmap.cols`__ - (2Dheatmap/surface_plot) A Number or a Character which is the column number or column name from the dataset indicating the variables for which the plot should be displayed.
 
-* **`maxDepth`** -  (2Dhvt) An integer indicating the number of levels.
+* __`cell_id`__ - (2Dhvt/2Dheatmap) A Logical value to indicate whether the plot should have Cell IDs or not. Only applicable for the level 1. (default = FALSE)
 
-* **`cell_id`** - (2Dhvt) Logical. To indicate whether the plot should have Cell IDs or not for the level 1. (default = FALSE)
+* __`cell_id_size`__ - (2Dhvt/2Dheatmap) A number indicating the size of the cell ID text. Only applicable for the level 1. (default = 1)
 
-* **`child.level`** - (2Dheatmap/surface_plot) A Number indicating the level for which the heat map is to be plotted.
+* __`cell_id_position`__ - (2Dhvt/2Dheatmap) A Character indicating the position of the cell ID text. Only applicable for the level 1. Accepted entries are 'top', 'left', 'bottom' or 'right'. (default = 'bottom')
 
-* **`hmap.cols`** - (2Dheatmap/surface_plot) A Number or a Character which is the column number or column name from
-the dataset indicating the variables for which the heat map is to be plotted.
+* __`quant.error.hmap`__ - (2Dheatmap)  A number representing the quantization error threshold to be highlighted in the heatmap. When a value is provided, it will emphasize cells with quantization errors equal or less than the specified threshold, indicating that these cells cannot be further subdivided in the next depth layer. The default value is NULL, meaning all cells will be colored in the heatmap across various depths.
 
-* **`label.size`** - (2Dheatmap) The size by which the tessellation labels should
-be scaled.(default = 0.5)
 
-* **`quant.error.hmap`** - (2Dheatmap) A number indicating the quantization error threshold.
+* __`sepration_width`__ - (surface_plot) An integer indicating the width between hierarchical levels in surface plot.
 
-* **`sepration_width`** - (surface_plot) An integer indicating the width between two Levels.
+* __`layer_opacity`__ - (surface_plot) A vector indicating the opacity of each hierarchical levels in surface plot.
 
-* **`layer_opacity`** - (surface_plot) A vector indicating the opacity of each layer/ level.
+* __`dim_size`__ - (surface_plot) An integer controls the resolution or granularity of the 3D surface grid. (Higher dim_size = more detailed/smoother surface but slower rendering while Lower dim_size = less detailed/blockier surface but faster rendering)
 
-* **`dim_size`** - (surface_plot) An integer indicating the dimension size used to create the matrix for the plot.
-
-* **`plot.type`** -  A Character indicating which type of plot should be generated. Accepted entries are '1D','2Dproj', '2Dhvt','2Dheatmap', 'surface_plot'. Default value is '2Dhvt'.
+* __`plot.type`__ -  A Character indicating which type of plot should be generated. Accepted entries are '1D',   '2Dproj','2Dhvt','2Dheatmap' & 'surface_plot'. Default value is '2Dhvt'.
 
 
 
 Let's plot the Voronoi tessellation for layer 1 (map A).
 
 ```{r, warning=FALSE,message=FALSE,fig.cap='Figure 3: The Voronoi Tessellation for layer 1 (map A) shown for the 500 cells in the dataset ’torus’',fig.width = 7, fig.height = 5, fig.align='center'}
-plotHVT(torus_mapA,
-        line.width = c(0.4), 
-        color.vec = c("navy blue"),
-        centroid.size = 0.01,
-        maxDepth = 1,
-        plot.type = "2Dhvt") 
+plotHVT(torus_mapA,plot.type = "2Dhvt") 
 ```
 
 ## 4.1 Heatmaps
@@ -491,38 +487,20 @@ The heatmaps displayed below provides a visual representation of the spatial cha
 
 
 ```{r hvt_mapA hmp level x torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 4: The Voronoi Tessellation with the heat map overlaid for variable ’x’ in the ’torus’ dataset',fig.width = 7, fig.height = 5,fig.align='center'}
-  plotHVT(
-  torus_mapA,
-  child.level = 1,
-  hmap.cols = "x",
-  line.width = c(0.2),
-  color.vec = c("navy blue"),
-  centroid.size = 0.1,
-  plot.type = '2Dheatmap') 
+  plotHVT(torus_mapA,hmap.cols = "x",plot.type = '2Dheatmap') 
 ```
 
 ```{r hvt_mapA hmp level y torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 5: The Voronoi Tessellation with the heat map overlaid for variable ’y’ in the ’torus’ dataset',fig.width = 7, fig.height = 5,fig.align='center'}
-  plotHVT(
-  torus_mapA,
-  child.level = 1,
-  hmap.cols = "y",
-  line.width = c(0.2),
-  color.vec = c("navy blue"),
-  centroid.size = 0.1,
-  plot.type = '2Dheatmap') 
+  plotHVT(torus_mapA,hmap.cols = "y",plot.type = '2Dheatmap') 
 ```
 
 ```{r hvt_mapA hmp level z torus,warning=FALSE,fig.show='hold',results='hide',message=FALSE,fig.cap='Figure 6: The Voronoi Tessellation with the heat map overlaid for variable ’z’ in the ’torus’ dataset',fig.width = 7, fig.height = 5,fig.align='center'}
-  plotHVT(
-  torus_mapA,
-  child.level = 1,
-  hmap.cols = "z",
-  line.width = c(0.2),
-  color.vec = c("navy blue"),
-  centroid.size = 0.1,
-  plot.type = '2Dheatmap') 
+  plotHVT(torus_mapA, hmap.cols = "z",plot.type = '2Dheatmap') 
 ```
 
+
+
+</br>
 
 
 # 5. Map B : Compressed Novelty Map
@@ -622,6 +600,7 @@ displayTable(torus_mapB[[3]][['summary']])
 ```
 
 
+</br>
 
 # 6. Map C : Compressed Map without Novelty
 
@@ -715,7 +694,7 @@ plotHVT(torus_mapC,
         line.width = c(0.2,0.1), 
         color.vec = c("navyblue","steelblue"),
         centroid.size = 0.1,
-        maxDepth = 2, 
+        child.level = 2, 
         plot.type = '2Dhvt')
  
 ```

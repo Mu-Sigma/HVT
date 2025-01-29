@@ -10,7 +10,9 @@ clustHVT(
   scoreHVT_results,
   clustering_method = "ward.D2",
   indices,
-  clusters_k = "champion"
+  clusters_k = "champion",
+  type = "default",
+  domains.column
 )
 }
 \arguments{
@@ -30,6 +32,12 @@ The options include “champion,” “challenger,” or any integer between 1 a
 Selecting “champion” will use the highest number of clusters recommended by the ‘NbClust’ function,
 while “challenger” will use the second-highest recommendation. If a numerical value from 1 to 20
 is provided, that exact number will be used as the number of clusters.}
+
+\item{type}{Character. The type of output required. Default is 'default'. Other option is 'plot' which
+will return only the clustered heatmap.}
+
+\item{domains.column}{Character. A vector of cluster names for the clustered heatmap.
+Used only when type is 'plot'.}
 }
 \value{
 A list object that contains the hierarchical clustering results.
@@ -45,13 +53,13 @@ and plot the 2D cluster hvt plot.
 }
 \examples{
 data("EuStockMarkets")
-dataset <- data.frame(date = as.numeric(time(EuStockMarkets)),
+dataset <- data.frame(t = as.numeric(time(EuStockMarkets)),
                      DAX = EuStockMarkets[, "DAX"],
-                   SMI = EuStockMarkets[, "SMI"],
+                     SMI = EuStockMarkets[, "SMI"],
                      CAC = EuStockMarkets[, "CAC"],
                      FTSE = EuStockMarkets[, "FTSE"])
-rownames(EuStockMarkets) <- dataset$date
-hvt.results<- trainHVT(dataset,n_cells = 60, depth = 1, quant.err = 0.1,
+rownames(EuStockMarkets) <- dataset$t
+hvt.results<- trainHVT(dataset[-1],n_cells = 60, depth = 1, quant.err = 0.1,
                       distance_metric = "L1_Norm", error_metric = "max",
                       normalize = TRUE,quant_method = "kmeans")
 scoring <- scoreHVT(dataset, hvt.results, analysis.plots = TRUE, names.column = dataset[,1])

@@ -5,25 +5,29 @@
 #' @param time_column Character. The name of the time column in the data frame.
 #' Can be given only when the data is time series
 #' @param output_type Character. The name of the output to be displayed. Options are 'summary',
-#' 'histogram', 'boxplot', 'timeseries' & 'correlation'. Default value is NULL.
+#' 'histogram', 'boxplot', 'timeseries' & 'correlation'. Default value is summary.
 #' @param n_cols Numeric. A value to indicate how many columns to be included in the output.
-#' Default value is 2.
+#' @param grey_bars List. A list of timestamps where each list contains two elements: start and end period,
+#' which will be highlighted in gray in the time series plot. Default value is NULL.
 #' @return Five objects which include time series plots, data distribution plots, 
 #' box plots, correlation plot and a descriptive statistics table.
 #' @author Vishwavani <vishwavani@@mu-sigma.com>
 #' @keywords EDA
 #' @examples
 #' dataset <- data.frame(date = as.numeric(time(EuStockMarkets)),
-#'                       DAX = EuStockMarkets[, "DAX"],
-#'                       SMI = EuStockMarkets[, "SMI"],
-#'                       CAC = EuStockMarkets[, "CAC"],
-#'                       FTSE = EuStockMarkets[, "FTSE"])
-#' edaPlots(dataset, time_column = 'date', output_type = 'timeseries', n_cols = 5)
-#' edaPlots(dataset, time_column = 'date', output_type = 'histogram', n_cols = 5)
+#' DAX = as.numeric(EuStockMarkets[, "DAX"]),
+#' SMI = as.numeric(EuStockMarkets[, "SMI"]),
+#' CAC = as.numeric(EuStockMarkets[, "CAC"]),
+#' FTSE = as.numeric(EuStockMarkets[, "FTSE"]))
+#' edaPlots(dataset)
+#' edaPlots(dataset, time_column = 'date', output_type = 'timeseries', n_cols = 4)
 #' @export edaPlots
 
 
-edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1) {
+edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1,grey_bars = NULL) {
+  
+  ##for cran warnings:
+    start <- end <-  NULL
   
   if(n_cols == -1){
     n_cols = ncol(df)
@@ -51,6 +55,7 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1) {
       mutate(n_row = format(nrow(df), scientific = FALSE), n_missing = missing_counts_vector) %>%
       dplyr::rename(min = p0, `1st Quartile` = p25, median = p50, `3rd Quartile` = p75, max = p100) %>%
       dplyr::select(variable, min, `1st Quartile`, median, mean, sd, `3rd Quartile`, max, hist,n_row, n_missing) 
+     
     
     calculate_dynamic_length_menu <- function(total_entries, base_step = 100) {
       max_option <- ceiling(total_entries / base_step) * base_step
@@ -61,13 +66,21 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1) {
     }
     total_entries <- nrow(result)
     length_menu_options <- calculate_dynamic_length_menu(total_entries)
-    eda_format <- DT::datatable(result, options = list(
-      pageLength = 10,
-      lengthMenu = length_menu_options,
-      scrollX = TRUE,
-      scrollY = TRUE# Add scroll X option
-    ))
+    eda_format <- DT::datatable(result, 
+                                options = list(
+                                  pageLength = 10,
+                                  lengthMenu = length_menu_options,
+                                  scrollX = TRUE,
+                                  scrollY = TRUE
+                                ),
+                                rownames = FALSE
+    ) %>%
+      DT::formatRound(
+        columns = c('min', 'max', 'mean', 'sd', 'median', '1st Quartile', '3rd Quartile'),
+        digits = 2
+      )
 
+    
     return(eda_format)
   }
   
@@ -129,34 +142,48 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1) {
   }
   
   # Box Plot Function
-  quantile_outlier_plots_fn <- function(data, outlier_check_var, data_cat = data[, cat_cols], numeric_cols = numeric_cols){
-    CheckColumnType <- function(data) {
-      if (is.numeric(data) || is.integer(data)) {
-        columnType <- "numeric"
-      } else { columnType <- "character" }
-      return(columnType)}
-    cat_cols <-
-      colnames(data)[unlist(sapply(
-        data,FUN = function(x) {CheckColumnType(x) == "character" ||CheckColumnType(x) == "factor" }))]
+  quantile_outlier_plots_fn <- function(data, outlier_check_var) {
     
-    lower_threshold <- stats::quantile(data[, outlier_check_var], .25,na.rm = TRUE) - 1.5*(stats::IQR(data[, outlier_check_var], na.rm = TRUE))
-    upper_threshold <- stats::quantile(data[,outlier_check_var],.75,na.rm = TRUE) +
-      1.5*(stats::IQR(data[,outlier_check_var],na.rm = TRUE))
-    data$QuantileOutlier <- data[,outlier_check_var] > upper_threshold | data[,outlier_check_var] < lower_threshold
+    data <- data[sapply(data, is.numeric)]
     
-    quantile_outlier_plot <- ggplot2::ggplot(data, ggplot2::aes(x="", y = data[,outlier_check_var])) +
-      ggplot2::geom_boxplot(fill = 'midnightblue',alpha=0.7) + 
+    # Calculate thresholds for outlier detection
+    lower_threshold <- stats::quantile(data[[outlier_check_var]], .25, na.rm = TRUE) - 
+      1.5 * stats::IQR(data[[outlier_check_var]], na.rm = TRUE)
+    upper_threshold <- stats::quantile(data[[outlier_check_var]], .75, na.rm = TRUE) + 
+      1.5 * stats::IQR(data[[outlier_check_var]], na.rm = TRUE)
+    
+    # Identify outliers
+    data$QuantileOutlier <- data[[outlier_check_var]] > upper_threshold | 
+      data[[outlier_check_var]] < lower_threshold
+    
+    # Create boxplot
+    quantile_outlier_plot <- ggplot2::ggplot(data, ggplot2::aes(x = "", y = data[[outlier_check_var]])) +
+      ggplot2::geom_boxplot(fill = 'midnightblue', alpha = 0.7) + 
       ggplot2::theme_bw() + 
-      ggplot2::theme(panel.border=ggplot2::element_rect(size=0.1),
-                     panel.grid.minor.x=ggplot2::element_blank(),
-                     panel.grid.major.x=ggplot2::element_blank(),legend.position = "bottom")                          +ggplot2::ylab(outlier_check_var) + ggplot2::xlab("")
-    data <- cbind(data[, !names(data) %in% c("QuantileOutlier")] %>% round(2), outlier = data[, c("QuantileOutlier")])
-    data <- cbind(data, data_cat)  
+      ggplot2::theme(
+        panel.border = ggplot2::element_rect(size = 0.1),
+        panel.grid.minor.x = ggplot2::element_blank(),
+        panel.grid.major.x = ggplot2::element_blank(),
+        legend.position = "bottom"
+      ) +
+      ggplot2::ylab(outlier_check_var) + 
+      ggplot2::xlab("")
+    
+    # Prepare output data
+    data <- cbind(
+      data[, !names(data) %in% c("QuantileOutlier")] %>% round(2),
+      outlier = data[["QuantileOutlier"]]
+    )
+    
+    # Return the results
     return(list(quantile_outlier_plot, data, lower_threshold, upper_threshold))
   }
   
+  
   # Correlation Plot Function
   correlation_plot <- function(df, title = "Feature Correlation Analysis") {
+    df <- df[sapply(df, is.numeric)]
+    
     corrplot::corrplot(stats::cor(df, use = "complete.obs"), main = list(title , font = 1, cex = 1),method = "color", 
                        outline = TRUE, addgrid.col = "darkgray", addrect = 4,
                        rect.col = "black", rect.lwd = 5, cl.pos = "b", tl.col = "black", tl.cex = 0.7, 
@@ -170,37 +197,74 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1) {
     
     df <- df[order(df[[time_column]]), ]
     
-  generateTimeseriesPlot <- function(df, time_column) {
-    if (!is.data.frame(df)) {
-      stop("Input dataset must be a data frame")
-    }
-    
-    # Check if the time_column_name exists in the dataset
-    if (!(time_column %in% names(df))) {
-      stop("Specified time column does not exist in the dataset")
-    }
-    
-    # Order the dataset based on the time column
-    ordered_dataset <- df[order(df[[time_column]]), ]
-    
-    # Extract variable names
-    variable_names <- setdiff(names(df), time_column)
-    
-    # Create plots using lapply
-    plot_list <- lapply(variable_names, function(variable_name) {
-      ggplot(data = ordered_dataset, aes_string(x = time_column, y = variable_name)) +
-        geom_line(color = "midnightblue") +
-        labs(x = time_column, y = variable_name) 
+    generateTimeseriesPlot <- function(df, time_column, recession_periods = NULL) {
+      if (!is.data.frame(df)) {
+        stop("Input dataset must be a data frame")
+      }
       
-    })
+      if (!(time_column %in% names(df))) {
+        stop("Specified time column does not exist in the dataset")
+      }
+      
+      if (!inherits(df[[time_column]], "POSIXct") && !is.numeric(df[[time_column]])) {
+        stop("Time column must be of class POSIXct or numeric.")
+      }
+      
+      ordered_dataset <- df[order(df[[time_column]]), ]
+      variable_names <- setdiff(names(df), time_column)
+      
+      if (!is.null(recession_periods)) {
+        if (inherits(df[[time_column]], "POSIXct")) {
+          # Convert recession periods to POSIXct for datetime time columns
+          recession_df <- do.call(rbind, lapply(recession_periods, function(x) {
+            if (length(x) == 2) {
+              data.frame(start = as.POSIXct(x[1]), end = as.POSIXct(x[2]))
+            } else {
+              stop("Each recession period must have exactly two dates: start and end.")
+            }
+          }))
+        } else if (is.numeric(df[[time_column]])) {
+          # Ensure recession periods are numeric for numeric time columns
+          recession_df <- do.call(rbind, lapply(recession_periods, function(x) {
+            if (length(x) == 2) {
+              data.frame(start = as.numeric(x[1]), end = as.numeric(x[2]))
+            } else {
+              stop("Each recession period must have exactly two numeric values: start and end.")
+            }
+          }))
+        } else {
+          stop("Recession periods must match the type of the time column.")
+        }
+      } else {
+        recession_df <- NULL
+      }
+      
+      # Generate plots
+      plot_list <- lapply(variable_names, function(variable_name) {
+        p <- ggplot(data = ordered_dataset, aes_string(x = time_column, y = variable_name)) +
+          geom_line(color = "midnightblue") +
+          labs(x = time_column, y = variable_name) +
+          theme_minimal()
+        
+        # Add grey bars for recession periods (if applicable)
+        if (!is.null(recession_df)) {
+          p <- p +
+            geom_rect(
+              data = recession_df,
+              aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf),
+              inherit.aes = FALSE,
+              fill = "grey",
+              alpha = 0.5
+            )
+        }
+        
+        return(p)
+      })
+      
+      gridExtra::grid.arrange(grobs = plot_list, ncol = 2, top = "Time series plots")
+    }
     
-    time_plot <- ggplot(data = ordered_dataset, aes_string(x = time_column, y = time_column)) +
-      geom_line(color = "midnightblue") +
-      labs(x = time_column, y = time_column) 
     
-    plot_list <- c(plot_list, list(time_plot))  # Add the time plot to the list of plots
-    gridExtra::grid.arrange(grobs = plot_list, ncol = 2, top = "Time series plots of Features")
-  }
   }
   
 
@@ -212,7 +276,7 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1) {
     }
     
     if (output_type == "timeseries") {
-      time_series_plot <- generateTimeseriesPlot(df, time_column)
+      time_series_plot <- generateTimeseriesPlot(df, time_column, grey_bars)
        (time_series_plot)
     }
     

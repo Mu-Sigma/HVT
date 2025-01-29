@@ -1,7 +1,6 @@
 #' @name scoreHVT
 #' @title Score which cell each point in the test dataset belongs to.
-#' @description
-#' This function scores each data point in the test dataset based on a trained hierarchical Voronoi tessellations model. 
+#' @description This function scores each data point in the test dataset based on a trained hierarchical Voronoi tessellations model. 
 #' @param dataset Data frame. A data frame which to be scored. Can have categorical columns if `analysis.plots` are required.
 #' @param hvt.results.model List. A list obtained from the trainHVT function 
 #' @param child.level Numeric. A number indicating the depth for which the heat map is to be plotted. 
@@ -23,7 +22,8 @@
 #' be a 2D heatmap plotly which gives info on the cell id and the observations of a cell.
 #' @param names.column Character. A character or a vector representing the name of the identifier column/character column.
 #' @returns Dataframe containing scored data, plots and summary
-#' @author Shubhra Prakash <shubhra.prakash@@mu-sigma.com>, Sangeet Moy Das <sangeet.das@@mu-sigma.com>
+#' @author Shubhra Prakash <shubhra.prakash@@mu-sigma.com>, Sangeet Moy Das <sangeet.das@@mu-sigma.com> ,
+#' Vishwavani <vishwavani@@mu-sigma.com>
 #' @seealso \code{\link{trainHVT}} \cr \code{\link{plotHVT}}
 #' @keywords Scoring
 #' @importFrom magrittr %>%
@@ -60,6 +60,8 @@ scoreHVT <- function(dataset,
                        analysis.plots = FALSE,
                        names.column = NULL
                        ) {
+  
+  suppressWarnings({
   set.seed(300)
   sum_n = NULL
   requireNamespace("dplyr")
@@ -269,7 +271,8 @@ scoreHVT <- function(dataset,
   cellID_coordinates <- do.call(rbind.data.frame, coordinates_value1)
   colnames(cellID_coordinates) <- c("x", "y")
   cellID_coordinates$Cell.ID <- hvt_res2
-#browser()
+  cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
+  
   ##################
   boundaryCoords2 <-
     lapply(plotList, function(x) {
@@ -295,14 +298,7 @@ scoreHVT <- function(dataset,
   
   anomalyPlot <- plotHVT(
     hvt.results.model,
-    line.width = line.width,
-    color.vec = color.vec,
-    centroid.size = 1.5,
-    title = paste0(
-      "Hierarchical Voronoi Tessellation With Depth = ",
-      child.level
-    ),
-    maxDepth = child.level
+    child.level = child.level
   ) + ggtitle(paste(
     "Hierarchical Voronoi Tessellation for Level",
     child.level
@@ -502,10 +498,7 @@ if(analysis.plots) {
     
     scoredPlot <- plotHVT(
       hvt.results.model,
-      line.width = line.width,
-      color.vec = color.vec,
-      centroid.size = 1.5,
-      maxDepth = child.level
+      child.level = child.level
     ) +
       theme(
         plot.title = element_text(
@@ -588,14 +581,18 @@ if(analysis.plots) {
       geom_point(
         data = boundaryCoords2_1 %>% distinct(x, .keep_all = TRUE),
         aes(x = x, y = y, text = hoverText),
-        size = 1.5
+        size = 1
       )
     
    
     plotlyscored <- plotly::ggplotly(scoredPlot, tooltip = "text")
-
     plotlyscored <- plotlyscored %>%
       plotly::layout(
+        title = list(
+          text = "Scored Heatmap with Cell-Level Observations",
+          x = 0, 
+          y = 0.99,
+          xanchor = "left", font = list(size = 20)),
         hovermode = 'closest',
         hoverdistance = 100,
         hoverlabel = list(
@@ -618,6 +615,11 @@ if(analysis.plots) {
       distinct(Cell.ID, .keep_all = TRUE)  
     centroid_data = merge(cellID_coordinates, names_data, by = 'Cell.ID') %>% as.data.frame()
     
+
+  
+  states_data <- boundaryCoords2_1 %>% dplyr::select("Cell.ID","names.column")
+  states_data <- states_data %>% 
+    distinct(Cell.ID, .keep_all = TRUE)
 }
  #################################################
   #MODEL INFO Rewriting
@@ -656,13 +658,16 @@ if(analysis.plots) {
     QECompareDf = QECompareDf2,
     anomalyPlot = plotlyPredict,
     scoredPlotly = plotlyscored,
-  #  scoredPlotlyData = boundaryCoords2_1,
+  scoredPlot_test= scoredPlot,
+  cellID_coordinates =cellID_coordinates,
     centroidData = centroid_data,
+    states_data = states_data,
     predictInput = c("depth" = child.level, "quant.err" = mad.threshold),
     model_mad_plots = list(),
     model_info = list(type = "hvt_prediction",
                       trained_model_summary = trained_model,
                       scored_model_summary =scored_model)
+  
   )}else{
   
   prediction_list <- list(
@@ -694,11 +699,9 @@ if(analysis.plots) {
 
   prediction_list$model_mad_plots <- model_mad_plots
   
-  
-  #summary_table <- displayTable(predict_test_data3, scroll = TRUE, limit = 100)
-  
- # print(summary_table)
   class(prediction_list) <- "hvt.object"
   return(prediction_list)
+})
+  
 }
 

@@ -7,8 +7,7 @@ diagPlot <- function(hvt.results,
                   distance_metric="L1_Norm",
                   error_metric="max",
                   ...){
-  # browser()
-  
+
   requireNamespace("reshape2")     
   requireNamespace("ggplot2")     
   requireNamespace("dplyr")     
@@ -19,7 +18,7 @@ diagPlot <- function(hvt.results,
   
   x <- newdfMapping %>% 
     dplyr::filter((n > 0 & Segment.Level == level) | (Segment.Level < level & (Quant.Error < quant.err | n <= 3)))
-  x <- x[x%>%complete.cases(),]
+  x <- x[x%>%stats::complete.cases(),]
   
   singleton_count=sum(x$Quant.Error< 0.0001)
   num_cells=length(x$Quant.Error)

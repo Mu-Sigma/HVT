@@ -1,7 +1,7 @@
 #' @name plotHVT 
 #' @title Plot the hierarchical tessellations.
 #' @description This is the main plotting function to construct hierarchical voronoi tessellations in 1D,2D or
-#'  Interactive surface plot.
+#' Interactive surface plot.
 #' @param hvt.results (1D/2DProj/2Dhvt/2Dheatmap/surface_plot) List. A list containing the output of \code{trainHVT} function
 #' which has the details of the tessellations to be plotted.
 #' @param plot.type Character. An option to indicate which type of plot should be generated. Accepted entries are 
@@ -10,32 +10,27 @@
 #' tessellation boundaries for each level.
 #' @param color.vec (2Dhvt/2Dheatmap) Vector. A vector indicating the colors of the boundaries of
 #' the tessellations at each level.
-#' @param pch1 (2Dhvt/2Dheatmap) Numeric. Symbol of the centroids of the tessellations
-#' (parent levels). Default value is 21.
 #' @param centroid.size (2Dhvt/2Dheatmap) Numeric Vector. A vector indicating the size of centroids
 #' for each level.
 #' @param centroid.color (2Dhvt/2Dheatmap) Numeric Vector. A vector indicating the color of centroids
 #' for each level.
-#' @param title (2Dhvt) Character. Set a title for the plot. (default = NULL)
-#' @param maxDepth (2Dhvt) Numeric. An integer indicating the number of levels.
-#' @param cell_id (2Dhvt) Logical. To indicate whether the plot should have Cell IDs or not for the first layer. 
-#' (default = FALSE)
-#' @param child.level (2Dheatmap/surface_plot) Numeric. Indicating the level for which the heat map is
-#' to be plotted.
+#' @param child.level (2Dheatmap/surface_plot) Numeric. Indicating the level for which the plot should
+#' be displayed
 #' @param hmap.cols (2Dheatmap/surface_plot) Numeric or Character. The column number or column name from
-#' the dataset indicating the variables for which the heat map is to be
-#' plotted.
-#' @param label.size (2Dheatmap) Numeric. The size by which the tessellation labels should
-#' be scaled. (default = 0.5)
-#' @param quant.error.hmap (2Dheatmap) Numeric. A number indicating the quantization error
-#' threshold.
-#' @param n_cells.hmap (2Dheatmap/surface_plot) Numeric. An integer indicating the number of
-#' cells/clusters per hierarchy (level)
-#' @param sepration_width (surface_plot) Numeric. An integer indicating the width between two levels
-#' @param layer_opacity (surface_plot) Numeric. A vector indicating the opacity of each layer/ level
-#' @param dim_size  (surface_plot) Numeric. An integer indicating the dimension size used to create the matrix for the plot
+#' the dataset indicating the variables for which the heat map is to be plotted.
+#' @param quant.error.hmap (2Dheatmap) Numeric. A number representing the quantization error threshold to be highlighted in the heatmap. 
+#' When a value is provided, it will emphasize cells with quantization errors equal or less than the specified threshold,
+#' indicating that these cells cannot be further subdivided in the next depth layer. The default value is NULL,
+#' meaning all cells will be colored in the heatmap across various depths.
+#' @param separation_width (surface_plot) Numeric. An integer indicating the width between hierarchical levels in surface plot
+#' @param layer_opacity (surface_plot) Numeric. A vector indicating the opacity of each hierarchical levels in surface plot
+#' @param dim_size  (surface_plot) Numeric. An integer controls the resolution or granularity of the 3D surface grid
+#' @param cell_id (2Dhvt/2Dheatmap) Logical. A logical indicating whether the cell IDs should be displayed
+#' @param cell_id_position (2Dhvt/2Dheatmap) Character. A character indicating the position of the cell IDs. Accepted entries are 'top' , 
+#' 'bottom', 'left' and 'right'.
+#' @param cell_id_size (2Dhvt/2Dheatmap) Numeric. A numeric vector indicating the size of the cell IDs for all levels.
 #' @returns plot object containing the visualizations of reduced dimension(1D/2D) for the given dataset.
-#' @author Shubhra Prakash <shubhra.prakash@@mu-sigma.com>, Sangeet Moy Das <sangeet.das@@mu-sigma.com>
+#' @author Shubhra Prakash <shubhra.prakash@@mu-sigma.com>, Sangeet Moy Das <sangeet.das@@mu-sigma.com>, Vishwavani <vishwavani@@mu-sigma.com>
 #' @seealso \code{\link{trainHVT}} 
 #' @keywords Tessellation_and_Heatmap
 #' @importFrom magrittr %>%
@@ -55,25 +50,36 @@
 #' @export plotHVT
 
 
-plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 21, centroid.size = 1.5, 
-                    title = NULL, maxDepth = NULL, child.level = 1, hmap.cols, quant.error.hmap = NULL,cell_id = FALSE,
-                    n_cells.hmap = NULL, label.size = 0.5, sepration_width = 7, layer_opacity = c(0.5, 0.75, 0.99), 
-                    dim_size = 1000, plot.type = '2Dhvt',centroid.color = "black") {
+plotHVT <- function(hvt.results, 
+                    line.width = 0.5, 
+                    color.vec =  'black', 
+                    centroid.size = 0.6, 
+                    centroid.color = "black", 
+                    child.level = 1, 
+                    hmap.cols,
+                    separation_width = 7, 
+                    layer_opacity = c(0.5, 0.75, 0.99), 
+                    dim_size = 1000, 
+                    plot.type = '2Dhvt',
+                    quant.error.hmap = NULL,
+                    cell_id = FALSE,
+                    cell_id_position="bottom", 
+                    cell_id_size = 2.6) {
   
   lev <- NULL
+  n_cells <- max(stats::na.omit(hvt.results[[3]][["summary"]][["Cell.ID"]]))
+  n_cells.hmap <- hvt.results[["model_info"]][["input_parameters"]][["n_cells"]]
+  pch1 = 21
+    
   if (is.null(plot.type)) {
     plot.type <- '2Dhvt'
   }
-  if (is.null(cell_id)){
-    cell_id <- FALSE
-  }
+  
   if (plot.type == '1D') {
-   # browser()
-    ####hvq output as global vaiable
     generic_col=c("Segment.Level","Segment.Parent","Segment.Child","n","Quant.Error")
     hvq_k <- hvt.results[[6]]  
     temp_summary=hvq_k[["summary"]] %>% dplyr::select(!generic_col) %>% dplyr::mutate(id=row_number())
-    cent_val= temp_summary %>% subset(.,complete.cases(.)) 
+    cent_val= temp_summary %>% subset(.,stats::complete.cases(.)) 
     set.seed(123)
     sammon_1d_cord <- MASS::sammon(
       d = stats::dist(cent_val %>% dplyr::select(!id),method = "manhattan"),
@@ -120,7 +126,8 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
 
     gg_proj <- ggplot(centroid_coordinates1, aes(x_coord, y_coord)) +
       geom_point(color = "blue") +
-      labs(x = "X", y = "Y")
+      labs(title = "2D Projection plot of centroids",
+           x = "X", y = "Y")
     
     
     return(suppressMessages(gg_proj))
@@ -129,7 +136,7 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
       
     hvt_list <- hvt.results
     
-    maxDepth <- min(maxDepth, max(hvt_list[[3]][["summary"]] %>% stats::na.omit() %>% dplyr::select("Segment.Level")))
+    child.level <- min(child.level, max(hvt_list[[3]][["summary"]] %>% stats::na.omit() %>% dplyr::select("Segment.Level")))
     
     
     min_x <- 1e9
@@ -168,7 +175,7 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
     }
     
     
-    for (depth in 1:maxDepth) {
+    for (depth in 1:child.level) {
       for (clusterNo in 1:length(hvt_list[[2]][[depth]])) {
         for (childNo in 1:length(hvt_list[[2]][[depth]][[clusterNo]])) {
           current_cluster <- hvt_list[[2]][[depth]][[clusterNo]][[childNo]]
@@ -231,7 +238,7 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
       centroidDataframe_2 <- merge(cellID_coordinates, centroidDataframe, by = c("x" ,"y"))
       
     p <- ggplot2::ggplot()  
-    for (i in maxDepth:1) {
+    for (i in child.level:1) {
       p <-
         p + ggplot2::geom_polygon(
           data = datapoly[which(datapoly$depth == i), ],
@@ -250,10 +257,10 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
     }
     
     if (cell_id == TRUE) {
-      
-    for (depth in 1:maxDepth) {
-      depth_size <- centroid.size[maxDepth - depth + 1]
-      centroid_color <- centroid.color[maxDepth - depth + 1]
+
+    for (depth in 1:child.level) {
+      depth_size <- centroid.size[child.level - depth + 1]
+      centroid_color <- centroid.color[child.level - depth + 1]
       
       p <- p + ggplot2::geom_point(
         data = centroidDataframe[centroidDataframe["lev"] == depth, ],
@@ -266,29 +273,45 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
     }
 
     subset_data <- subset(centroidDataframe_2, lev == 1)
+    
+    
+    alignments <- list(
+      right = list(hjust = -0.5, vjust = 0.5),
+      left = list(hjust = 1.5, vjust = 0.5),
+      bottom = list(hjust = 0.5, vjust = 1.5),
+      top = list(hjust = 0.5, vjust = -0.5) # Default case
+    )
+    
+    # Get alignment values for the current position
+    alignment <- alignments[[cell_id_position]] %||% alignments$bottom
+    
+    # Add geom_text to the plot
     p <- p + ggplot2::geom_text(
       data = subset_data,
       ggplot2::aes(x = x, y = y, label = Cell.ID),
-      size = 3,
+      size = cell_id_size,
       color = "black",
-      hjust = 0.5,
-      vjust = 1.8     )
+      hjust = alignment$hjust,
+      vjust = alignment$vjust,
+      nudge_x = -0.02 * nchar(as.character(subset_data$Cell.ID)))
+     
     }else {
-      for (depth in 1:maxDepth) {
-        depth_size <- centroid.size[maxDepth - depth + 1]
-        centroid_color <- centroid.color[maxDepth - depth + 1]
-        
-        p <- p + ggplot2::geom_point(
-          data = centroidDataframe[centroidDataframe["lev"] == depth, ],
-          ggplot2::aes(x = x, y = y),
-          size = depth_size,
-          pch = pch1,
-          fill = centroid_color,
-          color = centroid_color
-        ) 
-      }
-      
-    }
+       for (depth in 1:child.level) {
+         depth_size <- centroid.size[child.level - depth + 1]
+         centroid_color <- centroid.color[child.level - depth + 1]
+         
+         p <- p + ggplot2::geom_point(
+           data = centroidDataframe[centroidDataframe["lev"] == depth, ],
+           ggplot2::aes(x = x, y = y),
+           size = depth_size,
+           pch = pch1,
+           fill = centroid_color,
+           color = centroid_color
+         ) 
+       }
+       
+     }
+  
  
 
     p <- p +
@@ -321,17 +344,17 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
         color = "white",
         fill = "#038225"
       ) +
-      ggplot2::ggtitle(title)
+      ggplot2::ggtitle(paste0("Tesellation Plot of ", n_cells, " cells"))+ theme(
+        plot.title = element_text(hjust = 0, size = 10 ))
    
 
     return(suppressMessages(p))
     
     
   } else if (plot.type == '2Dheatmap') {
-  # browser()
     hvt_list <- hvt.results
     
-    maxDepth <- min(child.level, max(hvt_list[[3]][["summary"]] %>% stats::na.omit() %>% dplyr::select("Segment.Level")))
+    child.level <- min(child.level, max(hvt_list[[3]][["summary"]] %>% stats::na.omit() %>% dplyr::select("Segment.Level")))
     summaryDF <- hvt_list[[3]][["summary"]]
     valuesDataframe <- data.frame(
       depth = 0,
@@ -352,7 +375,7 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
     
     centroidDataframe <- data.frame(x = 0, y = 0, lev = 0)
     
-    for (depth in 1:maxDepth) {
+    for (depth in 1:child.level) {
       if (depth < 3) {
         for (clusterNo in names(hvt_list[[2]][[depth]])) {
           for (childNo in 1:length(hvt_list[[2]][[depth]][[clusterNo]])) {
@@ -499,8 +522,8 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
       "#25E892", "#2AEB8A", "#30EF82", "#38F17B", "#40F373", "#49F56D", "#52F667", "#5DF662", "#67F75E", "#73F65A", "#7FF658", "#8BF457", "#97F357", "#A3F258"
     )
     data <- datapoly
-    if (maxDepth > 1) {
-      for (i in 1:(maxDepth - 1)) {
+    if (child.level > 1) {
+      for (i in 1:(child.level - 1)) {
         #index_tess <- which(data$depth == i & data$qe > quant.error.hmap & data$n_cluster > 3)
          index_tess <- which( data$qe > quant.error.hmap )
         
@@ -531,6 +554,8 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
     
     p <- ggplot2::ggplot()
  
+   
+    
     # changing hoverText for torus demo
     if ("Cell.ID" %in% colnames(summaryFilteredDF)) {
       p <-
@@ -585,13 +610,11 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
         ggplot2::labs(color = "Level")
     }
     
-    
-
-    # Add this if-else block here
     if (cell_id == TRUE) {
-      for (depth in 1:maxDepth) {
-        depth_size <- centroid.size[maxDepth - depth + 1]
-        centroid_color <- centroid.color[maxDepth - depth + 1]
+
+      for (depth in 1:child.level) {
+        depth_size <- centroid.size[child.level - depth + 1]
+        centroid_color <- centroid.color[child.level - depth + 1]
         
         p <- p + ggplot2::geom_point(
           data = centroidDataframe[centroidDataframe["lev"] == depth, ],
@@ -604,28 +627,41 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
       
       subset_data <- subset(centroidDataframe_2, lev == 1)  
       
+      alignments <- list(
+        right = list(hjust = -0.5, vjust = 0.5),
+        left = list(hjust = 1.5, vjust = 0.5),
+        bottom = list(hjust = 0.5, vjust = 1.5),
+        top = list(hjust = 0.5, vjust = -0.5) )
+      
+      alignment <- alignments[[cell_id_position]] %||% alignments$bottom
+      
       p <- p + ggplot2::geom_text(
         data = subset_data,
         ggplot2::aes(x = x, y = y, label = Cell.ID),
-        size = 3,
+        size = cell_id_size,
         color = "black",
-        hjust = 0.5,
-        vjust = 1.8     )
-
-    } else {
-      for (depth in 1:maxDepth) {
-        depth_size <- centroid.size[maxDepth - depth + 1]
-        centroid_color <- centroid.color[maxDepth - depth + 1]
+        hjust = alignment$hjust,
+        vjust = alignment$vjust,
+        nudge_x = -0.02 * nchar(as.character(subset_data$Cell.ID)))
+    }else {
+      for (depth in 1:child.level) {
+        depth_size <- centroid.size[child.level - depth + 1]
+        centroid_color <- centroid.color[child.level - depth + 1]
         
         p <- p + ggplot2::geom_point(
           data = centroidDataframe[centroidDataframe["lev"] == depth, ],
           ggplot2::aes(x = x, y = y),
           size = depth_size,
+          pch = pch1,
           fill = centroid_color,
           color = centroid_color
         ) 
       }
+      
     }
+    
+      
+
     
     # Continue with the rest of the plot modifications
     p <- p + ggplot2::theme(
@@ -643,14 +679,18 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
       panel.background = element_blank()
     ) +
       ggplot2::scale_x_continuous(expand = c(0, 0)) +
-      ggplot2::scale_y_continuous(expand = c(0, 0))
+      ggplot2::scale_y_continuous(expand = c(0, 0)) +
+      ggplot2::ggtitle(paste0("Heatmap of ", n_cells, " cells"))+ theme(
+        plot.title = element_text(hjust = 0, size = 10 ))
+   
     
+   
     
     return(suppressMessages(p))
     
   } else if (plot.type == 'surface_plot') {
     
-    maxDepth <- min(child.level, max(hvt.results[[3]][["summary"]]
+    child.level <- min(child.level, max(hvt.results[[3]][["summary"]]
                                      %>% stats::na.omit()
                                      %>% dplyr::select("Segment.Level")))
     summaryDF <- hvt.results[[3]][["summary"]]
@@ -673,7 +713,7 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
     
     centroidDataframe <- data.frame(x = 0, y = 0, lev = 0)
     
-    for (depth in 1:maxDepth) {
+    for (depth in 1:child.level) {
       if (depth < 3) {
         for (clusterNo in names(hvt.results[[2]][[depth]])) {
           for (childNo in 1:length(hvt.results[[2]][[depth]][[clusterNo]])) {
@@ -815,7 +855,7 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
     
     
     
-    Level_list <- lapply(1:maxDepth, function(x) {
+    Level_list <- lapply(1:child.level, function(x) {
       temp_df <- datapoly[datapoly$depth == x, ]
       min_x <- min(datapoly$x)
       max_x <- max(datapoly$x)
@@ -885,7 +925,7 @@ plotHVT <- function(hvt.results, line.width = 0.5, color.vec =  'black', pch1 = 
     p <- plotly::plot_ly(showscale = FALSE)
     
     temp <- lapply(1:number_of_layers, function(i) {
-      hvtVolcanoMatrix <- temp_hvtVolcanoMatrix[[i]] - ((i - 1) * sepration_width)
+      hvtVolcanoMatrix <- temp_hvtVolcanoMatrix[[i]] - ((i - 1) * separation_width)
       p <<- p %>%
         plotly::add_surface(z = ~hvtVolcanoMatrix, opacity = layer_opacity[i], name = paste("Layer_", i), showlegend = TRUE)
     })

@@ -1,5 +1,5 @@
 #' @name plotNovelCells
-#' @title Plot the identified outlier cell(s) in the voronoi tessellation map.
+#' @title Plot the identified outlier cells in the voronoi tessellation map.
 #' @description This is the main plotting function to construct hierarchical voronoi tessellations 
 #' and highlight the outlier cells 
 #' @param plot.cells Vector. A vector indicating the cells to be highlighted in the map
@@ -32,7 +32,6 @@
 #' @export plotNovelCells
 
 
-# library(ggplot2)
 plotNovelCells <-
   function(plot.cells,
            hvt.map,
@@ -42,7 +41,6 @@ plotNovelCells <-
            centroid.size = 0.5,
            title = NULL,
            maxDepth = 1) {
-    # browser()
 
     hvt_list <- hvt.map
     outlier_cell_k <- plot.cells
