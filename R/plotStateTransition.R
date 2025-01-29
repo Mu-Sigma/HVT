@@ -12,10 +12,11 @@
 #' @param line_plot Logical. A logical value indicating to create a line plot. Default value is NULL.
 #' @param cellid_column Character. Name of the column containing cell IDs.
 #' @param time_column Character. Name of the column containing time stamps.
+#' @param v_intercept Numeric. A numeric value indicating the time stamp to draw a vertical line on the plot.
+#' @param time_periods List. A list of vectors, each containing start and end times for highlighting time periods.
 #' @return A plotly object representing the state transition plot for the given data frame.
-#' @author PonAnuReka Seenivasan <ponanureka.s@@mu-sigma.com>
-#' @seealso \code{\link{trainHVT}} \cr \code{\link{scoreHVT}}
-#' @keywords Transition_or_Prediction
+#' @author PonAnuReka Seenivasan <ponanureka.s@@mu-sigma.com>, Vishwavani <vishwavani@@mu-sigma.com>
+#' @keywords Timeseries_Analysis
 #' @importFrom magrittr %>%
 #' @examples
 #' dataset <- data.frame(date = as.numeric(time(EuStockMarkets)),
@@ -31,18 +32,49 @@
 #' cell_id <- scoring$scoredPredictedData$Cell.ID
 #' time_stamp <- dataset$date
 #' dataset <- data.frame(cell_id, time_stamp)
-#' 
 #' plotStateTransition(dataset, sample_size = 1, cellid_column = "cell_id",time_column = "time_stamp")
 #' @export plotStateTransition
 
-
-plotStateTransition <- function(df, sample_size = NULL, line_plot = NULL, cellid_column, time_column) {
-  ##for cran warnings, initializing empty vectors for these variables.
-  Timestamp <-Frequency <- NULL
+plotStateTransition <- function(df, sample_size = NULL, line_plot = NULL, 
+                                cellid_column, time_column, v_intercept = NULL,
+                                time_periods = NULL) { 
+  ## For CRAN warnings, initializing empty vectors for these variables.
+  Timestamp <- Frequency <- Next_State <- NULL
   
   # Rename column names for Time and Cell for consistency
   colnames(df)[colnames(df) == time_column] <- "Timestamp"
   colnames(df)[colnames(df) == cellid_column] <- "Cell.ID"
+  
+  # Validate time_periods parameter structure
+  if (!is.null(time_periods)) {
+    if (!is.list(time_periods) || !all(sapply(time_periods, length) == 2)) {
+      stop("time_periods must be a list of vectors, each containing start and end times")
+    }
+    
+    # Convert time_periods to match Timestamp data type
+    if (inherits(df$Timestamp, "POSIXct")) {
+      time_periods <- lapply(time_periods, function(x) {
+        as.POSIXct(x, tz = attr(df$Timestamp, "tzone"))
+      })
+    } else if (is.numeric(df$Timestamp)) {
+      time_periods <- lapply(time_periods, as.numeric)
+    } else if  (inherits(df$Timestamp, "Date")) {
+      time_periods <- lapply(time_periods, as.Date)
+    }
+  }
+  
+  # Ensure v_intercept is converted to the same data type as Timestamp
+  if (!is.null(v_intercept)) {
+    if (inherits(df$Timestamp, "POSIXct")) {
+      v_intercept <- as.POSIXct(v_intercept, tz = attr(df$Timestamp, "tzone"))
+    } else if (is.numeric(df$Timestamp)) {
+      v_intercept <- as.numeric(v_intercept)
+    } else if (inherits(df$Timestamp, "Date")) {
+      v_intercept <- as.Date(v_intercept)
+    } else {
+      stop("Unsupported data type for Timestamp column.")
+    }
+  }
   
   # Set default values for sample_size and line_plot if they are NULL
   if (is.null(sample_size)) sample_size <- 0.2
@@ -54,50 +86,160 @@ plotStateTransition <- function(df, sample_size = NULL, line_plot = NULL, cellid
   
   # Group and count frequencies of cell IDs, then arrange by timestamp
   sampled_data <- sampled_data %>%
-   dplyr::group_by(Cell.ID) %>%
+    dplyr::group_by(Cell.ID) %>%
     dplyr::mutate(Frequency = n()) %>%
     dplyr::arrange(Timestamp)
   
-  ### Sampled Plot - Create a heatmap plot for sampled data
-  timeseries_plot <- sampled_data %>%
-    plotly::plot_ly(x = ~Timestamp, y = ~Cell.ID, z = ~Frequency,
-            type = "heatmap", hovertemplate = "Timestamp: %{x}<br> Cell.ID : %{y}<br> Frequency: %{z}") %>%
-    plotly::colorbar(title = "Frequency") %>%
-    plotly::layout(title = "Time Series Flow Map",
-           xaxis = list(title = "Timestamp"),
-           yaxis = list(title = "Cell ID"))
+  axis_settings <- list(
+    xaxis = list(
+      title = "Timestamp",
+      range = range(sampled_data$Timestamp)
+    ),
+    yaxis = list(
+      title = "Cell ID",
+      range = c(1, max(sampled_data$Cell.ID) + 2),
+      tickmode = "linear",
+      dtick = 10,
+      tick0 = 0    )
+  )
   
-  ### Plot on the whole dataset with lines
-  ### Prepare data for state transitions with timestamps and frequencies
-  state_transitions <- sampled_data %>%
-    dplyr::select(Timestamp, Cell.ID, Frequency)
+  # Create base plot with heatmap
+  create_base_plot <- function(data, show_lines = FALSE) {
+    p <- data %>%
+      plotly::plot_ly(
+        x = ~Timestamp, 
+        y = ~Cell.ID, 
+        z = ~Frequency,
+        type = "heatmap", 
+        hoverinfo = "text",  
+        hovertext = ~sprintf(
+          "Timestamp: %s<br>Cell ID: %d<br>Frequency: %d",
+          Timestamp, Cell.ID, Frequency),
+        showlegend = FALSE
+      ) %>%
+      plotly::colorbar(
+        title = "Frequency",
+        len = 0.5,
+        thickness = 40,
+        y = 0.8,
+        yanchor = "middle"
+      )
+    
+    # Add layout first
+    p <- p %>%
+      plotly::layout(
+        autosize = TRUE,
+        title = list(
+          text = "Time series Flowmap",
+          x = 0.03,
+          y = 0.99,
+          xanchor = "left"
+        ),
+        xaxis = axis_settings$xaxis,
+        yaxis = axis_settings$yaxis,
+        showlegend = FALSE,
+        hovermode = "closest" )
+    
+    # Add time period highlighting if specified
+    if (!is.null(time_periods)) {
+      # Create a list of shapes for all time periods
+      shapes_list <- lapply(time_periods, function(period) {
+        list(
+          type = "rect",
+          x0 = period[1],
+          x1 = period[2],
+          y0 = axis_settings$yaxis$range[1],
+          y1 = axis_settings$yaxis$range[2],
+          fillcolor = "black",
+          opacity = 0.2,
+          line = list(width = 0),
+          layer = "below"
+        )
+      })
+      
+      # Add all shapes at once
+      p <- p %>%
+        plotly::layout(shapes = shapes_list)
+    }
+    
+    # Add vertical line if specified
+    if (!is.null(v_intercept)) {
+      vline_df <- data.frame(
+        x = c(v_intercept, v_intercept),
+        y = c(min(data$Cell.ID), max(data$Cell.ID))
+      )
+      
+      p <- p %>%
+        plotly::add_trace(
+          data = vline_df,
+          x = ~x,
+          y = ~y,
+          type = "scatter",
+          mode = "lines",
+          line = list(
+            color = "black",
+            width = 2,
+            dash = "4px,4px"
+          ),
+          showlegend = FALSE,
+          hoverinfo = "none"
+        )
+      
+      p <- p %>%
+        plotly::layout(
+          autosize = TRUE,
+          annotations = list(
+            list(
+              x = 1.02,
+              y = 0.55,
+              text = "  --- End of\nTraining data",
+              showarrow = FALSE,
+              font = list(
+                color = "black",
+                size = 14
+              ),
+              xref = "paper",
+              yref = "paper",
+              xanchor = "left",
+              yanchor = "top",
+              align = "left"
+            )
+          )
+        )
+    }
+    
+    # Add state transition lines if requested
+    if (show_lines) {
+      state_transitions <- data %>%
+        dplyr::select(Timestamp, Cell.ID, Frequency) %>%
+        dplyr::mutate(Next_State = lead(Cell.ID))
+      
+      p <- p %>%
+        plotly::add_trace(
+          data = state_transitions,
+          x = ~Timestamp,
+          y = ~Cell.ID,
+          type = "scatter",
+          mode = "markers",
+          line = list(color = "gray", width = 1),
+          marker = list(color = "transparent", size = 1),
+          showlegend = FALSE
+        )
+    }
+    
+    return(p)
+  }
   
-  # Add a column for the next state (next cell ID)
-  state_transitions <- state_transitions %>%
-    dplyr::mutate(Next_State = lead(Cell.ID))
-  
-  # Create a lined plot with scatter points and lines connecting them
-  lined_plot <- state_transitions %>%
-    plotly::plot_ly(x = ~Timestamp, y = ~Cell.ID, z = ~Frequency,
-            type = "heatmap", hovertemplate = "Timestamp: %{x}<br> Cell.ID : %{y}<br>Frequency: %{z}") %>%
-    plotly::colorbar(title = "Transition Frequency") %>%
-    plotly::layout(title = "Flow Map for Sampled Data",
-           xaxis = list(title = "Timestamp"),
-           yaxis = list(title = "Cell ID")) %>% 
-    plotly::add_trace(xend = ~lead(Timestamp), yend = ~Next_State, type = "scatter", mode = "markers",
-              line = list(color = "blue", width = 1), marker = list(color = "blue", size = 1))
-  
-  # Check the sample_size and line_plot parameters and return the appropriate plot
+  # Return the appropriate plot
   if (sample_size <= 1) {
     if (line_plot == TRUE) {
-      return(lined_plot)
+      return(create_base_plot(sampled_data, show_lines = TRUE))
     } else if (line_plot == FALSE) {
-      return(timeseries_plot)
+      return(create_base_plot(sampled_data, show_lines = FALSE))
     } else {
       stop("Invalid line_plot parameter. Use TRUE or FALSE.")
     }
   } else {
     stop("Invalid sample_size parameter. Use values between 0.1 to 1.")
   }
-  
 }

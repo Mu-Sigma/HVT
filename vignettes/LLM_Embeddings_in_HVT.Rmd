@@ -1,7 +1,7 @@
 ---
 title: "Visualizing LLM Embeddings using HVT (Hierarchical Voronoi Tessellation)"
-author: "Chepuri Gopi Krishna, Vishwavani"
-date: "`r Sys.Date()`"
+author: "Zubin Dowlaty, Chepuri Gopi Krishna, Vishwavani"
+date: "Created Date: 2024-05-16  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
 output:
@@ -105,17 +105,20 @@ ul {
 
 # 1. Background
 
-The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
+The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 3D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
 
-1.  **Data Compression**: Vector Quantization (VQ), HVQ (Hierarchical Vector Quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
+1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
 
-2.  **Data Projection**: Dimension projection of the compressed cells to 1D, 2D and Interactive surface plot with the Sammons Non-linear Algorithm. This step creates a topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension.
+2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
 
-3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for Hierarchical Voronoi Tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map. Useful for semi-supervised tasks.
+3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
 
-4.  **Scoring**: Scoring data sets and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
+4.  **Scoring**: Scoring new data sets or test data and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
 
-5. **Temporal Analysis and Visualization**: A Collection of functions that leverages the capacity of the HVT package by analyzing time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
+
 
 <span style="font-size: 22px;">**What's New?**</span>
 
@@ -193,7 +196,12 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
-
+```{r, include=FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 
 ## 3.1 User-defined Functions
 
@@ -423,7 +431,7 @@ get_mode <- function(v) {
 }
 
 get_cluster_domains <- function(k, iterations = 10) {
-  url <- "http://172.25.1.85:31969/v1/chat/completions"
+  url <- "http://172.25.1.60:31969/v1/chat/completions"
   read_file_content <- function(filename) {
  filepath <- file.path("./twitter_data/", filename)
      readLines(filepath, warn = FALSE)
@@ -646,6 +654,15 @@ It uses an inbuilt function called `edaPlots` to display the above-mentioned fou
 
 </br>
 
+### Summary Table 
+
+```{r summary, figures-side, fig.show="hold", warning=FALSE, message=FALSE}
+edaPlots(dataset, output_type = "summary", n_cols = 10)
+```
+
+</br>
+
+
 ### Histograms 
 
 ```{r hist, figures-side, fig.show="hold", fig.height=2.2, fig.width =2.95, warning=FALSE, message=FALSE}
@@ -679,16 +696,6 @@ edaPlots(dataset, output_type = "correlation",n_cols = 10)
 
 </br>
 
-
-</br>
-
-### Summary Table 
-
-```{r summary, figures-side, fig.show="hold", warning=FALSE, message=FALSE}
-edaPlots(dataset, output_type = "summary", n_cols = 1536)
-```
-
-</br>
 
 
 </br>
@@ -815,7 +822,7 @@ The error metric can be `mean` or `max`. For a specified number of cells, each c
 - Dimensionality Reduction method = Sammons
 
 
-```{r sammons, warning=FALSE, message=FALSE}
+```{r sammons, warning=FALSE, message=FALSE, results='hide'}
 hvt.results <- trainHVT(dataset, n_cells = 110, depth = 1, quant.err = 0.6, 
                         distance_metric = "L1_Norm", error_metric = "mean",
                         normalize = TRUE, quant_method="kmeans", dim_reduction_method = "sammon")
@@ -823,7 +830,7 @@ hvt.results <- trainHVT(dataset, n_cells = 110, depth = 1, quant.err = 0.6,
 
 Let's look at the **summary** table. 
 ```{r}
-displayTable(data = hvt.results[[3]]$compression_summary)
+summary(hvt.results)
 ```
 
 *NOTE: Based on the above table, the value of 'percentOfCellsBelowQuantizationErrorThreshold' indicates that 85% of compression has taken place for the specified number of cells (110) and the quantization error (0.6)*
@@ -832,7 +839,7 @@ Lets look at the dimensionality reduction evaluation metrics.
 
 
 ```{r}
-displayTable(data= hvt.results$model_info$distance_measures)
+displayTable(hvt.results$model_info$distance_measures)
 ```
 
 According to the values above we can conclude that the model has achieved a good balance between preserving the local neighborhood relationships, global structure, and pairwise distances in the low-dimensional embedding, with moderate reconstruction accuracy and cluster separation. 
@@ -846,48 +853,44 @@ This section focuses on projecting the plots that used Sammon's dimensionality r
 ## 6.1 Comprehending `plotHVT()` and its parameters
 
 ```{r plotHVT function,echo = TRUE, eval= FALSE}
-plotHVT <-(hvt.results, line.width, color.vec, pch1, centroid.size ,
-           title, maxDepth, child.level, hmap.cols, cell_id,
-           quant.error.hmap, n_cells.hmap,
-           label.size , sepration_width, layer_opacity,
-           dim_size, plot.type) 
+plotHVT <-(hvt.results,line.width,color.vec, 
+           centroid.size, centroid.color, 
+           child.level, hmap.cols, 
+           cell_id, cell_id_size,
+           cell_id_position,quant.error.hmap,
+           separation_width, layer_opacity,
+           dim_size, plot.type = '2Dhvt') 
 ```
 
 * __`hvt.results`__ - (1D/2Dproj/2Dhvt/2Dheatmap/surface_plot)  A list obtained from the trainHVT function. This list provides an overview of the hierarchical vector quantized data, including diagnostics, tessellation details, Sammon's projection coordinates, and model input information.
 
 * __`line.width`__	- (2Dhvt/2Dheatmap) A vector indicating the line widths of the tessellation boundaries for each layer.
 
-* __`color.vec`__	- (2Dhvt/2Dheatmap) A vector indicating the colors of the tessellation boundaries at each layer.
+* __`color.vec`__	- (2Dhvt/2Dheatmap) A vector indicating the colors of the tessellations boundaries at each layer.
 
-* __`pch1`__	- (2Dhvt/2Dheatmap) Symbol. It plots the centroids with a particular symbol such as (solid circle, bullet, filled square, filled diamond) in the tessellations. Default is 21 (a filled circle).
+* __`centroid.size`__	- (2Dhvt/2Dheatmap) A vector of size of centroids for each level of tessellations.
 
-* __`centroid.size`__	- (2Dhvt/2Dheatmap) Size of centroids for each level of tessellations. Default is 1.5
+* __`centroid.color`__	- (2Dhvt/2Dheatmap) A vector of color of centroids for each level of tessellations.
 
-* __`title`__	-  (2Dhvt) Set a title for the plot. Default is NULL.
+* __`child.level`__ - (2Dhvt/2Dheatmap/surface_plot) A Number indicating the level for which the plot is to be plotted.
 
-* __`maxDepth`__ -  (2Dhvt) An integer indicating the number of levels.
+* __`hmap.cols`__ - (2Dheatmap/surface_plot) A Number or a Character which is the column number or column name from the dataset indicating the variables for which the plot should be displayed.
 
-* __`cell_id`__ - (2Dhvt/2Dheatmap) Logical. To indicate whether the plot should have Cell IDs or not, for level 1. Default is FALSE.
+* __`cell_id`__ - (2Dhvt/2Dheatmap) A Logical value to indicate whether the plot should have Cell IDs or not. Only applicable for the level 1. (default = FALSE)
 
-* __`child.level`__ - (2Dheatmap/surface_plot) A Number indicating the level for which the heat map is to be plotted. Default is 1
+* __`cell_id_size`__ - (2Dhvt/2Dheatmap) A number indicating the size of the cell ID text. Only applicable for the level 1. (default = 1)
 
-* __`hmap.cols`__ - (2Dheatmap/surface_plot) A Character for which the heat map is to be plotted. Accepted entries ('Segment.Level', 'Segment.Parent', 'Segment.Child', 'n', 'Quant.Error', 'Cell.ID' and the column names of dataset)
+* __`cell_id_position`__ - (2Dhvt/2Dheatmap) A Character indicating the position of the cell ID text. Only applicable for the level 1. Accepted entries are 'top', 'left', 'bottom' or 'right'. (default = 'bottom')
 
-* __`label.size`__ - (2Dheatmap) The size by which the tessellation labels should
-be scaled. Default is 0.5
+* __`quant.error.hmap`__ - (2Dheatmap)  A number representing the quantization error threshold to be highlighted in the heatmap. When a value is provided, it will emphasize cells with quantization errors equal or less than the specified threshold, indicating that these cells cannot be further subdivided in the next depth layer. The default value is NULL, meaning all cells will be colored in the heatmap across various depths.
 
-* __`quant.error.hmap`__ - (2Dheatmap) A number indicating the quantization error threshold.
+* __`sepration_width`__ - (surface_plot) An integer indicating the width between hierarchical levels in surface plot.
 
-* __`n_cells.hmap`__ - (2Dheatmap) An integer indicating the number of cells/clusters per hierarchy 
+* __`layer_opacity`__ - (surface_plot) A vector indicating the opacity of each hierarchical levels in surface plot.
 
-* __`sepration_width`__ - (surface_plot) An integer indicating the width between two levels.
+* __`dim_size`__ - (surface_plot) An integer controls the resolution or granularity of the 3D surface grid. (Higher dim_size = more detailed/smoother surface but slower rendering while Lower dim_size = less detailed/blockier surface but faster rendering)
 
-* __`layer_opacity`__ - (surface_plot) A vector indicating the opacity of each layer/level.
-
-* __`dim_size`__ - (surface_plot) An integer indicating the dimension size used to create the matrix for the plot.
-
-* __`plot.type`__ -  A Character indicating which type of plot should be generated. Accepted entries are '1D', '2Dproj', '2Dhvt', '2Dheatmap' & 'surface_plot'. Default value is '2Dhvt'.
-
+* __`plot.type`__ -  A Character indicating which type of plot should be generated. Accepted entries are '1D',   '2Dproj','2Dhvt','2Dheatmap' & 'surface_plot'. Default value is '2Dhvt'.
 
 ## 6.2 Visualizing using `plotHVT()`
 
@@ -1119,9 +1122,9 @@ Below are the newly added 9 columns after scoring using `scoreHVT`
 - **anomalyFlag**: The binary value that says the cell is an anomaly or not. (if the Quant.Error is greater than mad.threshold then it is = 1 (anomaly) else = 0(not an anomaly))
  
 
-Let's look at the scored data table. For the sake of brevity we are displaying the first 10 rows and all the 1545 columns.
+Let's look at the scored data table. 
 ```{r}
-displayTable(scoring[["scoredPredictedData"]], value = 0.7) 
+summary(scoring) 
 ```
 
 
@@ -1227,7 +1230,7 @@ dim(hclust_data_1)
 The data has 110 rows and 2 columns (x and y coordinates). Let's have a look at the data.
 
 ```{r}
-displayTable(hclust_data_1)
+displayTable(hclust_data_1, limit = 110)
 ```
 
 ### 8.2.2 Clustering Analysis
@@ -1311,7 +1314,7 @@ In this section, we will generate the Heatmaps of OpenAI and Manual Approach for
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_1 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
+hclust_plot_1 <- clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", type = "plot")
 ```
 
 **Manual Approach**
@@ -1335,7 +1338,7 @@ cluster_data$cluster_name <- cluster_names[cluster_data$clusters]
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-manual_plot_1 <-clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
+manual_plot_1 <-clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", type = "plot")
 ```
 
 ### 8.2.5 Visualization of plots: OpenAI vs Manual Approach
@@ -1381,7 +1384,7 @@ invisible(lapply(1:15, function(i) {
   cluster_data$cluster_name[cluster_data$clusters == i] <<- paste0(result$mode[[i]], "_1538D")
 }))
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_2 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
+hclust_plot_2 <- clustHVT(data = centroid_cluster_data, trainHVT_results = hvt.results, domains.column = "cluster_name", type = "plot")
 
 ward_cluster <- cluster_data
 hc_1 <- clust.results$hc
@@ -1497,7 +1500,7 @@ Sammon’s coordinates (2D - x and y coordinates) with the embeddings (1536D) of
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_2 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
+hclust_plot_2 <- clustHVT(data = centroid_cluster_data, trainHVT_results = hvt.results, domains.column = "cluster_name", type = "plot")
 ```
 
 **Manual Approach**
@@ -1523,7 +1526,7 @@ cluster_data$cluster_name <- cluster_names[cluster_data$clusters]
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-manual_plot_2 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
+manual_plot_2 <- clustHVT(data = centroid_cluster_data, trainHVT_results = hvt.results, domains.column = "cluster_name", type = "plot")
 ```
 
 
@@ -1572,7 +1575,7 @@ invisible(lapply(1:15, function(i) {
   cluster_data$cluster_name[cluster_data$clusters == i] <<- paste0(result$mode[[i]], "_1538D")
 }))
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_2 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
+hclust_plot_2 <- clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", type = "plot")
 
 cluster_data <- cluster_data
 hc_2 <- clust.results$hc
@@ -1597,7 +1600,7 @@ ward_cluster$cluster_name <- ifelse(ward_cluster$clusters == 1, "Activism_2D",
                                  ifelse(ward_cluster$clusters == 14, "Promotion_2D", "Wishes_2D"))))))))))))))
  
 centroid_cluster_data <- ward_cluster %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-manual_plot_1 <-clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type="plot")
+manual_plot_1 <-clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", type="plot")
 ```
 
 
@@ -1618,7 +1621,7 @@ cluster_data$cluster_name <- ifelse(cluster_data$clusters == 1, "Announcements_1
                                  ifelse(cluster_data$clusters == 14, "Appreciation_1538D", "Wishes_1538D"))))))))))))))
 
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-manual_plot_2 <- clustHVT(dataset = centroid_cluster_data, hvt.results = hvt.results, domains.column = "cluster_name", type = "plot")
+manual_plot_2 <- clustHVT(data = centroid_cluster_data, trainHVT_results = hvt.results, domains.column = "cluster_name", type = "plot")
 ```
 
 ## 8.4 Comparative Visualizations of OpenAI and Manual Approach: 2D vs 1538D Datasets

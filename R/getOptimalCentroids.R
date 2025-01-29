@@ -49,7 +49,6 @@ getOptimalCentroids <-
             distance_metric = "L1_Norm",
             quant_method=c("kmeans","kmedoids"),...
   ){
-    # browser()
     if(quant_method == "kmeans"){
       
       # Start with splitting data into three clusters

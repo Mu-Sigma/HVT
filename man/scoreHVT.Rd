@@ -80,6 +80,7 @@ data_scored <- scoring$scoredPredictedData
 \code{\link{trainHVT}} \cr \code{\link{plotHVT}}
 }
 \author{
-Shubhra Prakash <shubhra.prakash@mu-sigma.com>, Sangeet Moy Das <sangeet.das@mu-sigma.com>
+Shubhra Prakash <shubhra.prakash@mu-sigma.com>, Sangeet Moy Das <sangeet.das@mu-sigma.com> ,
+Vishwavani <vishwavani@mu-sigma.com>
 }
 \keyword{Scoring}

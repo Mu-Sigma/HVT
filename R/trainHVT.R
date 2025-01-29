@@ -26,9 +26,6 @@
 #'  while Kmedoids uses actual data points (medoids) as cluster centers. kmeans is selected by default.
 #' @param scale_summary List. A list with user-defined mean and standard deviation values for all the features in the dataset. 
 #' Pass the scale summary when normalize is set to FALSE.
-#' @param projection.scale Numeric. A number indicating the scale factor for the tessellations to visualize the sub-tessellations
-#' well enough. It helps in adjusting the visual representation of the hierarchy to make the sub-tessellations more visible.
-#' Default is 10.
 #' @param diagnose Logical. A logical value indicating whether user wants to perform diagnostics on the model. 
 #' Default value is FALSE.
 #' @param hvt_validation Logical. A logical value indicating whether user wants to holdout a validation set and find 
@@ -90,11 +87,10 @@ trainHVT <-
            depth = 1,
            quant.err = 0.2,
            normalize = FALSE,
-           distance_metric = c("L1_Norm", "L2_Norm"),
-           error_metric = c("mean", "max"),
-           quant_method=c("kmeans","kmedoids"),
+           distance_metric = "L1_Norm",
+           error_metric =  "max",
+           quant_method="kmeans",
            scale_summary = NA,
-           projection.scale = 10,
            diagnose=FALSE,
            hvt_validation=FALSE,
            train_validation_split_ratio=0.8,
@@ -110,7 +106,6 @@ trainHVT <-
   ) {
     
     set.seed(279)
-    #browser()
     requireNamespace("deldir")       #deldir function
     requireNamespace("Hmisc")        #ceil function
     requireNamespace("grDevices")    #chull function
@@ -127,7 +122,6 @@ trainHVT <-
     # requireNamespace("kableExtra")
     
     if(quant_method=="kmedoids"){message(' K-Medoids: Run time for vector quantization using K-Medoids is very high for large number of clusters.')}
-    # browser()
     dataset <- as.data.frame(dataset)
     # dataset <- as.data.frame(sapply(dataset[,1:length(dataset[1,])], as.numeric))
     dataset=data.frame(
@@ -135,7 +129,6 @@ trainHVT <-
       check.names = FALSE,
       row.names = rownames(dataset)
     )
-    #browser()
     data_structure <- dim(dataset)
     
     ## Diagnose Function
@@ -225,6 +218,8 @@ trainHVT <-
     # Variable to store information on mapping
     par_map <- list()
     
+    
+    projection.scale <-  10
     for (i in 1:nlevel) {
       #hvqdata segregated according to different levels
       tessdata[[i]] <- gdata[which(gdata[, "Segment.Level"]==i),]
@@ -419,7 +414,7 @@ trainHVT <-
       stress <-  numerator/denominator
       return(stress)
     }
-    
+
     ## KNN_retention function
     knn_retention <- function(high_dim_embeddings, low_dim_embeddings, k = 5) {
       # Convert embeddings to matrices (if not already)
@@ -457,8 +452,7 @@ trainHVT <-
         points_df = points2d_df
       )
       rmse_value<- calculate_normalized_rmse(embeddingss)
-      # print(embeddingss)
-      
+
       ## Silhouette Score
       average_silhouette_score <- calculate_average_silhouette(points2d_df)
       
@@ -485,15 +479,7 @@ trainHVT <-
    
     
     for (i in 1:nlevel) {
-      # #hvqdata segregated according to different levels
-      # tessdata[[i]] <- gdata[which(gdata[, "Segment.Level"] == i), ]
-      #
-      # #data to be used as input to sammon function
-      # input.tessdata[[i]] <- tessdata[[i]][, (newcols+1): ncol(hvqoutput)]
-      #
-      # #sammon function output is 2d coordinates which are saved level-wise
-      # points2d[[i]] <- projection.scale * (MASS::sammon(stats::dist(unique(input.tessdata[[i]])),niter = 10^5,trace=FALSE)$points)
-      #
+     
       # #sammon datapoints grouped according to the hierarchy
       intermediate.rawdata <- list()
       rn = row.names(points2d[[i]])
@@ -599,7 +585,6 @@ trainHVT <-
       }
       
       ####### Adding Code for MAD Plot  
-      # browser()
       if(hvt_validation){
         ####### MAD Plot ################
         
@@ -633,7 +618,6 @@ trainHVT <-
         error_metric = error_metric[1],
         quant_method = quant_method[1],
         diagnose = diagnose,
-        projection.scale = projection.scale,
         hvt_validation = hvt_validation,
         train_validation_split_ratio = train_validation_split_ratio
       )
@@ -668,11 +652,12 @@ trainHVT <-
       fin_out[[3]]$summary <- getCellId(hvt.results=fin_out)
       fin_out[[3]]$summary <- fin_out[[3]]$summary %>% select(Segment.Level, Segment.Parent, Segment.Child, n, Cell.ID, Quant.Error, colnames(dataset))
       
-     # compression_summary_table <- displayTable(data = hvq_k$compression_summary,
-                                               # columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
-                                               # value = 0.8, tableType = "compression")
-      #print(compression_summary_table)
       
+  
+      
+      
+      
+      class(fin_out) <- "hvt.object"
       return(fin_out)
       
     } else { 
@@ -875,7 +860,11 @@ trainHVT <-
       for (i in 1:emptyParents) {
         fin_out[[2]][[length(fin_out[[2]]) + 1]] <- list()
       }
+
       
+      
+      
+            
       # ###### Adding Code for Diagnosis Plot
       diag_Suggestion =NA
       fin_out[[4]] = NA
@@ -926,7 +915,7 @@ trainHVT <-
         fin_out[[5]][["mad_plot"]] <- mad_plot
       }
       
-      
+
       ### Model Info
       Dataset <- paste0(data_structure[1] ," Rows & ", data_structure[2], " Columns")
       
@@ -941,7 +930,6 @@ trainHVT <-
         error_metric = error_metric[1],
         quant_method = quant_method[1],
         diagnose = diagnose,
-        projection.scale = projection.scale,
         hvt_validation = hvt_validation,
         train_validation_split_ratio = train_validation_split_ratio,
         dim_reduction_method = dim_reduction_method[1],
@@ -966,18 +954,10 @@ trainHVT <-
       # generating cell ID using getCellId
       fin_out[[3]]$summary <- getCellId(hvt.results=fin_out)
       fin_out[[3]]$summary <- fin_out[[3]]$summary %>% select(Segment.Level, Segment.Parent, Segment.Child, n, Cell.ID, Quant.Error, colnames(dataset))
-     
-      #compression_summary_table  <- displayTable(data = hvq_k$compression_summary,
-                                              #  columnName = 'percentOfCellsBelowQuantizationErrorThreshold', 
-                                               # value = 0.8, tableType = "compression")
-
+ 
       
-     # print(compression_summary_table)
-      
-      
-      
+      class(fin_out) <- "hvt.object"
       return(fin_out)
-      
     }
   }
 

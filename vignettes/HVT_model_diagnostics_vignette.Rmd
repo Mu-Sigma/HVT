@@ -1,7 +1,7 @@
 ---
 title: "HVT Model diagnostics and validation"
 author: "Zubin Dowlaty, Shubhra Prakash, Sunuganty Achyut Raj, Praditi Shah, Somya Shambhawi,Vishwavani"
-date: "Built on: `r format(Sys.Date(), '%m/%d/%Y')`"
+date: "Created Date: 2018-05-17  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
 output:
@@ -65,29 +65,20 @@ img {
 
 # 1. Abstract
 
-The HVT package is a collection of R functions to facilitate building
-<a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich
-multivariate data. Tending towards a big data preponderance, a large
-number of rows. A collection of R functions for this typical workflow is
-organized below :
+The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 3D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
 
-1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical
-    vector quantization) using means or medians. This step compresses
-    the rows (long data frame) using a compression objective
+1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
 
-2.  **Data Projection**: Dimension projection of the compressed cells to
-    1D,2D and Interactive surface plot with the Sammons Nonlinear Algorithm. This step creates
-    topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension.
+2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
 
-3.  **Tessellation**: Create cells required for object visualization
-    using the Voronoi Tessellation method, package includes heatmap
-    plots for hierarchical Voronoi tessellations (HVT). This step
-    enables data insights, visualization, and interaction with the
-    topology preserving map. Useful for semi-supervised tasks
+3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
 
-4.  **Scoring**: Scoring new data sets and recording their assignment
-    using the map objects from the above steps, in a sequence of maps if
-    required
+4.  **Scoring**: Scoring new data sets or test data and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
+
+5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
+
 
 # 2. Data Compression
 
@@ -283,7 +274,12 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
 
-
+```{r, include=FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 
 # 5. Data Importing
 
@@ -458,7 +454,7 @@ if(want_to_change_column_type == "yes" && change_column_to_type == "character"){
   paste0("Datatype of columns have not been changed.") %>% cat("\n")
 }
 dataset_updated <- do.call(data.frame, dataset_updated)
-str( dataset_updated)
+str(dataset_updated)
 
 ```
 
@@ -811,22 +807,22 @@ It uses an inbuilt function called `edaPlots` to display the above-mentioned fou
 
 ## Summary Table
 ```{r}
-edaPlots(dataset_updated, output_type = "summary", n_cols = 3)
+edaPlots(dataset_updated)
 ```
 
 ## Histograms
 ```{r hist, figures-side, fig.show="hold", fig.height=2.2, fig.width =2.95, warning=FALSE, message=FALSE}
-edaPlots(dataset_updated, output_type = "histogram", n_cols = 3)
+edaPlots(dataset_updated, output_type = "histogram")
 ```
 
 ## Box Plots
 ```{r  boxx, figures-side, fig.show="hold",fig.height=2.2, fig.width = 2.95,warning=FALSE, message=FALSE}
-edaPlots(dataset_updated, output_type = "boxplot", n_cols = 3)
+edaPlots(dataset_updated, output_type = "boxplot")
 ```
 
 ## Correlation Plot
 ```{r corr, warning=FALSE, message=FALSE, fig.align='center', fig.height = 4, fig.width = 4}
-edaPlots(dataset_updated, output_type = "correlation", n_cols = 3)
+edaPlots(dataset_updated, output_type = "correlation")
 ```
 
 
@@ -856,44 +852,44 @@ columns.
 
 #### Summary Table
 ```{r}
-edaPlots(dataset_updated_train, output_type = "summary", n_cols = 3)
+edaPlots(dataset_updated_train)
 ```
 
 #### Histograms
 ```{r histtrain, figures-side, fig.show="hold", fig.height=2.2, fig.width =2.95, warning=FALSE, message=FALSE}
-edaPlots(dataset_updated_train, output_type = "histogram", n_cols = 3)
+edaPlots(dataset_updated_train, output_type = "histogram")
 ```
 
 #### Box Plots
 ```{r  boxxtrain, figures-side, fig.show="hold",fig.height=2.2, fig.width = 2.95,warning=FALSE, message=FALSE}
-edaPlots(dataset_updated_train, output_type = "boxplot", n_cols = 3)
+edaPlots(dataset_updated_train, output_type = "boxplot")
 ```
 
 #### Correlation Plot
 ```{r corrtrain, warning=FALSE, message=FALSE, fig.align='center', fig.height = 4, fig.width = 4}
-edaPlots(dataset_updated_train, output_type = "correlation", n_cols = 3)
+edaPlots(dataset_updated_train, output_type = "correlation")
 ```
 
 ### 7.1.2 Test Distribution {.tabset}
 
 #### Summary Table
 ```{r}
-edaPlots(dataset_updated_test, output_type = "summary", n_cols = 3)
+edaPlots(dataset_updated_test)
 ```
 
 #### Histograms
 ```{r histtest, figures-side, fig.show="hold", fig.height=2.2, fig.width =2.95, warning=FALSE, message=FALSE}
-edaPlots(dataset_updated_test, output_type = "histogram", n_cols = 3)
+edaPlots(dataset_updated_test, output_type = "histogram")
 ```
 
 #### Box Plots
 ```{r  boxxtest, figures-side, fig.show="hold",fig.height=2.2, fig.width = 2.95,warning=FALSE, message=FALSE}
-edaPlots(dataset_updated_test, output_type = "boxplot", n_cols = 3)
+edaPlots(dataset_updated_test, output_type = "boxplot")
 ```
 
 #### Correlation Plot
 ```{r corrtest, warning=FALSE, message=FALSE, fig.align='center', fig.height = 4, fig.width = 4}
-edaPlots(dataset_updated_test, output_type = "correlation", n_cols = 3)
+edaPlots(dataset_updated_test, output_type = "correlation")
 ```
 
 
@@ -959,8 +955,6 @@ Each of the parameters of trainHVT function have been explained below:
 
 * __`quant_method`__ - The quantization method can be `kmeans` or `kmedoids`. Kmeans uses means (centroids) as cluster centers while Kmedoids uses actual data points (medoids) as cluster centers. `kmeans` is selected by default.
 
-* __`projection.scale`__ - A number indicating the scale factor for the tessellations to visualize the sub-tessellations well enough. It helps in adjusting the visual representation of the hierarchy to make the sub-tessellations more visible. Default is 10.
-
 * __`dim_reduction_method`__ - The dimensionality reduction method to be chosen. options are 'tsne' , 'umap' & 'sammon'. Default is 'sammon'. 
 
 * __`scale_summary`__ -  A list with user defined mean and standard deviation values for all the features in the dataset. Pass the scale summary when normalize is set to FALSE.
@@ -1018,7 +1012,7 @@ visualizing the output can be found
 In the section below, we build a Level 1 HVT model. The number of
 cells (`n_cells`) is set to 500.
 
-```{r level one sample data,warning=FALSE,message=FALSE,results='asis'}
+```{r level one sample data,warning=FALSE,message=FALSE,results='hide'}
 hvt.results <-trainHVT(dataset_updated_train,
                           n_cells = 500,
                           depth = 1,
@@ -1035,17 +1029,17 @@ hvt.results <-trainHVT(dataset_updated_train,
 
 
 ```{r}
-displayTable(hvt.results[[3]][['compression_summary']])
+summary(hvt.results)
 ```
 
 As seen in the above table, 90% of the cells have a quantization error
 below the threshold.
 
 Let's have a closer look at `Quant.Error` of the cells. Here we are
-showing just top 100 rows for the sake of brevity.
+showing just top 20 rows for the sake of brevity.
 
 ```{r}
-displayTable(data =hvt.results[[3]][['summary']])
+displayTable(hvt.results[[3]][['summary']])
 ```
 
 
@@ -1056,12 +1050,7 @@ displayTable(data =hvt.results[[3]][['summary']])
 Let's take a look at the 2D HVT plot.
 
 ```{r fig.height=4, fig.width=6,fig.align='center', warning=FALSE, message=FALSE}
-plotHVT(hvt.results,
-        line.width = c(0.6 ),
-        color.vec = c("black"),
-        centroid.size = 1,
-        maxDepth = 1, 
-        plot.type = '2Dhvt')
+plotHVT(hvt.results,plot.type = '2Dhvt')
 ```
 
 ## 8.1 Model Diagnostics and Validation
@@ -1365,7 +1354,7 @@ hvt.score <- scoreHVT(dataset_updated_test,
 
 
 ```{r}
-displayTable(hvt.score[["scoredPredictedData"]], value = 0.8)
+summary(hvt.score)
 ```
 
 

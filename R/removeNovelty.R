@@ -3,11 +3,9 @@
 #' @description This function is used to remove the identified novelty cells.
 #' @param outlier_cells Vector. A vector with the cell number of the identified novelty
 #' @param hvt_results List. A list having the results of the compressed map i.e. output of \code{trainHVT} function
-#' 
 #' @return A list of two items
 #' \item{[[1]] }{Dataframe of novelty cell(s)}
 #' \item{[[2]] }{Dataframe without the novelty cell(s) from the dataset used in model training}
-#' 
 #' @author Shantanu Vaidya <shantanu.vaidya@@mu-sigma.com>
 #' @seealso \code{\link{trainHVT}} \cr \code{\link{scoreLayeredHVT}}
 #' @importFrom magrittr %>%

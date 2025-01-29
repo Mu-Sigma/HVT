@@ -4,7 +4,13 @@
 \alias{edaPlots}
 \title{plots for data analysis}
 \usage{
-edaPlots(df, time_column, output_type = NULL, n_cols = 2)
+edaPlots(
+  df,
+  time_column,
+  output_type = "summary",
+  n_cols = -1,
+  grey_bars = NULL
+)
 }
 \arguments{
 \item{df}{Dataframe. A data frame object.}
@@ -13,10 +19,12 @@ edaPlots(df, time_column, output_type = NULL, n_cols = 2)
 Can be given only when the data is time series}
 
 \item{output_type}{Character. The name of the output to be displayed. Options are 'summary',
-'histogram', 'boxplot', 'timeseries' & 'correlation'. Default value is NULL.}
+'histogram', 'boxplot', 'timeseries' & 'correlation'. Default value is summary.}
 
-\item{n_cols}{Numeric. A value to indicate how many columns to be included in the output.
-Default value is 2.}
+\item{n_cols}{Numeric. A value to indicate how many columns to be included in the output.}
+
+\item{grey_bars}{List. A list of timestamps where each list contains two elements: start and end period,
+which will be highlighted in gray in the time series plot. Default value is NULL.}
 }
 \value{
 Five objects which include time series plots, data distribution plots, 
@@ -27,12 +35,12 @@ This is the main function that provides exploratory data analysis plots
 }
 \examples{
 dataset <- data.frame(date = as.numeric(time(EuStockMarkets)),
-                      DAX = EuStockMarkets[, "DAX"],
-                      SMI = EuStockMarkets[, "SMI"],
-                      CAC = EuStockMarkets[, "CAC"],
-                      FTSE = EuStockMarkets[, "FTSE"])
-edaPlots(dataset, time_column = 'date', output_type = 'timeseries', n_cols = 5)
-edaPlots(dataset, time_column = 'date', output_type = 'histogram', n_cols = 5)
+DAX = as.numeric(EuStockMarkets[, "DAX"]),
+SMI = as.numeric(EuStockMarkets[, "SMI"]),
+CAC = as.numeric(EuStockMarkets[, "CAC"]),
+FTSE = as.numeric(EuStockMarkets[, "FTSE"]))
+edaPlots(dataset)
+edaPlots(dataset, time_column = 'date', output_type = 'timeseries', n_cols = 4)
 }
 \author{
 Vishwavani <vishwavani@mu-sigma.com>

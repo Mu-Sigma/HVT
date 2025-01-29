@@ -9,7 +9,9 @@ plotStateTransition(
   sample_size = NULL,
   line_plot = NULL,
   cellid_column,
-  time_column
+  time_column,
+  v_intercept = NULL,
+  time_periods = NULL
 )
 }
 \arguments{
@@ -24,6 +26,10 @@ Default value is 0.2}
 \item{cellid_column}{Character. Name of the column containing cell IDs.}
 
 \item{time_column}{Character. Name of the column containing time stamps.}
+
+\item{v_intercept}{Numeric. A numeric value indicating the time stamp to draw a vertical line on the plot.}
+
+\item{time_periods}{List. A list of vectors, each containing start and end times for highlighting time periods.}
 }
 \value{
 A plotly object representing the state transition plot for the given data frame.
@@ -49,13 +55,9 @@ scoring <- scoreHVT(dataset, hvt.results)
 cell_id <- scoring$scoredPredictedData$Cell.ID
 time_stamp <- dataset$date
 dataset <- data.frame(cell_id, time_stamp)
-
 plotStateTransition(dataset, sample_size = 1, cellid_column = "cell_id",time_column = "time_stamp")
 }
-\seealso{
-\code{\link{trainHVT}} \cr \code{\link{scoreHVT}}
-}
 \author{
-PonAnuReka Seenivasan <ponanureka.s@mu-sigma.com>
+PonAnuReka Seenivasan <ponanureka.s@mu-sigma.com>, Vishwavani <vishwavani@mu-sigma.com>
 }
-\keyword{Transition_or_Prediction}
+\keyword{Timeseries_Analysis}

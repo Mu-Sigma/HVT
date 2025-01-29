@@ -1,7 +1,6 @@
 
 
 madPlot <- function(hvt.scoring) {
-  # browser()
   requireNamespace("ggplot2")       #deldir function
   requireNamespace("scales")       #deldir function
   
@@ -67,11 +66,7 @@ madPlot <- function(hvt.scoring) {
       linetype = "dashed",
       colour = "brown2"
     ) +
-    # geom_segment(aes(xend=mark_x$Mean_Absolute_Deviation,
-    #                  yend = mark_x$Percentage_of_Anomalous_Points,
-    #                  x=mark_x$Mean_Absolute_Deviation,
-    #                  y=-1
-    # ),linetype="dashed",colour="brown2") +
+  
     
     annotate(
       "text",
@@ -101,10 +96,5 @@ madPlot <- function(hvt.scoring) {
     scale_y_continuous(labels = scales::percent_format(), limits = c(0, 1)) +
     scale_x_continuous(breaks =x_breaks)
   
-  
-  
-  # labs(title = ,
-  #      subtitle = "95% Compression, QE=varying, n_cells=1033,L1Norm,Max",
-  #      caption = "Mean Absolute Deviation is non dynamic i.e constant for each(earlier version was based on max QE of cells)")
   return(mad_plot)
 }

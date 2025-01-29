@@ -14,6 +14,10 @@
 #' @param indices Character. The indices used for determining the optimal number of clusters in NbClust function.
 #'  By default it uses 20 different indices.
 #' @param clustering_method Character. The method used for clustering in both NbClust and hclust function. Defaults to ‘ward.D2’.
+#' @param type Character. The type of output required. Default is 'default'. Other option is 'plot' which
+#'  will return only the clustered heatmap.
+#' @param domains.column Character. A vector of cluster names for the clustered heatmap.
+#' Used only when type is 'plot'.
 #' @return A list object that contains the hierarchical clustering results.
 #' \item{[[1]] }{Summary of k suggested by all indices with plots} 
 #' \item{[[2]] }{A dendogram plot with the selected number of clusters} 
@@ -25,13 +29,13 @@
 #' @importFrom utils data head tail
 #' @examples 
 #'data("EuStockMarkets")
-#'dataset <- data.frame(date = as.numeric(time(EuStockMarkets)),
+#'dataset <- data.frame(t = as.numeric(time(EuStockMarkets)),
 #'                      DAX = EuStockMarkets[, "DAX"],
-#'                    SMI = EuStockMarkets[, "SMI"],
+#'                      SMI = EuStockMarkets[, "SMI"],
 #'                      CAC = EuStockMarkets[, "CAC"],
 #'                      FTSE = EuStockMarkets[, "FTSE"])
-#'rownames(EuStockMarkets) <- dataset$date
-#'hvt.results<- trainHVT(dataset,n_cells = 60, depth = 1, quant.err = 0.1,
+#'rownames(EuStockMarkets) <- dataset$t
+#'hvt.results<- trainHVT(dataset[-1],n_cells = 60, depth = 1, quant.err = 0.1,
 #'                       distance_metric = "L1_Norm", error_metric = "max",
 #'                       normalize = TRUE,quant_method = "kmeans")
 #'scoring <- scoreHVT(dataset, hvt.results, analysis.plots = TRUE, names.column = dataset[,1])
@@ -45,25 +49,30 @@
 
 
 
+
 clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method = 'ward.D2',
-                     indices, clusters_k = "champion", type = "default",domains.column,hvt.results,dataset) {
+                     indices, clusters_k = "champion", type = "default",domains.column) {
   requireNamespace('NbClust')
   
   if (type == "plot"){
     
-    if (is.null(dataset) || is.null(hvt.results) || is.null(domains.column)) {
-      stop("For type 'plot',  the arguments `dataset`, `hvt.results` and `domains.column` are required.")
+    if (is.null(data) || is.null(trainHVT_results) || is.null(domains.column)) {
+      stop("For type 'plot',  the arguments `data`, `trainHVT_results` and `domains.column` are required.")
     }
     
-    plot_a <- clusterPlot(dataset= dataset, hvt.results  = hvt.results, domains.column = domains.column )
-
+    plot_a <- clusterPlot(dataset= data, hvt.results  = trainHVT_results, domains.column = domains.column )
+    
     return(plot_a)
     
   } 
   else if (type == "default"){
     
+  
   hclust_data <- data
+  
   results_df <- c()
+  
+  
   # Function to run NbClust and extract results
   print_nbclust_results <- function(hclust_data, indices) {
     get_nbclust_result <- function(index) {
@@ -81,7 +90,7 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
     
     results_list <- lapply(indices, get_nbclust_result)
     results_df <<- do.call(rbind, results_list)
-   
+    
     cluster_summary <- table(results_df$Number_clusters)
     cat("** Among all indices:\n")
     lapply(seq_along(cluster_summary), function(i) {
@@ -110,7 +119,7 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   indices <- c("kl", "ch", "hartigan", "cindex", "db", "silhouette", "ratkowsky", "ball","hubert","dindex",
                "ptbiserial", "gap", "frey", "mcclain", "gamma", "gplus", "tau", "dunn", "sdindex", "sdbw")
   print_nbclust_results(hclust_data, indices)
-
+  
   #to fetch champion and challenger
   cluster_summary <- table(results_df$Number_clusters)
   
@@ -125,12 +134,12 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   } else {
     stop("Invalid input for clusters_k. Use 'champion', 'challenger', or a numeric value between 1 and 20.")
   }
-#browser()  
+  #browser()  
   # Perform hierarchical clustering
   hc <- stats::hclust(dist(hclust_data), clustering_method)
   clusters <- stats::cutree(hc, k = no_of_clusters)
   
-
+  
   # Replace the existing plot_dendrogram function with this:
   plot_dendrogram <- function(hc_1, no_of_clusters_1) {
     function() {
@@ -141,7 +150,7 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   
   a <- plot_dendrogram(hc_1 = hc, no_of_clusters_1 = no_of_clusters)
   
-
+  
   
   # Prepare data for clusterPlotly
   cluster_data <- scoreHVT_results$centroidData %>% 
@@ -149,7 +158,7 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
     mutate(clusters =  clusters)
   
   b <- clusterPlot(dataset= cluster_data, hvt.results  = trainHVT_results, domains.column = "clusters" )
-    
+  
   output_list <- list(
     hc = hc,
     clusters = clusters,
@@ -159,9 +168,5 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   )
   
   return(output_list)
-  }
-  else{
-    stop("Unknown type. Please use 'default' or 'plot'.")
-  }
-  
+}
 }

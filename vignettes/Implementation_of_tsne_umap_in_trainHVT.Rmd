@@ -1,7 +1,7 @@
 ---
 title: "Implementation of t-SNE and UMAP in trainHVT function"
-author: "Bidesh Ghosh, Alimpan Dey"
-date: "`r Sys.Date()`"
+author: "Chepuri Gopi Krishna, Siddharth Shroya, Bidesh Ghosh, Alimpan Dey"
+date: "Created Date: 2024-08-14  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
 output:
@@ -97,17 +97,19 @@ img {
 
 # 1. Background
 
-The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
+The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 3D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
 
-1.  **Data Compression**: Vector Quantization (VQ), HVQ (Hierarchical Vector Quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
+1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
 
-2.  **Data Projection**: Dimension projection of the compressed cells to 2D with t-SNE, UMAP and Sammon's Mapping Algorithm. This step creates a topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension.
+2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
 
-3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes Heatmap plots for Hierarchical Voronoi Tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map. Useful for semi-supervised tasks.
+3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
 
-4.  **Scoring**: Scoring data sets and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
+4.  **Scoring**: Scoring new data sets or test data and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
 
-5. **Temporal Analysis and Visualization**: A Collection of functions that leverages the capacity of the HVT package by analyzing time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
 
 <span style="font-size: 22px;">**What's New?**</span>
 
@@ -240,7 +242,12 @@ if (length(new.packages)){install.packages(new.packages, repos='https://cloud.r-
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
-
+```{r, include=FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
   
 # 6. Data Understanding
 
@@ -265,7 +272,7 @@ The torus dataset includes the following columns:
     torus.
 
 Lets, explore the raw torus dataset containing 12000 points. For the
-sake of brevity, we are displaying the 10 rows.
+sake of brevity, we are displaying the 20 rows.
 
 ```{r}
 set.seed(124)
@@ -277,7 +284,7 @@ torus_df1 <- torus_df %>% round(4)
 colnames(torus_df1) <- c("x","y","z")
 torus_df1$Row.No <- as.numeric(row.names(torus_df))
 torus_df1 <- torus_df1 %>% dplyr::select(x,y,z)
-displayTable(head(torus_df1, 10))
+displayTable(torus_df1)
 ```
 
 Now, let’s try to visualize the torus dataset in 3D.
@@ -315,7 +322,7 @@ trainHVT(
   depth, quant.err,normalize,
   distance_metric,error_metric,quant_method,
   scale_summary, diagnose, hvt_validation,
-  train_validation_split_ratio, projection.scale,
+  train_validation_split_ratio,
   dim_reduction_method,
   tsne_perplexity,tsne_theta,tsne_verbose,
   tsne_eta,tsne_max_iter,
@@ -384,8 +391,6 @@ Each of the parameters of `trainHVT` function has been explained below:
     `hvt_validation` has been set to TRUE. Default value for the
     argument is 0.8
     
--   **`projection.scale`** - A number indicating the scale factor for the tessellations to          visualize the sub-tessellations well enough. It helps in adjusting the visual                   representation     of the hierarchy to make the sub-tessellations more visible. Default is      10.    
-
 -   **`dim_reduction_method`** - The `trainHVT` function above has been
     modified to include an additional parameter **dim_reduction_method**
     that accepts **"sammon"**, **"tsne"**, or **"umap"**. This parameter
@@ -525,8 +530,7 @@ We have passed the below mentioned model parameters along with depth=1, 2, 3 res
   tsne_theta = 0.5,
   tsne_verbose = TRUE,
   tsne_eta = 200,
-  tsne_max_iter = 1000
-  )
+  tsne_max_iter = 1000 )
 ```
 
 
@@ -548,8 +552,7 @@ hvt_results_tsne2 <- trainHVT(
   tsne_theta = 0.5,
   tsne_verbose = TRUE,
   tsne_eta = 200,
-  tsne_max_iter = 1000
-)
+  tsne_max_iter = 1000)
 ```
 
 
@@ -571,8 +574,7 @@ hvt_results_tsne3 <- trainHVT(
   tsne_theta = 0.5,
   tsne_verbose = TRUE,
   tsne_eta = 200,
-  tsne_max_iter = 1000
-)
+  tsne_max_iter = 1000)
 ```
 
 
@@ -592,8 +594,7 @@ tSNE_depth1_x = plotHVT(hvt_results_tsne1,
         child.level = 1, 
         hmap.cols = 'x',
         centroid.color = c("navyblue"),
-        cell_id = TRUE,
-        title = "2D projection with t-SNE as dim_reduction_method, depth=1 and hmap.cols='x'")
+        cell_id = TRUE)
 
 tSNE_depth1_y = plotHVT(hvt_results_tsne1,
         line.width = c(0.2) ,
@@ -602,8 +603,7 @@ tSNE_depth1_y = plotHVT(hvt_results_tsne1,
         plot.type = "2Dheatmap", 
         child.level = 1,
         hmap.cols = 'y',
-        cell_id = TRUE,
-        title = "2D projection with t-SNE as dim_reduction_method, depth=1 and hmap.cols='y'")
+        cell_id = TRUE)
 
 tSNE_depth1_z = plotHVT(hvt_results_tsne1,
         line.width = c(0.2) ,
@@ -611,8 +611,7 @@ tSNE_depth1_z = plotHVT(hvt_results_tsne1,
         plot.type = "2Dheatmap", 
         child.level = 1,
         hmap.cols = 'z',
-        cell_id = TRUE,
-        title = "2D projection with t-SNE as dim_reduction_method, depth=1 and hmap.cols='z'")
+        cell_id = TRUE)
 
 tSNE_depth1 = grid.arrange(tSNE_depth1_x, tSNE_depth1_y, tSNE_depth1_z, ncol=3)
 ```
@@ -626,9 +625,7 @@ tSNE_depth2_x =plotHVT(hvt_results_tsne2,
         centroid.color = c("navyblue","steelblue"), 
         centroid.size = c(0.2, 0.1) ,
         child.level = 2, 
-        hmap.cols = 'x',
-        n_cells.hmap = 10,
-        title = "2D projection with tsne as dim_reduction_method, depth=2 and hmap.cols='x'")
+        hmap.cols = 'x')
 
 tSNE_depth2_y =plotHVT(hvt_results_tsne2,
         line.width = c(0.2, 0.1) ,
@@ -637,9 +634,7 @@ tSNE_depth2_y =plotHVT(hvt_results_tsne2,
         centroid.color = c("navyblue","steelblue"), 
         child.level = 2,
         centroid.size = c(0.2, 0.1) ,
-        hmap.cols = 'y',
-        n_cells.hmap = 10,
-        title = "2D projection with tsne as dim_reduction_method, depth=2 and hmap.cols='y'")
+        hmap.cols = 'y')
 
 tSNE_depth2_z =plotHVT(hvt_results_tsne2,
         line.width = c(0.2, 0.1) ,
@@ -648,9 +643,7 @@ tSNE_depth2_z =plotHVT(hvt_results_tsne2,
         centroid.color = c("navyblue","steelblue"), 
         child.level = 2,
         centroid.size = c(0.2, 0.1) ,
-        hmap.cols = 'z',
-        n_cells.hmap = 10,
-        title = "2D projection with tsne as dim_reduction_method, depth=2 and hmap.cols='z'")
+        hmap.cols = 'z')
 
 tSNE_depth2 = grid.arrange(tSNE_depth2_x, tSNE_depth2_y, tSNE_depth2_z, ncol=3)
 ```
@@ -664,9 +657,7 @@ tSNE_depth3_x =plotHVT(hvt_results_tsne3,
         centroid.color = c("#0047ab","navyblue","steelblue"),
         child.level= 3,
         centroid.size = c(0.3, 0.2, 0.1),
-        hmap.cols = "x",
-        n_cells.hmap = 10,
-        title = "2D projection with tsne as dim_reduction_method, depth=3 and hmap.cols='x'")
+        hmap.cols = "x")
 
 tSNE_depth3_y =plotHVT(hvt_results_tsne3,
         line.width = c(0.3, 0.2, 0.1),
@@ -675,9 +666,7 @@ tSNE_depth3_y =plotHVT(hvt_results_tsne3,
         centroid.color = c("#0047ab","navyblue","steelblue"),
         child.level= 3,
         centroid.size = c(0.3, 0.2, 0.1),
-        hmap.cols = "y",
-        n_cells.hmap = 10,
-        title = "2D projection with tsne as dim_reduction_method, depth=3 and hmap.cols='y'")
+        hmap.cols = "y")
 
 tSNE_depth3_z =plotHVT(hvt_results_tsne3,
         line.width = c(0.3, 0.2, 0.1),
@@ -686,9 +675,7 @@ tSNE_depth3_z =plotHVT(hvt_results_tsne3,
         centroid.color = c("#0047ab","navyblue","steelblue"),
         child.level= 3,
         centroid.size = c(0.3, 0.2, 0.1),
-        hmap.cols = "z",
-        n_cells.hmap = 10 ,
-        title = "2D projection with tsne as dim_reduction_method, depth=3 and hmap.cols='z'")
+        hmap.cols = "z")
 
 tSNE_depth3 = grid.arrange(tSNE_depth3_x, tSNE_depth3_y, tSNE_depth3_z, ncol = 3)
 ```
@@ -732,8 +719,7 @@ hvt_results_umap1 <- trainHVT(
   quant_method = "kmeans",   
   dim_reduction_method = "umap",
   umap_n_neighbors = 6,
-  umap_min_dist = 0.2
-)
+  umap_min_dist = 0.2)
 ```
 
 
@@ -752,8 +738,7 @@ hvt_results_umap2 <- trainHVT(
   quant_method = "kmeans",   
   dim_reduction_method = "umap",
   umap_n_neighbors = 6,
-  umap_min_dist = 0.2
-)
+  umap_min_dist = 0.2)
 ```
 
 
@@ -772,8 +757,7 @@ hvt_results_umap3 <- trainHVT(
   quant_method = "kmeans",   
   dim_reduction_method = "umap",
   umap_n_neighbors = 6,
-  umap_min_dist = 0.2
-)
+  umap_min_dist = 0.2)
 ```
 
 
@@ -794,8 +778,7 @@ UMAP_depth1_x=plotHVT(hvt_results_umap1,
         centroid.color = c("navyblue"),
         child.level = 1,
         hmap.cols = 'x',
-        cell_id = TRUE,
-        title = "2D projection with UMAP as dim_reduction_method, depth=1 and hmap.cols='x'")
+        cell_id = TRUE)
 
 UMAP_depth1_y=plotHVT(hvt_results_umap1,
         line.width = c(0.2) ,
@@ -804,8 +787,7 @@ UMAP_depth1_y=plotHVT(hvt_results_umap1,
         centroid.color = c("navyblue"),
         child.level = 1,
         hmap.cols = 'y',
-        cell_id = TRUE,
-        title = "2D projection with UMAP as dim_reduction_method, depth=1 and hmap.cols='y'")
+        cell_id = TRUE)
 
 UMAP_depth1_z=plotHVT(hvt_results_umap1,
         line.width = c(0.2) ,
@@ -814,8 +796,8 @@ UMAP_depth1_z=plotHVT(hvt_results_umap1,
         centroid.color = c("navyblue"),
         child.level = 1,
         hmap.cols = 'z',
-        cell_id = TRUE,
-        title = "2D projection with UMAP as dim_reduction_method, depth=1 and hamp.cols='z'")
+        cell_id = TRUE)
+
 UMAP_depth1 = grid.arrange(UMAP_depth1_x, UMAP_depth1_y, UMAP_depth1_z, ncol = 3)
 ```
 
@@ -829,9 +811,7 @@ UMAP_depth2_x=plotHVT(hvt_results_umap2,
         centroid.color = c("navyblue","steelblue"),
         child.level = 2,
         centroid.size = c(0.2, 0.1) ,
-        hmap.cols = 'x',
-        n_cells.hmap = 10,
-        title = "2D projection with UMAP as dim_reduction_method, depth=2 and hmap.cols='x'")
+        hmap.cols = 'x')
 
 UMAP_depth2_y=plotHVT(hvt_results_umap2,
         line.width = c(0.2, 0.1) ,
@@ -840,9 +820,7 @@ UMAP_depth2_y=plotHVT(hvt_results_umap2,
         centroid.color = c("navyblue","steelblue"),
         child.level = 2,
         centroid.size = c(0.2, 0.1) ,
-        hmap.cols = 'y',
-        n_cells.hmap = 10,
-        title = "2D projection with UMAP as dim_reduction_method, depth=2 and hmap.cols='y'")
+        hmap.cols = 'y')
 
 UMAP_depth2_z=plotHVT(hvt_results_umap2,
         line.width = c(0.2, 0.1) ,
@@ -851,9 +829,7 @@ UMAP_depth2_z=plotHVT(hvt_results_umap2,
         centroid.color = c("navyblue","steelblue"),
         child.level = 2,
         centroid.size = c(0.2, 0.1) ,
-        hmap.cols = 'z',
-        n_cells.hmap = 10,
-        title = "2D projection with UMAP as dim_reduction_method, depth=2 and hmap.cols='z'")
+        hmap.cols = 'z')
 
 UMAP_depth2 = grid.arrange(UMAP_depth2_x, UMAP_depth2_y, UMAP_depth2_z, ncol= 3)
 ```
@@ -867,10 +843,8 @@ UMAP_depth3_x=plotHVT(hvt_results_umap3,
         plot.type = "2Dheatmap",
         centroid.color = c("#0047ab","navyblue","steelblue"),
         child.level = 3,
-        n_cells.hmap = 10,
         centroid.size = c(0.3, 0.2, 0.1),
-        hmap.cols = "x",
-        title = "2D projection with UMAP as dim_reduction_method, depth=3 and hmap.cols='x'")
+        hmap.cols = "x")
 
 UMAP_depth3_y=plotHVT(hvt_results_umap3,
         line.width = c(0.3, 0.2,0.1) ,
@@ -878,10 +852,8 @@ UMAP_depth3_y=plotHVT(hvt_results_umap3,
         plot.type = "2Dheatmap",
         centroid.color = c("#0047ab","navyblue","steelblue"),
         child.level = 3,
-        n_cells.hmap = 10,
         centroid.size = c(0.3, 0.2, 0.1),
-        hmap.cols = "y",
-        title = "2D projection with UMAP as dim_reduction_method, depth=3 and hmap.cols='y'")
+        hmap.cols = "y")
 
 UMAP_depth3_z=plotHVT(hvt_results_umap3,
         line.width = c(0.3, 0.2,0.1) ,
@@ -889,10 +861,9 @@ UMAP_depth3_z=plotHVT(hvt_results_umap3,
         plot.type = "2Dheatmap",
         centroid.color = c("#0047ab","navyblue","steelblue"),
         child.level = 3,
-        n_cells.hmap = 10,
         centroid.size = c(0.3, 0.2, 0.1),
-        hmap.cols = "z",
-        title = "2D projection with UMAP as dim_reduction_method, depth=3 and hmap.cols='z'")
+        hmap.cols = "z")
+
 UMAP_depth3 = grid.arrange(UMAP_depth3_x, UMAP_depth3_y, UMAP_depth3_z, ncol= 3)
 ```
 ## 7.4 Training and Visualization of Sammon's projection
@@ -931,8 +902,7 @@ hvt_results_sammon1 <- trainHVT(
   distance_metric = "L2_Norm",   
   error_metric = "mean",    
   quant_method = "kmeans",   
-  dim_reduction_method = "sammon" 
-)
+  dim_reduction_method = "sammon" )
 ```
 
 
@@ -949,8 +919,7 @@ hvt_results_sammon2 <- trainHVT(
   distance_metric = "L2_Norm",   
   error_metric = "mean",    
   quant_method = "kmeans",   
-  dim_reduction_method = "sammon" 
-)
+  dim_reduction_method = "sammon" )
 ```
 
 
@@ -967,8 +936,7 @@ hvt_results_sammon3 <- trainHVT(
   distance_metric = "L2_Norm",   
   error_metric = "mean",    
   quant_method = "kmeans",   
-  dim_reduction_method = "sammon" 
-)
+  dim_reduction_method = "sammon" )
 ```
 
 #### 7.4.2 Plotting the outcome of `trainHVT` function with dim_reduction_method="sammon" using `plotHVT` {.tabset}
@@ -984,22 +952,28 @@ Sammon_depth1_x = plotHVT(hvt_results_sammon1,
         line.width = c(0.2) ,
         color.vec = c("navyblue"),
         centroid.color  = c("navyblue"),
-        plot.type = "2Dheatmap", child.level = 1, hmap.cols = 'x',cell_id = TRUE,
-        title = "2D projection with Sammon as dim_reduction_method with depth=1 and hmap.cols='x'")
+        plot.type = "2Dheatmap", 
+        child.level = 1, 
+        hmap.cols = 'x',
+        cell_id = TRUE,)
 
 Sammon_depth1_y = plotHVT(hvt_results_sammon1,
         line.width = c(0.2) ,
         color.vec = c("navyblue"),
         centroid.color  = c("navyblue"),
-        plot.type = "2Dheatmap", child.level = 1, hmap.cols = 'y',cell_id = TRUE,
-        title = "2D projection with Sammon as dim_reduction_method with depth=1 and hmap.cols='y'")
+        plot.type = "2Dheatmap", 
+        child.level = 1, 
+        hmap.cols = 'y',
+        cell_id = TRUE)
 
 Sammon_depth1_z = plotHVT(hvt_results_sammon1,
         line.width = c(0.2) ,
         color.vec = c("navyblue"),
         centroid.color  = c("navyblue"),
-        plot.type = "2Dheatmap", child.level = 1, hmap.cols = 'z',cell_id = TRUE,
-        title = "2D projection with Sammon as dim_reduction_method with depth=1 and hmap.cols='z'")
+        plot.type = "2Dheatmap",
+        child.level = 1, 
+        hmap.cols = 'z',
+        cell_id = TRUE)
 
 Sammon_depth1 = grid.arrange(Sammon_depth1_x, Sammon_depth1_y, Sammon_depth1_z, ncol=3)
 ```
@@ -1014,8 +988,7 @@ Sammon_depth2_x = plotHVT(hvt_results_sammon2,
         centroid.color = c("navyblue","steelblue"),
         child.level = 2, 
         centroid.size = c(0.2, 0.1) ,
-        hmap.cols = 'x',
-        title = "2D projection with Sammon as dim_reduction_method with depth=2 and hmap.cols='x'")
+        hmap.cols = 'x')
 
 Sammon_depth2_y = plotHVT(hvt_results_sammon2,
         line.width = c(0.2, 0.1) ,
@@ -1024,8 +997,7 @@ Sammon_depth2_y = plotHVT(hvt_results_sammon2,
         centroid.color = c("navyblue","steelblue"),
         child.level = 2, 
         centroid.size = c(0.2, 0.1) ,
-        hmap.cols = 'y',
-        title = "2D projection with Sammon as dim_reduction_method with depth=2 and hmap.cols='y'")
+        hmap.cols = 'y')
 
 Sammon_depth2_z = plotHVT(hvt_results_sammon2,
         line.width = c(0.2, 0.1) ,
@@ -1034,8 +1006,8 @@ Sammon_depth2_z = plotHVT(hvt_results_sammon2,
         centroid.color = c("navyblue","steelblue"),
         child.level = 2, 
         centroid.size = c(0.2, 0.1) ,
-        hmap.cols = 'z',
-        title = "2D projection with Sammon as dim_reduction_method with depth=2 and hmap.cols='z'")
+        hmap.cols = 'z')
+
 Sammon_depth2 = grid.arrange(Sammon_depth2_x, Sammon_depth2_y, Sammon_depth2_z, ncol=3)
 ```
 
@@ -1049,9 +1021,7 @@ Sammon_depth3_x = plotHVT(hvt_results_sammon3,
         centroid.color = c("#0047ab","navyblue","steelblue"),
         child.level = 3, 
         hmap.cols = "x",
-        centroid.size = c(0.3, 0.2, 0.1),
-        n_cells.hmap = 20,
-        title = "2D projection with Sammon as dim_reduction_method with depth=3 and hmap.cols='x'")
+        centroid.size = c(0.3, 0.2, 0.1))
 
 Sammon_depth3_y = plotHVT(hvt_results_sammon3,
         line.width = c(0.3, 0.2,0.1) ,
@@ -1060,9 +1030,7 @@ Sammon_depth3_y = plotHVT(hvt_results_sammon3,
         centroid.color = c("#0047ab","navyblue","steelblue"),
         child.level = 3, 
         hmap.cols = "y",
-        centroid.size = c(0.3, 0.2, 0.1),
-        n_cells.hmap = 20,
-        title = "2D projection with Sammon as dim_reduction_method with depth=3 and hmap.cols='y'")
+        centroid.size = c(0.3, 0.2, 0.1))
 
 Sammon_depth3_z = plotHVT(hvt_results_sammon3,
         line.width = c(0.3, 0.2,0.1) ,
@@ -1071,9 +1039,8 @@ Sammon_depth3_z = plotHVT(hvt_results_sammon3,
         centroid.color = c("#0047ab","navyblue","steelblue"),
         child.level = 3,
         centroid.size = c(0.3, 0.2, 0.1),
-        hmap.cols = "z",
-        n_cells.hmap = 20,
-        title = "2D projection with Sammon as dim_reduction_method with depth=3 and hmap.cols='z'")
+        hmap.cols = "z")
+       
 
 Sammon_depth3 = grid.arrange(Sammon_depth3_x, Sammon_depth3_y, Sammon_depth3_z, ncol =3)
 ```
@@ -1178,13 +1145,12 @@ hvt_results_tsne <- trainHVT(
   tsne_theta = 0.5,
   tsne_verbose = TRUE,
   tsne_eta = 200,
-  tsne_max_iter = 1000
-  )
+  tsne_max_iter = 1000 )
 ```
 
 Compression summary
 ```{r}
-displayTable(hvt_results_tsne[[3]][["compression_summary"]])
+summary(hvt_results_tsne)
 ```
   
 
@@ -1208,7 +1174,7 @@ hvt_results_umap <- trainHVT(
 
 Compression summary
 ```{r}
-displayTable(hvt_results_umap[[3]][["compression_summary"]])
+summary(hvt_results_umap)
 ```
   
 
@@ -1225,13 +1191,12 @@ hvt_results_sammon <- trainHVT(
   distance_metric = "L2_Norm",   
   error_metric = "mean",    
   quant_method = "kmeans",   
-  dim_reduction_method = "sammon" 
-)
+  dim_reduction_method = "sammon" )
 ```
 
 Compression summary
 ```{r}
-displayTable(hvt_results_sammon[[3]][["compression_summary"]])
+summary(hvt_results_sammon)
 ```
   
 
@@ -1255,8 +1220,8 @@ tsne_x = plotHVT(hvt_results_tsne,
         centroid.color = c("navyblue"),
         child.level = 1,
         hmap.cols = 'x',
-        cell_id = TRUE,
-        title = "2D projection with t-SNE as dim_reduction_method, depth=1, hmap.cols='x' and n_cells=100")
+        cell_id = TRUE)
+
 umap_x = plotHVT(hvt_results_umap,
         line.width = c(0.2) ,
         color.vec = c("navyblue"),
@@ -1264,8 +1229,8 @@ umap_x = plotHVT(hvt_results_umap,
         centroid.color = c("navyblue"),
         child.level = 1, 
         hmap.cols = 'x',
-        cell_id = TRUE,
-        title = "2D projection with UMAP as dim_reduction_method, depth=1, hmap.cols='x' and n_cells=100")
+        cell_id = TRUE)
+
 Sammon_x = plotHVT(hvt_results_sammon,
         line.width = c(0.2) ,
         color.vec = c("navyblue"),
@@ -1273,8 +1238,7 @@ Sammon_x = plotHVT(hvt_results_sammon,
         centroid.color = c("navyblue"),
         child.level = 1, 
         hmap.cols = 'x',
-        cell_id = TRUE,
-        title = "2D projection with Sammon as dim_reduction_method, depth=1, hmap.cols='x' and n_cells=100")
+        cell_id = TRUE)
 
 plot_x = grid.arrange(tsne_x, umap_x, Sammon_x, ncol=3)
 ```
@@ -1288,8 +1252,7 @@ tsne_y = plotHVT(hvt_results_tsne,
         centroid.color = c("navyblue"),
         child.level = 1,
         hmap.cols = 'y',
-        cell_id = TRUE,
-        title = "2D projection with t-SNE as dim_reduction_method, depth=1, hmap.cols='y' and n_cells=100")
+        cell_id = TRUE)
 
 umap_y=plotHVT(hvt_results_umap,
         line.width = c(0.2) ,
@@ -1298,8 +1261,7 @@ umap_y=plotHVT(hvt_results_umap,
         centroid.color = c("navyblue"),
         child.level = 1,
         hmap.cols = 'y',
-        cell_id = TRUE,
-        title = "2D projection with UMAP as dim_reduction_method, depth=1, hmap.cols='y' and n_cells=100")
+        cell_id = TRUE)
 
 Sammon_y = plotHVT(hvt_results_sammon,
         line.width = c(0.2) ,
@@ -1308,8 +1270,7 @@ Sammon_y = plotHVT(hvt_results_sammon,
         centroid.color = c("navyblue"),
         child.level = 1,
         hmap.cols = 'y',
-        cell_id = TRUE,
-        title = "2D projection with Sammon as dim_reduction_method, depth=1, hmap.cols='y' and n_cells=100")
+        cell_id = TRUE)
 
 plot_y = grid.arrange(tsne_y, umap_y, Sammon_y, ncol = 3)
 ```
@@ -1324,8 +1285,7 @@ tsne_z = plotHVT(hvt_results_tsne,
         centroid.color = c("navyblue"),
         child.level = 1, 
         hmap.cols = 'z',
-        cell_id = TRUE,
-        title = "2D projection with t-SNE as dim_reduction_method, depth=1, hmap.cols='z' and n_cells=100")
+        cell_id = TRUE)
 
 umap_z=plotHVT(hvt_results_umap,
         line.width = c(0.2) ,
@@ -1334,8 +1294,7 @@ umap_z=plotHVT(hvt_results_umap,
         centroid.color = c("navyblue"),
         child.level = 1,
         hmap.cols = 'z',
-        cell_id = TRUE,
-        title = "2D projection with UMAP as dim_reduction_method with depth=1, hamp.cols='z' and n_cells=100")
+        cell_id = TRUE)
 
 
 Sammon_z = plotHVT(hvt_results_sammon,
@@ -1345,8 +1304,7 @@ Sammon_z = plotHVT(hvt_results_sammon,
         centroid.color = c("navyblue"),
         child.level = 1, 
         hmap.cols = 'z',
-        cell_id = TRUE,
-        title = "2D projection with Sammon as dim_reduction_method with depth=1 hmap.cols='z' and n_cells=100")
+        cell_id = TRUE)
 
 plot_z = grid.arrange(tsne_z, umap_z, Sammon_z, ncol=3)
 ```
@@ -1370,16 +1328,14 @@ data <- data.frame(
   Participant = c("Person 1", "Person 2", "Person 3", "Person 4", "Person 5"),
   tSNE = c(1, 2, 1, 2, 1),
   UMAP = c(1, 1, 2, 1, 2),
-  Sammon = c(3, 3, 3, 3, 3)
-)
+  Sammon = c(3, 3, 3, 3, 3))
 
 # Calculate the average for each method
 averages <- data.frame(
   Participant = "Average",
   tSNE = mean(data$tSNE),
   UMAP = mean(data$UMAP),
-  Sammon = mean(data$Sammon)
-)
+  Sammon = mean(data$Sammon))
 
 # Combine the original data with the averages
 combined_data <- rbind(data, averages)

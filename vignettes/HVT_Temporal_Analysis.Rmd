@@ -1,13 +1,14 @@
 ---
 title: "Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT (Hierarchical Voronoi Tessellation)"
-author: "Zubin Dowlaty, Pon Anureka Seenivasan, Vishwavani"
-date: "`r Sys.Date()`"
+author: "Zubin Dowlaty, Chepuri Gopi Krishna, Siddharth Shroya, Pon Anureka Seenivasan, Vishwavani"
+date: "Created Date: 2023-10-26  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
 output:
   rmarkdown::html_vignette:
     toc: true
-    toc_depth : 3
+    toc_depth : 2
+    tabset: true
 vignette: >
   %\VignetteIndexEntry{Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT (Hierarchical Voronoi Tessellation)}
   %\VignetteEngine{knitr::rmarkdown}
@@ -56,7 +57,9 @@ li {
 ul {
   margin-bottom: 0px !important;
 }
-
+.tab{
+   border: none !important;
+}
 ```
 
 
@@ -67,17 +70,19 @@ ul {
 
 # 1. Background
 
-The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps </a> for rich multivariate data analysis. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
+The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 3D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
 
-1.  **Data Compression**: Vector Quantization (VQ), HVQ (Hierarchical Vector Quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
+1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
 
-2.  **Data Projection**: Dimension projection of the compressed cells to 1D, 2D and Interactive surface plot with the Sammons Non-linear Algorithm. This step creates a topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension.
+2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
 
-3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for Hierarchical Voronoi Tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map. Useful for semi-supervised tasks.
+3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
 
-4.  **Scoring**: Scoring data sets and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
+4.  **Scoring**: Scoring new data sets or test data and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
 
-5. **Temporal Analysis and Visualization**: A Collection of functions that leverages the capacity of the HVT package by analyzing time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
 
 <span style="font-size: 20px;">**What's New?**</span>
 
@@ -119,7 +124,7 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr", "kableExtra", "plotly", "purrr", "data.table", "gridExtra", "grid", "reactable",
-                      "reshape", "tidyr",  "stringr", "DT", "knitr", "feather","HVT")
+                    "reshape", "tidyr",  "stringr", "DT", "knitr", "feather","HVT","gganimate","gifski")
 
 new.packages <-
   list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
@@ -129,7 +134,12 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
-
+```{r, include=FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 
 # 4. Data Understanding
 
@@ -162,7 +172,8 @@ Now, let's have a look at the **structure** of the Lorenz Attractor dataset.
 str(dataset)
 ```
 
-**Data distribution**
+### EDA Plots {.tabset}
+
 This section displays four objects.
 
 **Variable Histograms**: The histogram distribution of all the features in the dataset.
@@ -191,154 +202,50 @@ It uses an inbuilt function called `edaPlots` to display the above-mentioned fou
 
 *NOTE: The input dataset should be a data frame object and the columns should be only numeric type.*
 
-
-```{r, plot twotime, warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
-edaPlots(dataset, time_column = "t", output_type = "timeseries", n_cols = 5)
-```
-
-</br>
+#### Summary Table
 
 ```{r plot twotab,warning = FALSE, message=FALSE}
-edaPlots(dataset, output_type = 'summary', n_cols = 5)
+edaPlots(dataset)
 ```
 
-</br>
 
+#### Histogram
 
 ```{r plot twohist,figures-side,  warning = FALSE, message=FALSE}
-edaPlots(dataset, output_type = 'histogram', n_cols = 5)
+edaPlots(dataset, output_type = 'histogram')
 ```
 
-</br>
 
+#### Boxplots
 
 ```{r plot twobox,figures-side, warning = FALSE, message=FALSE}
-edaPlots(dataset, output_type = 'boxplot', n_cols = 5)
+edaPlots(dataset, output_type = 'boxplot')
 ```
 
 
-</br>
+
+#### Correlation Plot
 
 
 ```{r plot twocor, fig.show="hold", fig.width = 7, fig.height = 5, fig.align='center', warning = FALSE, message=FALSE}
-edaPlots(dataset, output_type = 'correlation', n_cols = 5)
+edaPlots(dataset, output_type = 'correlation')
 ```
 
-**Train - Test Split**
-
-Let us split the dataset into train and test. We will orderly select 80% of the data as train and the remaining as test.
-
-```{r}
-noOfPoints <- dim(dataset)[1]
-trainLength <- as.integer(noOfPoints * 0.8)
-trainDataset <- dataset[1:trainLength,]
-testDataset <- dataset[(trainLength+1):noOfPoints,]
-rownames(testDataset) <- NULL
-```
+#### Time Series Plot
 
 
-## 4.1 Training dataset
-
-Let's have a look at the Training dataset containing 160,000 data points. For the sake of brevity, we are displaying the first 10 rows.
-
-```{r,warning=FALSE,message=FALSE}
-displayTable(head(trainDataset, 10))
-```
-
-Now, let's have a look at the **structure** of the training dataset.
-
-```{r train structure, warning=FALSE}
-str(trainDataset)
-```
-
-**Data Distribution**
-
-```{r, plot tratime,  warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
-edaPlots(trainDataset, time_column = "t", output_type = "timeseries", n_cols = 5)
-```
-
-</br>
-
-```{r plot tratab, warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'summary', n_cols = 5)
+```{r, plot twotime, warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
+edaPlots(dataset, time_column = "t", output_type = "timeseries")
 ```
 
 </br>
 
 
-```{r plot trahist,figures-side,  warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'histogram', n_cols = 5)
-```
 
-</br>
+# 5. Model Constructing and Visualization
 
+The dataset is prepped and ready for constructing the HVT model, which is the first and most prominent step. Model Training involves applying Hierarchical Vector Quantization (HVQ) to iteratively compress and project data into a hierarchy of cells. The process uses a quantization error threshold to determine the number of cells and levels in the hierarchy. The compressed data is then projected onto a 2D space, and the resulting tessellation provides a visual representation of the data distribution, enabling insights into the underlying patterns and relationships.
 
-```{r plot trabox,figures-side, warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'boxplot', n_cols = 5)
-```
-
-
-</br>
-
-
-```{r plot tracor,fig.width = 7, fig.height = 5, fig.align='center', warning = FALSE, message=FALSE}
-edaPlots(trainDataset, output_type = 'correlation', n_cols = 5)
-```
-
-
-## 4.2 Testing dataset
-
-Let's have a look at the Testing dataset containing 40,000 data points. For the sake of brevity, we are displaying first the 10 rows.
-
-```{r, warning=FALSE,message=FALSE}
-displayTable(head(testDataset,10))
-```
-
-Now, let's have a look at the **structure** of the testing dataset.
-
-```{r test structure, warning=FALSE}
-str(testDataset)
-```
-
-
-**Data Distribution**
-```{r, plot testime,  warning = FALSE, message=FALSE, fig.align='center',fig.width=9.2, fig.height= 7}
-edaPlots(testDataset, time_column = "t", output_type = "timeseries", n_cols = 5)
-```
-
-</br>
-
-```{r plot testab, warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'summary', n_cols = 5)
-```
-
-</br>
-
-
-```{r plot teshist,figures-side, warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'histogram', n_cols = 5)
-```
-
-</br>
-
-
-```{r plot tesbox,figures-side, warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'boxplot', n_cols = 5)
-```
-
-
-</br>
-
-
-```{r plot tescor,fig.width = 7, fig.height = 5, fig.align='center', warning = FALSE, message=FALSE}
-edaPlots(testDataset, output_type = 'correlation', n_cols = 5)
-```
-
-
-
-# 5. Model Training and Visualization
-
-We will use the `trainHVT` function to compress our dataset while preserving essential features.
 
 **Model Parameters**
 
@@ -351,9 +258,9 @@ We will use the `trainHVT` function to compress our dataset while preserving ess
 
 **NOTE:** *The compression takes place only for the X, Y and Z coordinates and not for U(velocity) and t(Timestamp). After training & Scoring, we merge back the U and t columns with the dataset.*
 
-```{r ,warning=FALSE,fig.show='hold',message=FALSE}
+```{r ,warning=FALSE,fig.show='hold',message=FALSE, results='hide'}
 hvt.results <- trainHVT(
-  trainDataset[,-c(4:5)],
+  dataset[,-c(4:5)],
   n_cells = 100,
   depth = 1,
   quant.err = 0.1,
@@ -369,16 +276,9 @@ hvt.results <- trainHVT(
 Let's check out the compression summary. 
 
 ```{r compression summary torus first,warning=FALSE}
-displayTable(data = hvt.results[[3]]$compression_summary)
+summary(hvt.results)
 ```
-**NOTE:** *Based on the provided table, it's evident that the 'percentOfCellsBelowQuantizationErrorThreshold' value is zero, indicating that compression hasn't taken place for the specified number of cells, which is 100. Typically, we would continue increasing the number of cells until at least 80% compression occurs. However, in this vignette demonstration, we're not doing so, because the plots generated from temporal analysis functions would become cluttered and complex, making explanations less clear.*
-
-Let's check out the model summary from `trainHVT()`. 
-
-```{r}
-hvt.results$model_info$input_parameters
-```
-
+**NOTE:** *Based on the provided table, it's evident that the 'percentOfCellsBelowQuantizationErrorThreshold' value is 0.02, indicating that only 2% compression has taken place for the specified number of cells, which is 100. Typically, we would continue increasing the number of cells until at least 80% compression occurs. However, in this vignette demonstration, we're not doing so, because the plots generated from temporal analysis functions would become cluttered and complex, making explanations less clear.*
 
 
 Now, Let's plot the Voronoi tessellation for 100 cells.
@@ -389,7 +289,6 @@ plotHVT(
   centroid.size = c(0.6),
   plot.type = '2Dhvt',
   cell_id = FALSE)
-
 ```
 
 To understand how cell IDs are distributed across the map, we again plot Voronoi tessellation with `cell_id = TRUE`.
@@ -400,30 +299,52 @@ plotHVT(
   centroid.size = c(0.6),
   plot.type = '2Dhvt',
   cell_id = TRUE)
-
 ```
 
 # 6. Scoring
 
-Now, once we have built the model, let us try to score using the model.
+Once the model is constructed, the next step is scoring the data points using the trained HVT model. Scoring involves assigning each data point to a specific cell based on the trained model. This process helps map data points to their correct hierarchical cell without the need for forecasting.
 
-NOTE: *we are using the training dataset plus the testing dataset i.e., the raw dataset here for the demo purpose.*
 
 ```{r scoreHVT function,warning=FALSE,message=FALSE}
-set.seed(240)
 scoring <- scoreHVT(dataset,
                     hvt.results,
                     child.level = 1)
 ```
 
-Let’s see the output of `scoreHVT()` which has scored the cells for all the data points in the dataset.  For the sake of brevity, we will only show the first 100 rows.
+Here we are displaying only the first 20 rows of the scored dataset.
 
-In the `displayTable` function, the 'columnName' argument takes any of the column names that have to be highlighted greater than the given 'value' based on the provided data.
 ```{r scoreHVT,warning=FALSE}
-displayTable(scoring$scoredPredictedData)
+summary(scoring)
 ```
 
+These are the brief explanation of all the features in the above table.
+
+- **Segment Level**: The tier or depth of a segment in the hierarchical structure.
+
+- **Segment Parent**: The ID of the larger segment that this segment is part of in the level above.
+
+- **Segment Child**: The IDs of smaller segments that are contained within this segment in the level below.
+
+- **n**: The number of entities/data points from the uploaded dataset that are present inside that Segment child.
+
+- **Cell.ID**: The ID of the child which is the result of sorted 1D Sammon's.
+
+- **Quant.Error**: The quantization error of that cell.
+
+- **centroidRadius**: The maximum quantization error values as radius for anomalies.
+
+- **diff**: The difference between centroidRadius and Quant.Error.
+
+- **anomalyFlag**: The binary value that says the cell is an anomaly or not. (if the Quant.Error is greater than mad.threshold then it is = 1 (anomaly) else = 0 (not an anomaly))
+
+
 Let's look at the scored model summary from `scoreHVT()`
+
+
+```{r}
+scoring$model_info$scored_model_summary
+```
 
 The model info displays five attributes which are explained below:
 
@@ -432,9 +353,6 @@ The model info displays five attributes which are explained below:
 3) The value of Mean Absolute Deviation(MAD) Threshold.
 4) The value of how many data points are anomalous. If the quantization error of a data point is greater than the 'mad.threshold', then it is considered as anomaly.
 5) The value of how much cells have anomaly. If a cell has even 1 anomalous data point, the cell will be considered as anomaly_cell.
-```{r}
-scoring$model_info$scored_model_summary
-```
 
 Now, let's merge back the `U and t` columns from the dataset to the scoring output and prepare the dataset for 'Temporal Analysis' Functions.
 ```{r}
@@ -445,7 +363,7 @@ temporal_data <- cbind(scoring$scoredPredictedData, dataset[,c(4,5)]) %>% select
 
 # 7. Timeseries plot with State Transitions
 
-Let's comprehend the function `plotStateTransition` which is used to create a time series plotly object.
+The first novel function - `plotStateTransition` which is used to create a time series plotly object. The plot displays the movement of data points across the cells over time. Below is the function signature and its arguments.
 
 ```{r plotStateTransition function, echo=TRUE, eval=FALSE}
 plotStateTransition(
@@ -453,7 +371,9 @@ plotStateTransition(
        sample_size,
        line_plot,
        cellid_column,
-       time_column)
+       time_column,
+       v_intercept,
+       time_periods)
 ```
 
 
@@ -466,6 +386,10 @@ plotStateTransition(
 * __`cellid_column`__ - A character string specifying the column name of the Cell ID.
 
 * __`time_column`__ - A character string specifying the column name of the time stamp.
+
+* __`v_intercept`__ - A POSIXct/numeric object to draw a vertical line that denotes the 'End of Training' timestamp.
+
+* __`time_periods`__ - A list of vectors to draw the gray bars across the entire timeline. The bars represent the time periods with start and end timestamps.
 
 
 ```{r state_plot1, results='asis', warning=FALSE,message=FALSE}
@@ -487,13 +411,14 @@ plotStateTransition(df = temporal_data,
 
 # 8. Transition probability tables
 
+The second novel function - `getTransitionProbability` which is used to calculate the transition probability of the current states to the next states including or excluding self-states. Below is the function signature and its arguments.
 
 ```{r getTransitionProbability,eval=FALSE}
 getTransitionProbability(
         df, 
         cellid_column, 
         time_column)
-
+        type = "with_self_state"
 ```
 
 
@@ -503,19 +428,12 @@ getTransitionProbability(
 
 * __`time_column`__ - A character string specifying the column name of the time stamp.
 
+* __`type`__ - A character string specifying how transition probability matrix should be calculated. Accepted values are 'with_self_state' or 'without_self_state'. Default value is 'with_self_state'.
 
 
 ```{r, message=FALSE}
-trans_table <- getTransitionProbability(df = temporal_data, 
-                                        cellid_column = "Cell.ID", 
-                                        time_column = "t")
-```
-
-*NOTE: The output is stored as a nested list. For the purpose of demo, here we are displaying it as data frame with the first 10 rows.*
-
-```{r}
-combined_df <- do.call(rbind, trans_table)
-displayTable(head(combined_df,10))
+trans_table <- getTransitionProbability(df = temporal_data,cellid_column = "Cell.ID",time_column = "t")
+displayTable(trans_table, limit = 325)
 ```
 
 
@@ -527,10 +445,13 @@ displayTable(head(combined_df,10))
 
 - *Transition_Probability*: The probability calculated from the `Relative_Frequency`. Individual `Relative_Frequency` divided by the total of `Relative_Frequency` for a particular `Current_State`.
 
+- *Cumulative_Probability*: The sum of the Transition_Probability for all the Next_State for a particular Current_State.
+
 
 # 9. Reconciling transition probability using markovchain package
 
-Reconciling the transition probability of the current states to the next states manually and markovchain function considering self states and without self states.
+The third novel function - `reconcileTransitionProbability` which is used to reconcile the transition probability of the current states to the next states manually and markovchain function considering self states and without self states. Below is the function signature and its arguments.
+
 ```{r reconcileTransitionProbability, eval=FALSE}
 reconcileTransitionProbability(
                 df, 
@@ -582,6 +503,7 @@ reconcile_plots[[3]]
 
 
 **Reconciliation table of transition probability without self-state**
+
 ```{r hmap4, fig.align = "center", fig.show ='hold', message=FALSE, out.width='70%', results='asis', warning=FALSE}
 displayTable(reconcile_plots[[4]], limit = 217)
 ```
@@ -593,6 +515,8 @@ displayTable(reconcile_plots[[4]], limit = 217)
 
 
 # 10.  Animated Flowmaps
+
+The fourth novel function - `plotAnimatedFlowmap` which is used to create flowmaps and animations for the highest transition probability including and excluding self-states. Below is the function signature and its arguments.
 
 ```{r plotAnimatedFlowmap, eval=FALSE}
 plotAnimatedFlowmap(
@@ -607,7 +531,6 @@ plotAnimatedFlowmap(
          state_duration,
          cellid_column, 
          time_column )
-
 ```
 
 
@@ -651,7 +574,7 @@ knitr::opts_chunk$set(
 flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
                                      transition_probability_df =trans_table,
                                      df = temporal_data, 
-                                     animation = 'All' , flow_map = 'All',
+                                     animation = "All", flow_map = 'All',
                                      fps_time = 30, fps_state =  5, 
                                      time_duration = 180,state_duration = 20,
                                      cellid_column = "Cell.ID", time_column = "t")
