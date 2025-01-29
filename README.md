@@ -122,7 +122,7 @@ Following are the links to the vignettes for the HVT package:
 ## <span class="header-section-number">2.7</span> Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT
 
 
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html" target="_blank">**Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT (Created at: 12-Nov-2024):**</a> Contains enhancements to the `trainHVT` function with advanced dimensionality reduction techniques such as t-SNE and UMAP, and includes a table of evaluation metrics to improve analysis, visualization, and interpretability.
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html" target="_blank">**Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT (Created at: 12-Nov-2024):**</a> Contains enhancements to the `trainHVT` function with advanced dimensionality reduction techniques such as t-SNE and UMAP, and includes a table of evaluation metrics to improve analysis, visualization, and interpretability.
 
 </div>
 
