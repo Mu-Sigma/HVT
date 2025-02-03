@@ -1,6 +1,6 @@
 ---
 title: "Implementation of t-SNE and UMAP in trainHVT function"
-author: "Chepuri Gopi Krishna, Siddharth Shroya, Bidesh Ghosh, Alimpan Dey"
+author: "Chepuri Gopi Krishna, Siddharth Shorya, Bidesh Ghosh, Alimpan Dey"
 date: "Created Date: 2024-08-14  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
@@ -109,7 +109,7 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 
 5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
 
-6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling ex-ante predictions for time-series data.
 
 <span style="font-size: 22px;">**What's New?**</span>
 

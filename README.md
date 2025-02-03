@@ -3,20 +3,13 @@
 #### Zubin Dowlaty
 
 ##### Created Date: 2018-11-15
-##### Modified Date: 2025-01-28
+##### Modified Date: 2025-02-03
 
 
 <div id="TOC">
 
 *   [<span class="toc-section-number">1.</span> Abstract](#abstract)
 *   [<span class="toc-section-number">2.</span> Vignettes](#vignettes)
-    *   [<span class="toc-section-number">2.1</span> HVT Vignette](#hvt-vignette)
-    *   [<span class="toc-section-number">2.2</span> HVT Model Diagnostics Vignette](#hvt-model-diagnostics-vignette)
-    *   [<span class="toc-section-number">2.3</span> HVT Scoring Cells with Layers using scoreLayeredHVT ](#hvt-scoring-cells-with-layers-using-scoreLayeredHVT)
-    *   [<span class="toc-section-number">2.4</span> Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT](#temporal-analysis-and-visualization-leveraging-time-series-capabilities-in-hvt)
-    *   [<span class="toc-section-number">2.5</span> Visualizing LLM Embeddings using HVT (Hierarchical Voronoi Tessellation)](#visualizing-llm-embeddings-using-hvt-hierarchical-voronoi-tessellation)
-    *   [<span class="toc-section-number">2.6</span> Implementation of t-SNE and UMAP in trainHVT function](#implementation-of-t-sne-and-umap-to-trainhvt-function)
-    *   [<span class="toc-section-number">2.7</span> Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT](#dynamic-forecasting-of-macroeconomic-time-series-dataset-using-hvt)
 *   [<span class="toc-section-number">3.</span> Version History](#version-history)
     *   [<span class="toc-section-number">3.5</span> HVT (v25.1.1) | What’s New?](#hvt-(v25.1.1)-whats-new)
     *   [<span class="toc-section-number">3.4</span> HVT (v24.9.1)](#hvt-(v24.9.1))
@@ -44,7 +37,7 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 
 5. **Temporal Analysis and Visualization**: A Collection of new functions that leverages the capacity of the HVT package by analyzing time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
 
-6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling ex-ante predictions for time-series data.
 
 The HVT package allows creation of visually stunning tessellations, showcasing the power of topology preserving maps. Below is an image depicting a captivating tessellation of a torus, see
 <a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html" target="_blank">**vignette:**</a> for more details.
@@ -64,67 +57,15 @@ The HVT package allows creation of visually stunning tessellations, showcasing t
 
 Following are the links to the vignettes for the HVT package:
 
-<div id="hvt-vignette" class="section level2" number="2.1">
-
-## <span class="header-section-number">2.1</span> HVT Vignette
-
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html" target="_blank">**HVT Vignette (Created at: 17-May-2018):**</a> Contains descriptions of the functions used for vector quantization and construction of hierarchical voronoi tessellations for data analysis.
-
-
-</div>
-
-<div id="hvt-model-diagnostics-vignette" class="section level2" number="2.2">
-
-## <span class="header-section-number">2.2</span> HVT Model Diagnostics Vignette
-
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html" target="_blank">**HVT Model Diagnostics Vignette (Created at: 17-May-2018):**</a> Contains descriptions of functions used to perform model diagnostics and validation for HVT model.
-
-</div>
-
-<div id="hvt-scoring-cells-with-layers-using-scoreLayeredHVT" class="section level2" number="2.3">
-
-## <span class="header-section-number">2.3</span> HVT Scoring Cells with Layers using scoreLayeredHVT
-
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html" target="_blank">**HVT Scoring Cells with Layers using scoreLayeredHVT (Created at: 16-May-2023):**</a> Contains descriptions of the functions used for scoring cells with layers based on a sequence of maps using scoreLayeredHVT.
-
-</div>
-
-<div id="temporal-analysis-and-visualization-leveraging-time-series-capabilities-in-hvt" class="section level2" number="2.4">
-
-## <span class="header-section-number">2.4</span> Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT
-
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_Temporal_Analysis.html" target="_blank">**Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT (Created at: 26-Oct-2023):**</a> Contains descriptions of the functions used for analyzing time series data and its flow maps.
-
-</div>
-
-
-<div id="visualizing-llm-embeddings-using-hvt-hierarchical-voronoi-tessellation" class="section level2" number="2.5">
-
-## <span class="header-section-number">2.5</span> Visualizing LLM Embeddings using HVT (Hierarchical Voronoi Tessellation)
-
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/LLM_Embeddings_in_HVT.html" target="_blank">**Visualizing LLM Embeddings using HVT  (Created at: 16-May-2024):**</a> Contains the implementation and analysis of hierarchical clustering using the `clustHVT` function to evaluate and visualize token embeddings generated by OpenAI.
-</div>
-
-<div id="#implementation-of-t-sne-and-umap-to-trainhvt-function" class="section level2" number="2.6">
-
-
-## <span class="header-section-number">2.6</span> Implementation of t-SNE and UMAP to trainHVT function
-
-
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html" target="_blank">**Implementation of t-SNE and UMAP in trainHVT function (Created at: 14-Aug-2024):**</a> Contains enhancements to the `trainHVT` function with advanced dimensionality reduction techniques such as t-SNE and UMAP, and includes a table of evaluation metrics to improve analysis, visualization, and interpretability.
-
-</div>
-
-
-<div id="#dynamic-forecasting-of-macroeconomic-time-series-dataset-using-hvt" class="section level2" number="2.7">
-
-
-## <span class="header-section-number">2.7</span> Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT
-
-
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html" target="_blank">**Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT (Created at: 12-Nov-2024):**</a> Contains enhancements to the `trainHVT` function with advanced dimensionality reduction techniques such as t-SNE and UMAP, and includes a table of evaluation metrics to improve analysis, visualization, and interpretability.
-
-</div>
+| S.No | Vignette Title                                                                                                                                              | Description                                                                                                                                                                                                   |
+|------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1    | <a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html' target='_blank'>HVT Vignette</a>                                 | Contains descriptions of the functions used for vector quantization and construction of Hierarchical Voronoi Tessellations for data analysis.                                                                |
+| 2    | <a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html' target='_blank'>HVT Model Diagnostics Vignette</a> | Contains descriptions of functions used to perform model diagnostics and validation for the HVT model.                                                                                                       |
+| 3    | <a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html' target='_blank'>HVT Scoring Cells with Layers using scoreLayeredHVT</a> | Contains descriptions of the functions used for scoring cells with layers based on a sequence of maps using scoreLayeredHVT.                                                                                 |
+| 4    | <a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_Temporal_Analysis.html' target='_blank'>Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT</a> | Contains descriptions of the functions used for analyzing time series data and its flow maps.                                                                                                                |
+| 5    | <a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/LLM_Embeddings_in_HVT.html' target='_blank'>Visualizing LLM Embeddings using HVT</a> | Contains the implementation and analysis of hierarchical clustering using the `clustHVT` function to evaluate and visualize token embeddings generated by OpenAI.                                             |
+| 6    | <a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html' target='_blank'>Implementation of t-SNE and UMAP in trainHVT function</a> | Contains enhancements to the `trainHVT` function with advanced dimensionality reduction techniques such as  t-SNE and UMAP, and includes a table of evaluation metrics to improve analysis, visualization, and interpretability. |
+| 7    | <a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html' target='_blank'>Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT</a> | Contains enhancements to the HVT package for dynamic forecasting using Monte Carlo Simulations of Markov Chain (MSM) on macroeconomic time series dataset.                                                   |
 
 
 <div id="version-history" class="section level1" number="3">
