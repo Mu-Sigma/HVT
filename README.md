@@ -42,10 +42,10 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 The HVT package allows creation of visually stunning tessellations, showcasing the power of topology preserving maps. Below is an image depicting a captivating tessellation of a torus, see
 <a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html" target="_blank">**vignette:**</a> for more details.
 
-<div style="text-align: center;">
+<p align="center">
   <img src="https://raw.githubusercontent.com/Mu-Sigma/HVT/master/vignettes/pngs/torus2.png" width="642px" height="440px" />
-  <p class="caption">Figure 1: The Voronoi tessellation for layer 1 and number of cells 500 with the heat map overlaid for variable z.</p>
-</div>
+</p>
+<p align="center"><em>Figure 1: The Voronoi tessellation for layer 1 and number of cells 500 with the heat map overlaid for variable z.</em></p>
 
 
 
@@ -187,9 +187,10 @@ The `scoreLayeredHVT` function uses these three maps to score the test datapoint
 
 Let us try to understand the steps with the help of the diagram below
 
-<img src="https://raw.githubusercontent.com/Mu-Sigma/HVT/master/vignettes/pngs/scoreLayeredHVT_function.png" width="672px" height="480px" />
-<p class="caption">
-Figure 2: Data Segregation for scoring based on a sequence of maps using scoreLayeredHVT()</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Mu-Sigma/HVT/master/vignettes/pngs/scoreLayeredHVT_function.png" width="672px" height="480px" />
+</p>
+<p align="center"><em>Figure 2: Data Segregation for scoring based on a sequence of maps using scoreLayeredHVT()</em></p>
 
 
 
