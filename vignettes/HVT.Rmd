@@ -98,7 +98,7 @@ library(knitr)
 library(kableExtra)
 # Create a data frame with hyperlinks
 vignette_data <- data.frame(
-  Version_Number = c("v18.05.17", "v18.05.17", "v23.05.16", "v23.10.26", "v24.05.16","v24.08.14", "v24.11.12"),
+  Version_Number = c("v18.05.17", "v18.05.17", "v23.05.16", "v23.10.26", "v24.05.16","v24.08.14", "v25.01.01"),
   Vignette_Title = c(
   "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html' target='_blank'>HVT Vignette</a>",
   "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html' target='_blank'>HVT Model Diagnostics Vignette</a>",
@@ -122,7 +122,7 @@ vignette_data <- data.frame(
  
 # Generate the table
 kable(vignette_data, format = "html", 
-      col.names = c("Version Number", "Vignette Title", "Description"), 
+      col.names = c("Version", "Vignette Title", "Description"), 
       align = "l", escape = FALSE) %>% 
   kable_styling(full_width = TRUE) %>% column_spec(1, width = "15%") 
 ```
