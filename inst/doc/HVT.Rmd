@@ -95,9 +95,10 @@ Following are the links to the vignettes for the HVT package:
 
 ```{r,eval=TRUE, echo=FALSE}
 library(knitr)
+library(kableExtra)
 # Create a data frame with hyperlinks
 vignette_data <- data.frame(
-  S.No = 1:7,
+  Version_Number = c("v18.05.17", "v18.05.17", "v23.05.16", "v23.10.26", "v24.05.16","v24.08.14", "v25.01.01"),
   Vignette_Title = c(
   "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html' target='_blank'>HVT Vignette</a>",
   "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html' target='_blank'>HVT Model Diagnostics Vignette</a>",
@@ -120,7 +121,10 @@ vignette_data <- data.frame(
 )
  
 # Generate the table
-kable(vignette_data, format = "pipe", col.names = c("S.No", "Vignette Title", "Description"), align = "l")
+kable(vignette_data, format = "html", 
+      col.names = c("Version", "Vignette Title", "Description"), 
+      align = "l", escape = FALSE) %>% 
+  kable_styling(full_width = TRUE) %>% column_spec(1, width = "15%") 
 ```
 
 
@@ -128,7 +132,7 @@ kable(vignette_data, format = "pipe", col.names = c("S.No", "Vignette Title", "D
 # 3. Version History
 
 
-## HVT (v25.1.1) | What's New? {-}
+## HVT (v25.2.1) | What's New? {-}
 
 27th January, 2025
 
@@ -238,7 +242,7 @@ This version of the HVT package offers features for both training an HVT model a
 
 
 
-# 4. Installation of HVT (v25.1.1)
+# 4. Installation of HVT (v25.2.1)
 
 **CRAN Installation**
 
@@ -250,8 +254,9 @@ install.packages("HVT")
 
 ``` r
 library(devtools)
-##Extend the timeout duration for initial installation
+##Increase the timeout duration for the initial installation process.
 options(timeout = 1200)
+
 devtools::install_github(repo = "Mu-Sigma/HVT")
 ```
 
