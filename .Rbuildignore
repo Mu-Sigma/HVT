@@ -13,7 +13,6 @@ NULL
 ^LICENSE
 .*.tar.gz
 ^Meta$
-^vignettes/pngs
 ^vignettes/sample_dataset
 ^vignettes/twitter_data
 ^vignettes/HVT_model_diagnostics_vignette.html
@@ -28,3 +27,5 @@ NULL
 ^vignettes/LLM_Embeddings_in_HVT.Rmd
 ^vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html
 ^vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.Rmd
+^vignettes/Dynamic_Forecasting_macroeconomic_data.html
+^vignettes/Dynamic_Forecasting_macroeconomic_data.Rmd
