@@ -77,7 +77,7 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 
 5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
 
-6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling ex-ante predictions for time-series data.
 
 
 # 2. Data Compression
