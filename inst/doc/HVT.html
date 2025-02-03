@@ -28,6 +28,230 @@ document.addEventListener('DOMContentLoaded', function(e) {
   }
 });
 </script>
+<script>$(document).ready(function(){
+    if (typeof $('[data-toggle="tooltip"]').tooltip === 'function') {
+        $('[data-toggle="tooltip"]').tooltip();
+    }
+    if ($('[data-toggle="popover"]').popover === 'function') {
+        $('[data-toggle="popover"]').popover();
+    }
+});
+</script>
+<style type="text/css">
+.lightable-minimal {
+border-collapse: separate;
+border-spacing: 16px 1px;
+width: 100%;
+margin-bottom: 10px;
+}
+.lightable-minimal td {
+margin-left: 5px;
+margin-right: 5px;
+}
+.lightable-minimal th {
+margin-left: 5px;
+margin-right: 5px;
+}
+.lightable-minimal thead tr:last-child th {
+border-bottom: 2px solid #00000050;
+empty-cells: hide;
+}
+.lightable-minimal tbody tr:first-child td {
+padding-top: 0.5em;
+}
+.lightable-minimal.lightable-hover tbody tr:hover {
+background-color: #f5f5f5;
+}
+.lightable-minimal.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-classic {
+border-top: 0.16em solid #111111;
+border-bottom: 0.16em solid #111111;
+width: 100%;
+margin-bottom: 10px;
+margin: 10px 5px;
+}
+.lightable-classic tfoot tr td {
+border: 0;
+}
+.lightable-classic tfoot tr:first-child td {
+border-top: 0.14em solid #111111;
+}
+.lightable-classic caption {
+color: #222222;
+}
+.lightable-classic td {
+padding-left: 5px;
+padding-right: 5px;
+color: #222222;
+}
+.lightable-classic th {
+padding-left: 5px;
+padding-right: 5px;
+font-weight: normal;
+color: #222222;
+}
+.lightable-classic thead tr:last-child th {
+border-bottom: 0.10em solid #111111;
+}
+.lightable-classic.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-classic.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-classic-2 {
+border-top: 3px double #111111;
+border-bottom: 3px double #111111;
+width: 100%;
+margin-bottom: 10px;
+}
+.lightable-classic-2 tfoot tr td {
+border: 0;
+}
+.lightable-classic-2 tfoot tr:first-child td {
+border-top: 3px double #111111;
+}
+.lightable-classic-2 caption {
+color: #222222;
+}
+.lightable-classic-2 td {
+padding-left: 5px;
+padding-right: 5px;
+color: #222222;
+}
+.lightable-classic-2 th {
+padding-left: 5px;
+padding-right: 5px;
+font-weight: normal;
+color: #222222;
+}
+.lightable-classic-2 tbody tr:last-child td {
+border-bottom: 3px double #111111;
+}
+.lightable-classic-2 thead tr:last-child th {
+border-bottom: 1px solid #111111;
+}
+.lightable-classic-2.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-classic-2.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-material {
+min-width: 100%;
+white-space: nowrap;
+table-layout: fixed;
+font-family: Roboto, sans-serif;
+border: 1px solid #EEE;
+border-collapse: collapse;
+margin-bottom: 10px;
+}
+.lightable-material tfoot tr td {
+border: 0;
+}
+.lightable-material tfoot tr:first-child td {
+border-top: 1px solid #EEE;
+}
+.lightable-material th {
+height: 56px;
+padding-left: 16px;
+padding-right: 16px;
+}
+.lightable-material td {
+height: 52px;
+padding-left: 16px;
+padding-right: 16px;
+border-top: 1px solid #eeeeee;
+}
+.lightable-material.lightable-hover tbody tr:hover {
+background-color: #f5f5f5;
+}
+.lightable-material.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-material.lightable-striped tbody td {
+border: 0;
+}
+.lightable-material.lightable-striped thead tr:last-child th {
+border-bottom: 1px solid #ddd;
+}
+.lightable-material-dark {
+min-width: 100%;
+white-space: nowrap;
+table-layout: fixed;
+font-family: Roboto, sans-serif;
+border: 1px solid #FFFFFF12;
+border-collapse: collapse;
+margin-bottom: 10px;
+background-color: #363640;
+}
+.lightable-material-dark tfoot tr td {
+border: 0;
+}
+.lightable-material-dark tfoot tr:first-child td {
+border-top: 1px solid #FFFFFF12;
+}
+.lightable-material-dark th {
+height: 56px;
+padding-left: 16px;
+padding-right: 16px;
+color: #FFFFFF60;
+}
+.lightable-material-dark td {
+height: 52px;
+padding-left: 16px;
+padding-right: 16px;
+color: #FFFFFF;
+border-top: 1px solid #FFFFFF12;
+}
+.lightable-material-dark.lightable-hover tbody tr:hover {
+background-color: #FFFFFF12;
+}
+.lightable-material-dark.lightable-striped tbody tr:nth-child(even) {
+background-color: #FFFFFF12;
+}
+.lightable-material-dark.lightable-striped tbody td {
+border: 0;
+}
+.lightable-material-dark.lightable-striped thead tr:last-child th {
+border-bottom: 1px solid #FFFFFF12;
+}
+.lightable-paper {
+width: 100%;
+margin-bottom: 10px;
+color: #444;
+}
+.lightable-paper tfoot tr td {
+border: 0;
+}
+.lightable-paper tfoot tr:first-child td {
+border-top: 1px solid #00000020;
+}
+.lightable-paper thead tr:last-child th {
+color: #666;
+vertical-align: bottom;
+border-bottom: 1px solid #00000020;
+line-height: 1.15em;
+padding: 10px 5px;
+}
+.lightable-paper td {
+vertical-align: middle;
+border-bottom: 1px solid #00000010;
+line-height: 1.15em;
+padding: 7px 5px;
+}
+.lightable-paper.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-paper.lightable-striped tbody tr:nth-child(even) {
+background-color: #00000008;
+}
+.lightable-paper.lightable-striped tbody td {
+border: 0;
+}
+</style>
 
 <style type="text/css">
 code{white-space: pre-wrap;}
@@ -449,75 +673,116 @@ Figure 1: Heatmap Visualization of a Torus with 500 Cells
 <div id="vignettes" class="section level1">
 <h1>2. Vignettes</h1>
 <p>Following are the links to the vignettes for the HVT package:</p>
-<table>
-<colgroup>
-<col width="1%" />
-<col width="47%" />
-<col width="51%" />
-</colgroup>
+<table class="table" style="margin-left: auto; margin-right: auto;">
 <thead>
-<tr class="header">
-<th align="left">S.No</th>
-<th align="left">Vignette Title</th>
-<th align="left">Description</th>
+<tr>
+<th style="text-align:left;">
+Version Number
+</th>
+<th style="text-align:left;">
+Vignette Title
+</th>
+<th style="text-align:left;">
+Description
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">1</td>
-<td align="left"><a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html" target="_blank">HVT
-Vignette</a></td>
-<td align="left">Contains descriptions of the functions used for vector
-quantization and construction of Hierarchical Voronoi Tessellations for
-data analysis.</td>
+<tr>
+<td style="text-align:left;width: 15%; ">
+v18.05.17
+</td>
+<td style="text-align:left;">
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html" target="_blank">HVT
+Vignette</a>
+</td>
+<td style="text-align:left;">
+Contains descriptions of the functions used for vector quantization and
+construction of Hierarchical Voronoi Tessellations for data analysis.
+</td>
 </tr>
-<tr class="even">
-<td align="left">2</td>
-<td align="left"><a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html" target="_blank">HVT
-Model Diagnostics Vignette</a></td>
-<td align="left">Contains descriptions of functions used to perform
-model diagnostics and validation for the HVT model.</td>
+<tr>
+<td style="text-align:left;width: 15%; ">
+v18.05.17
+</td>
+<td style="text-align:left;">
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html" target="_blank">HVT
+Model Diagnostics Vignette</a>
+</td>
+<td style="text-align:left;">
+Contains descriptions of functions used to perform model diagnostics and
+validation for the HVT model.
+</td>
 </tr>
-<tr class="odd">
-<td align="left">3</td>
-<td align="left"><a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html" target="_blank">HVT
-Scoring Cells with Layers using scoreLayeredHVT</a></td>
-<td align="left">Contains descriptions of the functions used for scoring
-cells with layers based on a sequence of maps using
-scoreLayeredHVT.</td>
+<tr>
+<td style="text-align:left;width: 15%; ">
+v23.05.16
+</td>
+<td style="text-align:left;">
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html" target="_blank">HVT
+Scoring Cells with Layers using scoreLayeredHVT</a>
+</td>
+<td style="text-align:left;">
+Contains descriptions of the functions used for scoring cells with
+layers based on a sequence of maps using scoreLayeredHVT.
+</td>
 </tr>
-<tr class="even">
-<td align="left">4</td>
-<td align="left"><a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_Temporal_Analysis.html" target="_blank">Temporal
+<tr>
+<td style="text-align:left;width: 15%; ">
+v23.10.26
+</td>
+<td style="text-align:left;">
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_Temporal_Analysis.html" target="_blank">Temporal
 Analysis and Visualization: Leveraging Time Series Capabilities in
-HVT</a></td>
-<td align="left">Contains descriptions of the functions used for
-analyzing time series data and its flow maps.</td>
+HVT</a>
+</td>
+<td style="text-align:left;">
+Contains descriptions of the functions used for analyzing time series
+data and its flow maps.
+</td>
 </tr>
-<tr class="odd">
-<td align="left">5</td>
-<td align="left"><a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/LLM_Embeddings_in_HVT.html" target="_blank">Visualizing
-LLM Embeddings using HVT</a></td>
-<td align="left">Contains the implementation and analysis of
-hierarchical clustering using the <code>clustHVT</code> function to
-evaluate and visualize token embeddings generated by OpenAI.</td>
+<tr>
+<td style="text-align:left;width: 15%; ">
+v24.05.16
+</td>
+<td style="text-align:left;">
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/LLM_Embeddings_in_HVT.html" target="_blank">Visualizing
+LLM Embeddings using HVT</a>
+</td>
+<td style="text-align:left;">
+Contains the implementation and analysis of hierarchical clustering
+using the <code>clustHVT</code> function to evaluate and visualize token
+embeddings generated by OpenAI.
+</td>
 </tr>
-<tr class="even">
-<td align="left">6</td>
-<td align="left"><a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html" target="_blank">Implementation
-of t-SNE and UMAP in trainHVT function</a></td>
-<td align="left">Contains enhancements to the <code>trainHVT</code>
-function with advanced dimensionality reduction techniques such as t-SNE
-and UMAP, and includes a table of evaluation metrics to improve
-analysis, visualization, and interpretability.</td>
+<tr>
+<td style="text-align:left;width: 15%; ">
+v24.08.14
+</td>
+<td style="text-align:left;">
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html" target="_blank">Implementation
+of t-SNE and UMAP in trainHVT function</a>
+</td>
+<td style="text-align:left;">
+Contains enhancements to the <code>trainHVT</code> function with
+advanced dimensionality reduction techniques such as t-SNE and UMAP, and
+includes a table of evaluation metrics to improve analysis,
+visualization, and interpretability.
+</td>
 </tr>
-<tr class="odd">
-<td align="left">7</td>
-<td align="left"><a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html" target="_blank">Dynamic
-Forecasting of Macroeconomic Time Series Dataset using HVT</a></td>
-<td align="left">Contains enhancements to the HVT package for dynamic
-forecasting using Monte Carlo Simulations of Markov Chain (MSM) on
-macroeconomic time series dataset.</td>
+<tr>
+<td style="text-align:left;width: 15%; ">
+v24.11.12
+</td>
+<td style="text-align:left;">
+<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html" target="_blank">Dynamic
+Forecasting of Macroeconomic Time Series Dataset using HVT</a>
+</td>
+<td style="text-align:left;">
+Contains enhancements to the HVT package for dynamic forecasting using
+Monte Carlo Simulations of Markov Chain (MSM) on macroeconomic time
+series dataset.
+</td>
 </tr>
 </tbody>
 </table>
@@ -723,9 +988,10 @@ containing ‘data without novelty’.</p></li>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;HVT&quot;</span>)</span></code></pre></div>
 <p><strong>Git Hub Installation</strong></p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(devtools)</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="do">##Extend the timeout duration for initial installation</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="do">##Increase the timeout duration for the initial installation process.</span></span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">options</span>(<span class="at">timeout =</span> <span class="dv">1200</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="at">repo =</span> <span class="st">&quot;Mu-Sigma/HVT&quot;</span>)</span></code></pre></div>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="at">repo =</span> <span class="st">&quot;Mu-Sigma/HVT&quot;</span>)</span></code></pre></div>
 </div>
 
 
