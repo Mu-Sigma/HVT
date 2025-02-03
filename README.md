@@ -189,11 +189,12 @@ The `scoreLayeredHVT` function uses these three maps to score the test datapoint
 
 Let us try to understand the steps with the help of the diagram below
 
-<div style="text-align: center;">
 <p align="center">
   <img src="https://raw.githubusercontent.com/Mu-Sigma/HVT/master/vignettes/pngs/scoreLayeredHVT_function.png" width="672px" height="480px" />
 </p>
 <p class="caption">
+<div style="text-align: center;">
+
 Figure 2: Data Segregation for scoring based on a sequence of maps using scoreLayeredHVT()</p>
 </div>
 
