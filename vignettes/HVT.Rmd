@@ -1,6 +1,6 @@
 ---
 title: "HVT: Collection of functions used to build hierarchical topology preserving maps"
-author: "Zubin Dowlaty, Shubhra Prakash, Sangeet Moy Das, Shantanu Vaidya, Praditi Shah, Srinivasan Sudarsanam, Somya Shambhawi, Chepuri Gopi Krishna, Siddharth Shorya,  Pon Anureka Seenivasan, Vishwavani, Bidesh Ghosh, Alimpan Dey"
+author: "Zubin Dowlaty, Shubhra Prakash, Sangeet Moy Das, Shantanu Vaidya, Praditi Shah, Srinivasan Sudarsanam, Somya Shambhawi, Chepuri Gopi Krishna, Siddharth Shorya,  PonAnureka Seenivasan, Vishwavani, Bidesh Ghosh, Alimpan Dey"
 date: "Created Date: 2018-05-17  <br> Modified Date: `r Sys.Date()`"
 fig.height: 4
 fig.width: 15
@@ -61,7 +61,8 @@ knitr::opts_chunk$set(
   fig.height = 5,
   fig.align = "center",
   fig.retina = 1,
-  dpi = 150
+  dpi = 150,
+  tangle = TRUE
 )
 ```
 

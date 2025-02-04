@@ -7,8 +7,6 @@ HVT/
 ..Rcheck
 .git
 *.tar.gz
-next_state_animation.gif
-time_animation.gif
 /doc/
 /Meta/
 *.Rcheck

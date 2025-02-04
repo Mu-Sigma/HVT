@@ -61,7 +61,8 @@ knitr::opts_chunk$set(
   fig.height = 5,
   fig.align = "center",
   fig.retina = 1,
-  dpi = 150
+  dpi = 150,
+  tangle = TRUE
 )
 ```
 
