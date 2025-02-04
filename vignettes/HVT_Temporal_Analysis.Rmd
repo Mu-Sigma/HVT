@@ -134,12 +134,6 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
-```{r, include=FALSE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
 
 # 4. Data Understanding
 

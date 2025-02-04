@@ -240,13 +240,6 @@ if (length(new.packages))
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
-```{r, include=FALSE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
-
 # 7. Example I: HVT with the Torus dataset
 
 **In this section we explore the capacity of the package to visualize multidimensional data by projecting them to two dimensions using Sammon's projection and further used for Scoring.**

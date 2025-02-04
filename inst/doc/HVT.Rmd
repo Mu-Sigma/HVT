@@ -136,17 +136,19 @@ kable(vignette_data, format = "html",
 ## HVT (v25.2.1) | What's New? {-}
 
 27th January, 2025
+In this version of the HVT package, the following new features and vignette have been introduced:
 
-In this version of the HVT package, the following new function and vignette have been introduced:
+**Features**
 
-**Function**
+1. **Dynamic Forecasting of a Time Series Dataset**: This update introduces a new function called `msm` Monte Carlo Simulations of Markov Chain for dynamic forecasting of states in time series dataset. It supports both ex-post and ex-ante forecasting, offering valuable insights into future trends while resolving state transition challenges through clustering and nearest-neighbor methods to enhance simulation accuracy.
 
-1. **Dynamic Forecasting of a Time Series Dataset**: This update introduces a new function for dynamic forecasting of states using time series dataset, called Monte Carlo Simulations of Markov Chain - `msm`. It supports both ex-post and ex-ante forecasting, offering valuable insights into future trends while resolving state transition challenges through clustering and nearest-neighbor methods to enhance simulation accuracy.
+2. **Z score Plots**: This update introduces a new function called `plotZscore` that generates Z-score plots corresponding to the HVT cells for the given data, offering a visual representation of data distribution and highlighting potential outliers.
 
 
 **Vignette** 
 
 1. **Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT**: This vignette illustrates the practical use of the new `msm` function on a macroeconomic dataset with 10 variables. It covers all steps, including data preparation, model training, scoring, and forecasting, while addressing challenges related to state transitions and evaluating performance using Mean Absolute Error (MAE).
+
 
 
 ## HVT (v24.9.1) 
