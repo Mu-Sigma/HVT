@@ -59,7 +59,7 @@ dataset <- data.frame(t = as.numeric(time(EuStockMarkets)),
                      CAC = EuStockMarkets[, "CAC"],
                      FTSE = EuStockMarkets[, "FTSE"])
 rownames(EuStockMarkets) <- dataset$t
-hvt.results<- trainHVT(dataset[-1],n_cells = 60, depth = 1, quant.err = 0.1,
+hvt.results<- trainHVT(dataset[-1],n_cells = 30, depth = 1, quant.err = 0.1,
                       distance_metric = "L1_Norm", error_metric = "max",
                       normalize = TRUE,quant_method = "kmeans")
 scoring <- scoreHVT(dataset, hvt.results, analysis.plots = TRUE, names.column = dataset[,1])
@@ -68,7 +68,7 @@ hclust_data_1 <- centroid_data[,2:3]
 clust.results <- clustHVT(data = hclust_data_1, 
                          trainHVT_results = hvt.results,
                          scoreHVT_results = scoring, 
-                         clusters_k = 'challenger', indices = 'hartigan')
+                         clusters_k = 'champion', indices = 'hartigan')
 }
 \author{
 Vishwavani <vishwavani@mu-sigma.com>

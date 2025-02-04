@@ -33,7 +33,6 @@
 #' @author Vishwavani <vishwavani@@mu-sigma.com>
 #' @keywords Timeseries_Analysis
 #' @include msm_plots.R
-#' @importFrom stats mean
 #' @examples 
 #' dataset <- data.frame(t = as.numeric(time(EuStockMarkets)),
 #' DAX = EuStockMarkets[, "DAX"],
