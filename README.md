@@ -11,12 +11,12 @@
 *   [<span class="toc-section-number">1.</span> Abstract](#abstract)
 *   [<span class="toc-section-number">2.</span> Vignettes](#vignettes)
 *   [<span class="toc-section-number">3.</span> Version History](#version-history)
-    *   [<span class="toc-section-number">3.5</span> HVT (v25.2.1) | What’s New?](#hvt-(v25.2.1)-whats-new)
+    *   [<span class="toc-section-number">3.5</span> HVT (v25.2.2) | What’s New?](#hvt-(v25.2.2)-whats-new)
     *   [<span class="toc-section-number">3.4</span> HVT (v24.9.1)](#hvt-(v24.9.1))
     *   [<span class="toc-section-number">3.3</span> HVT (v24.5.2)](#hvt-(v24.5.2))
     *   [<span class="toc-section-number">3.2</span> HVT (v23.11.02)](#hvt-(v23.11.02))
     *   [<span class="toc-section-number">3.1</span> HVT (v22.12.06)](#hvt-(v22.12.06))
-*   [<span class="toc-section-number">4.</span> Installation of HVT (v25.2.1)](#installation-of-hvt-(v25.2.1))
+*   [<span class="toc-section-number">4.</span> Installation of HVT (v25.2.2)](#installation-of-hvt-(v25.2.2))
 
 
 </div>
@@ -71,9 +71,9 @@ Following are the links to the vignettes for the HVT package:
 
 # <span class="header-section-number">3.</span> Version History 
 
-<div id="hvt-(v25.2.1)-whats-new" class="section level2" number="3.1">
+<div id="hvt-(v25.2.2)-whats-new" class="section level2" number="3.1">
 
-## 3.5 HVT (v25.2.1) 
+## 3.5 HVT (v25.2.2) 
 
 27th January, 2025
 
@@ -211,9 +211,9 @@ This version of HVT package offers features for both training an HVT model and e
 </div>
 
 
-<div id="installation-of-hvt-(v25.2.1)" class="section level2" number="4">
+<div id="installation-of-hvt-(v25.2.2)" class="section level2" number="4">
 
-# <span class="header-section-number">4.</span> Installation of HVT (v25.2.1)
+# <span class="header-section-number">4.</span> Installation of HVT (v25.2.2)
 
 <div class="sourceCode" id="cb1">
 

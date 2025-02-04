@@ -1,5 +1,5 @@
 # Re-submission
-This is a re-submission. In this version we have fixed issues with hyperlinks on vignette.
+This is a re-submission. In this version we have added description to a new function in the Intro document.
 
 # R CMD check results
 There were no ERRORs or WARNINGs. There was one note related to the re-submission in less than a week.
