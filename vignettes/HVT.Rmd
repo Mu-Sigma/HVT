@@ -62,7 +62,8 @@ knitr::opts_chunk$set(
   fig.align = "center",
   fig.retina = 1,
   dpi = 150,
-  tangle = TRUE
+  tangle = TRUE,
+  eval=TRUE
 )
 ```
 
@@ -131,15 +132,17 @@ kable(vignette_data, format = "html",
 # 3. Version History
 
 
-## HVT (v25.2.1) | What's New? {-}
+## HVT (v25.2.2) | What's New? {-}
 
 27th January, 2025
 
-In this version of the HVT package, the following new function and vignette have been introduced:
+In this version of the HVT package, the following new features and vignette have been introduced:
 
-**Function**
+**Features**
 
-1. **Dynamic Forecasting of a Time Series Dataset**: This update introduces a new function for dynamic forecasting of states using time series dataset, called Monte Carlo Simulations of Markov Chain - `msm`. It supports both ex-post and ex-ante forecasting, offering valuable insights into future trends while resolving state transition challenges through clustering and nearest-neighbor methods to enhance simulation accuracy.
+1. **Dynamic Forecasting of a Time Series Dataset**: This update introduces a new function called `msm` Monte Carlo Simulations of Markov Chain for dynamic forecasting of states in time series dataset. It supports both ex-post and ex-ante forecasting, offering valuable insights into future trends while resolving state transition challenges through clustering and nearest-neighbor methods to enhance simulation accuracy.
+
+2. **Z score Plots**: This update introduces a new function called `plotZscore` that generates Z-score plots corresponding to the HVT cells for the given data, offering a visual representation of data distribution and highlighting potential outliers.
 
 
 **Vignette** 
@@ -241,7 +244,7 @@ This version of the HVT package offers features for both training an HVT model a
 
 
 
-# 4. Installation of HVT (v25.2.1)
+# 4. Installation of HVT (v25.2.2)
 
 **CRAN Installation**
 
