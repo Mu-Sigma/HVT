@@ -1,3 +1,4 @@
+utils::globalVariables(c("variable_name"))
 
 msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actual_data, 
                         state_time_data ,forecast_type,
@@ -69,7 +70,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
 ################################################################################################################################### 
   standardize_timestamp <- function(data, time_col) {
     # Get first non-NA value
-    sample_time <- na.omit(data[[time_col]])[1]
+    sample_time <- stats::na.omit(data[[time_col]])[1]
     
     # If already a POSIXct, return as is
     if(inherits(sample_time, "POSIXct")) {
@@ -382,19 +383,19 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         }else{
 
         p1_plotly <- plotly::ggplotly(p1) %>%
-          layout(
-            margin = list(r = 150, b = 50, t = 50), 
-            height = 400, 
+          plotly::layout(
+            margin = list(r = 150, b = 50, t = 50),
+            height = 400,
             yaxis = list(
               title = list(
                 text = paste0(variable_name, " (raw units)"),
-                standoff = 10
+                            standoff = 10
               )
             ),
             xaxis = list(
               title = list(
                 text = "Timestamps",
-                standoff = 10
+              standoff = 10
               )
             ),
             legend = list(
@@ -403,7 +404,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
           )
         
         p2_plotly <- plotly::ggplotly(p2) %>%
-          layout(
+          plotly::layout(
             margin = list(r = 150, b = 50, t = 60),  # Keep enough top margin
             height = 250, 
             yaxis = list(
@@ -440,16 +441,16 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
           )
         
         # Create combined plot with HTML layout
-        x_plots <- tagList(
-          div(
+        x_plots <- htmltools::tagList(
+          htmltools::div(
             style = "display: grid; grid-template-columns: 1fr; max-width: 100%; font-family: Arial, sans-serif;",
            
-            div(
+            htmltools::div(
               style = "grid-column: 1; width: 100%;", 
               p1_plotly
             ),
             
-            div(
+            htmltools::div(
               style = "grid-column: 1; width: 100%;", 
               p2_plotly
             )
@@ -540,7 +541,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         patchwork::plot_layout(heights = c(2, 1))
       }else{
       pa_plotly <- plotly::ggplotly(pa) %>%
-        layout(
+        plotly::layout(
           margin = list(r = 150, b = 50, t = 50), 
           height = 400, 
           yaxis = list(
@@ -561,7 +562,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         )
       
       pb_plotly <- plotly::ggplotly(pb) %>%
-        layout(
+        plotly::layout(
           margin = list(r = 150, b = 50, t = 60),  # Keep enough top margin
           height = 250, 
           yaxis = list(
@@ -598,17 +599,17 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         )
       
       # Create combined plot with HTML layout
-      x_plots <- tagList(
-        div(
+      x_plots <- htmltools::tagList(
+        htmltools::div(
           style = "display: grid; grid-template-columns: 1fr; max-width: 100%; font-family: Arial, sans-serif;",
        
           
-          div(
+          htmltools::div(
             style = "grid-column: 1; width: 100%;", 
             pa_plotly
           ),
           
-          div(
+          htmltools::div(
             style = "grid-column: 1; width: 100%;", 
             pb_plotly
           )
@@ -670,7 +671,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
        if(plot_type == "static"){
           p1 <- p1
        }else{
-          p1 <- ggplotly(p1)
+          p1 <- plotly::ggplotly(p1)
        }
                  
        return(p1)
@@ -727,7 +728,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       if(plot_type == "static"){
         p2 <- p2
       }else{
-        p2 <- ggplotly(p2)
+        p2 <- plotly::ggplotly(p2)
       }
       
       return(list(centroids_plot = plot_list, states_plots = p2))
@@ -796,21 +797,42 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
           plot_data <- standardize_timestamp(plot_data, "time")
         }
         
-        p1 <- ggplot() +
-          {if(show_simulation) 
-            geom_line(data = plot_data, 
-                      aes(x = time, y = value, group = simulation, color = "Simulations"), 
-                      alpha = 0.4, size = 0.4)} +
-          geom_line(data = actual_raw_dfs[[variable_name]], 
-                    aes(x = time, y = !!sym(actual_col_name), color = "Actual"), size = 1.0) +
-          geom_point(data = actual_raw_dfs[[variable_name]], 
-                     aes(x = time, y = !!sym(actual_col_name), color = "Actual"), size = 1.5) +  # ADD POINTS
-          geom_line(data = summary_data, aes(x = time, y = mode, color = "Mode"), size =  0.4) +
-          geom_point(data = summary_data, aes(x = time, y = mode, color = "Mode"), size =  1.2) +  # ADD POINTS
-          geom_line(data = summary_data, aes(x = time, y = mean, color = "Mean"), size =  0.4) +
-          geom_point(data = summary_data, aes(x = time, y = mean, color = "Mean"), size =  1.2) +  # ADD POINTS
-          geom_line(data = summary_data, aes(x = time, y = median, color = "Median"), size =  0.5) +
-          geom_point(data = summary_data, aes(x = time, y = median, color = "Median"), size =  1.2) +  # ADD POINTS
+       p1 <- ggplot() +
+          {if(show_simulation)
+          geom_line(data = plot_data,
+                  aes(x = time, y = value, group = simulation, color = "Simulations",
+                                             text = paste("Time:", time, "<br>Value:", value, "<br>Simulation:", simulation)), 
+                                         alpha = 0.4, size = 0.4)} +
+            geom_line(data = summary_data, aes(x = time, y = mode, 
+                                              color = "Mode"), 
+                      size = 0.4) +
+            geom_point(data = summary_data, aes(x = time, y = mode, 
+                                                color = "Mode",
+                                                text = paste("Time:", time, "<br>Mode", variable_name, " :", mode)), 
+                      size = 1.2) +
+            geom_line(data = actual_raw_dfs[[variable_name]], 
+                      aes(x = time, y = !!sym(actual_col_name), 
+                          color = "Actual"), 
+                      size = 1.0) +
+            geom_point(data = actual_raw_dfs[[variable_name]], 
+                      aes(x = time, y = !!sym(actual_col_name), 
+                          color = "Actual",
+                          text = paste("Time:", time, "<br>Actual", variable_name, " :", !!sym(actual_col_name))), 
+                      size = 1.5) +
+            geom_line(data = summary_data, aes(x = time, y = mean, 
+                                              color = "Mean"), 
+                      size = 0.4) +
+            geom_point(data = summary_data, aes(x = time, y = mean, 
+                                                color = "Mean",
+                                                text = paste("Time:", time, "<br>Mean", variable_name, " :", mean)), 
+                      size = 1.2) +
+            geom_line(data = summary_data, aes(x = time, y = median, 
+                                              color = "Median"), 
+                      size = 0.5) +
+            geom_point(data = summary_data, aes(x = time, y = median, 
+                                                color = "Median",
+                                                text = paste("Time:", time, "<br>Median", variable_name, " :", median)), 
+                      size = 1.2) +
           scale_colour_manual(values = c("Simulations" = "darkgray", 
                                          "Median" = "red", 
                                          "Mean" = "darkgreen", 
@@ -850,7 +872,9 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         
         p2 <- ggplot() +
           geom_line(data = residuals_df, aes(x = t, y = studentized_residuals, color = "Studentized\nResiduals"), size = 0.8) +
-          geom_point(data = residuals_df, aes(x = t, y = studentized_residuals, color = "Studentized\nResiduals"), size = 1.2) +
+          geom_point(data = residuals_df, aes(x = t, y = studentized_residuals, color = "Studentized\nResiduals",
+                                              text = paste("Time:", t, "<br>Residuals",variable_name, " :", studentized_residuals)), 
+                     size = 1.5) +
           geom_hline(yintercept = 0, col = "black", linetype = "dashed") +
           geom_hline(yintercept = -1, col = "blue", linetype = "dashed") +
           geom_hline(yintercept = 1, col = "blue", linetype = "dashed") +
@@ -906,8 +930,8 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         #       title = list(text = "") 
         #     )
         #   )
-          p1_plotly <- plotly::ggplotly(p1) %>%
-            layout(
+          p1_plotly <- plotly::ggplotly(p1, tooltip = "text") %>%
+            plotly::layout(
               margin = list(r = 150, b = 0, t = 50), 
               height = 380, 
               yaxis = list(
@@ -930,15 +954,15 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
               hoverdistance = 15
             ) %>%
             # Add this config call to enable the toggleHover button
-            config(
+            plotly::config(
               modeBarButtonsToAdd = list("toggleHover"),
               displaylogo = FALSE
             )
           
         
  
-        p2_plotly <- plotly::ggplotly(p2) %>%
-          layout(
+        p2_plotly <- plotly::ggplotly(p2, tooltip = "text") %>%
+          plotly::layout(
             margin = list(r = 150, b = 0, t = 60),  # Keep enough top margin
             height = 230, 
             yaxis = list(
@@ -977,16 +1001,16 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         
         
         # Create combined plot with HTML layout
-        x_plots <- tagList(
-          div(
+        x_plots <- htmltools::tagList(
+          htmltools::div(
             style = "display: grid; grid-template-columns: 1fr; max-width: 100%; font-family: Arial, sans-serif;margin: 0; padding: 0; overflow: hidden;", 
            
-            div(
+            htmltools::div(
               style = "grid-column: 1; width: 100%; margin: 0; padding: 0; overflow: hidden;", 
               p1_plotly
             ),
            
-            div(
+            htmltools::div(
               style = "grid-column: 1; width: 100%;margin: 0; padding: 0; overflow: hidden;", 
               p2_plotly
             )
@@ -1027,25 +1051,27 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       }
       
       pa <- ggplot() +
-        {if(show_simulation) geom_line(data = plot_data,
-                                       aes(x = time, y = value, group = simulation,
-                                           color = "Simulations"), alpha = 0.4, size=0.4)} +
+        {if(show_simulation) 
+          geom_line(data = plot_data,
+                    aes(x = time, y = value, group = simulation,
+                        color = "Simulations", text = paste("Time:", time, "<br>Value:", value, "<br>Simulation:", simulation)), alpha = 0.4, size=0.4)} +
         geom_line(data = summary_data, aes(x = time, y = mode, color = "Mode"), 
                   size =  0.4) +
-        geom_point(data = summary_data, aes(x = time, y = mode, color = "Mode"), 
-                  size =  1.2) +
+        geom_point(data = summary_data, aes(x = time, y = mode, color = "Mode", text = paste("Time:", time, "<br>Mode:", mode)), 
+                   size = 1.2) +  # Ensure points are visible with proper size
         geom_line(data = summary_data, aes(x = time, y = mean, color = "Mean"), 
                   size =  0.4) +
-        geom_point(data = summary_data, aes(x = time, y = mean, color = "Mean"), 
-                  size =  1.2) +
+        geom_point(data = summary_data, aes(x = time, y = mean, color = "Mean", text = paste("Time:", time, "<br>Mean:", mean)), 
+                   size = 1.2) +  # Ensure points are visible with proper size
         geom_line(data = summary_data, aes(x = time, y = median, color = "Median"),
                   size =  0.5) +
-        geom_point(data = summary_data, aes(x = time, y = median, color = "Median"),
-                  size =  1.2) +
+        geom_point(data = summary_data, aes(x = time, y = median, color = "Median", text = paste("Time:", time, "<br>Median:", median)),
+                   size = 1.2) +  # Ensure points are visible with proper size
         geom_line(data = test_data,
                   aes(x = time, y = Cell.ID, color = "Actual States"), size = 1.0) +
         geom_point(data = test_data,
-                  aes(x = time, y = Cell.ID, color = "Actual States"), size = 1.5) +
+                   aes(x = time, y = Cell.ID, color = "Actual States", text = paste("Time:", time, "<br>Actual States:", Cell.ID)), 
+                   size = 1.5) +  # Ensure points are visible with proper size
         scale_colour_manual(values = c("Simulations" = "darkgray", 
                                        "Median" = "red",
                                        "Mean" = "darkgreen",
@@ -1102,7 +1128,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       
       pb <- ggplot() +
         geom_line(data = residuals_df, aes(x = time, y = studentized_residuals, color = "Studentized\nResiduals"), size = 0.8) +
-        geom_point(data = residuals_df, aes(x = time, y = studentized_residuals, color = "Studentized\nResiduals"), size =1.2) +
+        geom_point(data = residuals_df, aes(x = time, y = studentized_residuals, color = "Studentized\nResiduals", text = paste("Time:", time, "<br>Residuals:", studentized_residuals)), size =1.2) +
         geom_hline(yintercept = 0, col = "black", linetype = "dashed") +
         geom_hline(yintercept = -1, col = "blue", linetype = "dashed") +
         geom_hline(yintercept = 1, col = "blue", linetype = "dashed") +
@@ -1146,8 +1172,8 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         x_plots <- (pa / pb) +
           patchwork::plot_layout(heights = c(2, 1))
       }else{
-      pa_plotly <- plotly::ggplotly(pa) %>%
-        layout(
+      pa_plotly <- plotly::ggplotly(pa, tooltip = "text") %>%
+        plotly::layout(
           margin = list(r = 150, b = 50, t = 50), 
           height = 400, 
           yaxis = list(
@@ -1167,8 +1193,8 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
           )
         )
       
-      pb_plotly <- plotly::ggplotly(pb) %>%
-        layout(
+      pb_plotly <- plotly::ggplotly(pb, tooltip = "text") %>%
+        plotly::layout(
           margin = list(r = 150, b = 50, t = 60),  # Keep enough top margin
           height = 250, 
           yaxis = list(
@@ -1205,16 +1231,16 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         )
       
       # Create combined plot with HTML layout
-      x_plots <- tagList(
-        div(
+      x_plots <- htmltools::tagList(
+        htmltools::div(
           style = "display: grid; grid-template-columns: 1fr; max-width: 100%; font-family: Arial, sans-serif;",
          
-          div(
+          htmltools::div(
             style = "grid-column: 1; width: 100%;", 
             pa_plotly
           ),
          
-          div(
+          htmltools::div(
             style = "grid-column: 1; width: 100%;", 
             pb_plotly
           )
@@ -1256,18 +1282,19 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         p1 <- ggplot() +
           {if(show_simulation) geom_line(data = plot_data, 
                                          aes(x = time, y = value, group = simulation, 
-                                             color = "Simulations"), alpha = 0.4, size = 0.4)} +
+                                             color = "Simulations", text = paste("Time:", time, "<br>Value:", value, "<br>Simulation:", simulation)), 
+                                             alpha = 0.4, size = 0.4)} +
           geom_line(data = summary_data, aes(x = time, y = mode, color = "Mode"), 
                     size = ifelse(mae_metric == "mode", 1.0, 0.4)) +
-          geom_point(data = summary_data, aes(x = time, y = mode, color = "Mode"), 
+          geom_point(data = summary_data, aes(x = time, y = mode, color = "Mode", text = paste("Time:", time, "<br>Mode ", variable_name, " :", mode)), 
                     size = ifelse(mae_metric == "mode", 1.5, 1.2)) +
           geom_line(data = summary_data, aes(x = time, y = mean, color = "Mean"), 
                     size = ifelse(mae_metric == "mean", 1.0, 0.4)) +
-          geom_point(data = summary_data, aes(x = time, y = mean, color = "Mean"), 
+          geom_point(data = summary_data, aes(x = time, y = mean, color = "Mean", text = paste("Time:", time, "<br>Mean ", variable_name, " :", mean)), 
                     size = ifelse(mae_metric == "mean", 1.5, 1.2)) +
           geom_line(data = summary_data, aes(x = time, y = median, color = "Median"), 
                     size = ifelse(mae_metric == "median", 1.0, 0.5)) +
-          geom_point(data = summary_data, aes(x = time, y = median, color = "Median"), 
+          geom_point(data = summary_data, aes(x = time, y = median, color = "Median", text = paste("Time:", time, "<br>Median ", variable_name, " :", median)), 
                     size = ifelse(mae_metric == "median", 1.5, 1.2)) +
           scale_colour_manual(values = c("Simulations" = "darkgray", 
                                          "Median" = "red", 
@@ -1315,7 +1342,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         if(plot_type == "static"){
           p1 <- p1
         }else{
-        p1 <- ggplotly(p1)
+        p1 <- plotly::ggplotly(p1, tooltip = "text")
         }
         return(p1)
       })
@@ -1350,18 +1377,19 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       p2 <- ggplot() +
         {if(show_simulation) geom_line(data = plot_data, 
                                        aes(x = time, y = value, group = simulation, 
-                                           color = "Simulations"), alpha = 0.4, size = 0.3)} +
+                                           color = "Simulations", text = paste("Time:", time, "<br>Value:", value, "<br>Simulation:", simulation)), 
+                                           alpha = 0.4, size = 0.3)} +
         geom_line(data = summary_data, aes(x = time, y = mode, color = "Mode"), 
                   size = ifelse(mae_metric == "mode", 1.0, 0.4)) +
-        geom_point(data = summary_data, aes(x = time, y = mode, color = "Mode"), 
+        geom_point(data = summary_data, aes(x = time, y = mode, color = "Mode", text = paste("Time:", time, "<br>Mode:", mode)), 
                   size = ifelse(mae_metric == "mode", 1.5, 1.2)) +
         geom_line(data = summary_data, aes(x = time, y = mean, color = "Mean"), 
                   size = ifelse(mae_metric == "mean", 1.0, 0.4)) +
-        geom_point(data = summary_data, aes(x = time, y = mean, color = "Mean"), 
+        geom_point(data = summary_data, aes(x = time, y = mean, color = "Mean", text = paste("Time:", time, "<br>Mean:", mean)), 
                   size = ifelse(mae_metric == "mean", 1.5, 1.2)) +
-        geom_line(data = summary_data, aes(x = time, y = median, color = "Median"),
+        geom_line(data = summary_data, aes(x = time, y = median, color = "Median"), 
                   size = ifelse(mae_metric == "median", 1.0, 0.5)) +
-        geom_point(data = summary_data, aes(x = time, y = median, color = "Median"),
+        geom_point(data = summary_data, aes(x = time, y = median, color = "Median", text = paste("Time:", time, "<br>Median:", median)), 
                   size = ifelse(mae_metric == "median", 1.5, 1.2)) +
         scale_colour_manual(values = c("Simulations" = "darkgray", 
                                        "Median" = "red",
@@ -1412,7 +1440,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       if(plot_type == "static"){
         p2 <- p2
       }else{
-        p2 <- ggplotly(p2)
+        p2 <- plotly::ggplotly(p2, tooltip = "text")
       }
 
       return(list(centroids_plot = plot_list, states_plots = p2))

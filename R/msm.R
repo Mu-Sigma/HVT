@@ -28,6 +28,7 @@
 #' @param time_column Character. The name of the time column in the input dataframe.
 #' @param mae_metric Character. A character to indicate which metric to calculate Mean Absolute Error.
 #' Accepted entries are "mean", "median", or "mode". Default is "median".
+#' @param time_column Character. The name of the column containing time data. Used for aligning and plotting the results.
 #' @param plot_type Character. A character to indicate what type of plot should be generated.
 #' Accepred entries are "static" (ggplot object) or "interactive"(plotly object). Default is "static".
 #' @return A list object that contains the forecasting plots and MAE values.

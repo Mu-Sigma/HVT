@@ -18,7 +18,7 @@ Depends: R (>= 4.0.0)
 BugReports: https://github.com/Mu-Sigma/HVT/issues
 URL: https://github.com/Mu-Sigma/HVT
 RoxygenNote: 7.3.2
-Suggests: knitr,rmarkdown,testthat,geozoo,plotly,
+Suggests: knitr,rmarkdown,testthat,geozoo, plotly, rlang,
     DT,patchwork,sp,Hmisc,data.table,gtable,
     htmlwidgets,installr,skimr,tibble,devtools,gifski,
     tidyverse,DataExplorer,htmltools,corrplot,kableExtra,polyclip,conf.design 
@@ -30,5 +30,40 @@ Author: Zubin Dowlaty [aut],
 Maintainer: "Mu Sigma, Inc." <ird.experiencelab@mu-sigma.com>
 Repository: CRAN
 Date/Publication: 2025-03-12 00:00:00 UTC
-
-    
+Collate: 
+    'Add_boundary_points.R'
+    'Corrected_Tessellations.R'
+    'Transform_Coordinates.R'
+    'ScaleMat.R'
+    'DelaunayInfo.R'
+    'Delete_Outpoints.R'
+    'VQ_codebookSplit.R'
+    'clusterPlot.R'
+    'clustHVT.R'
+    'diagPlot.R'
+    'diagSuggestion.R'
+    'displayTable.R'
+    'edaPlots.R'
+    'getCellId.R'
+    'getCentroids.R'
+    'getCentroids_for_opti.R'
+    'getOptimalCentroids.R'
+    'getTransitionProbability.R'
+    'global.R'
+    'hvq.R'
+    'madPlot.R'
+    'msm_plots.R'
+    'msm.R'
+    'plotAnimatedFlowmap.R'
+    'plotHVT.R'
+    'plotModelDiagnostics.R'
+    'plotNovelCells.R'
+    'plotQuantErrorHistogram.R'
+    'plotStateTransition.R'
+    'plotZscore.R'
+    'reconcileTransitionProbability.R'
+    'removeNovelty.R'
+    'scoreHVT.R'
+    'scoreLayeredHVT.R'
+    'summary.R'
+    'trainHVT.R'

@@ -62,7 +62,7 @@ ul {
 img {
   border: none;
 }
-g.legendlines {
+.custom-heatmap-plot g.legendlines {
     display: none;
   }
 
@@ -90,7 +90,7 @@ g.legendlines {
 
 # 1. Background
 
-The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 3D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
+The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
 
 1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
 
@@ -108,7 +108,7 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 
 - This notebook introduces a new feature `msm` in HVT package, which stands for **Monte Carlo Simulations of Markov Chain**, a feature designed for **Dynamic Forecasting of time series data**. 
 
-- This method relies on a transition probability matrix to forecast n states ahead in time series data. This notebook includes ex-post and ex-ante forecasting and provides a step-by-step walkthrough from data preparation to forecast generation.
+- This method relies on a transition probability matrix to forecast n states ahead in time series data. This notebook includes ex-post and ex-ante forecasting and provides a step-by-step walk through from data preparation to forecast generation.
 
 - It also examines challenges encountered during forecasting due to transition probability issues in certain states, proposes solutions to address these challenges, and assesses prediction accuracy using relevant metrics.
 
@@ -117,7 +117,7 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, the code will install those packages and attach to the session environment.
 
 ```{r, warning=FALSE, message=FALSE}
-list.of.packages <- c("dplyr", "tidyr","patchwork", "feather","ggplot2","kableExtra",
+list.of.packages <- c("dplyr", "tidyr","patchwork", "feather","ggplot2","kableExtra", "htmltools",
                       "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust","HVT")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
@@ -128,7 +128,7 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 
 
-Below is the function for more dynamic drop down display in the datatables.
+Below is the function for more dynamic drop down display in the data tables.
 
 ```{r}
 calculate_dynamic_length_menu <- function(total_entries, base_step = 100) {
@@ -139,7 +139,7 @@ calculate_dynamic_length_menu <- function(total_entries, base_step = 100) {
   return(options)}
 ```
 
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = FALSE}
 # Sourcing required code scripts for HVT
 script_dir <- "../R"
 r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
@@ -204,7 +204,7 @@ entire_dataset$t <- as.POSIXct(paste0(entire_dataset$t, "/01"), format = "%Y/%m/
 
 ## 3.3 Dataset Transformation
 
-We transform the data to compute the 12-month rate of change, which standardizes the features and brings them to a comparable scale, simplifying the analysis of their relative changes. Log differencing reduces variability and removes trends, stabilizing the data for more accurate forecasting.
+We transform the data to compute the 12-month rate of change, which standardizes the features and brings them to a comparable scale, simplifying the analysis of their relative changes. Log difference reduces variability and removes trends, stabilizing the data for more accurate forecasting.
 
 The Rate of change is calculated as follows:
 
@@ -815,7 +815,7 @@ This function uses a transition probability matrix with cumulative probabilities
 
 * __`mae_metric`__ - A Character to indicate which central tendency measure should be selected for calculating residuals for studentized residual plot. Only 'mean', 'median' or 'mode' is allowed. Default value is 'median'.
 
-* __`plot_type`__ - A Character to indicate what type of plot should be generated. Accepred entries are "static" (ggplot object) or "interactive"(plotly object). Default is "static".
+* __`plot_type`__ - A Character to indicate what type of plot should be generated. Accepted entries are "static" or "interactive". Default is "static".
 
 
 **Function Outputs**
@@ -866,8 +866,6 @@ ex_post <- msm(state_time_data = temporal_data,
 
 
 #### Ex- Post Plots without Simulation lines {.tabset}
-
-The plots below are static ggplot objects. To interactively view each dot with its corresponding timestamp and values, set `plot_type = "interactive"` to generate Plotly objects.
 
 ##### States
 
@@ -1162,7 +1160,7 @@ ex_ante$plots$centroids_plot[[10]]
 
 The forecast seems unusual, showing some flat line and irregular pattern. We'll re-run it with the simulation lines visible to figure out what might be causing the issue.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 ex_ante <- msm(state_time_data = temporal_data,
                forecast_type = "ex-ante",
                transition_probability_matrix = prob_trans_matx,
@@ -1268,11 +1266,11 @@ datatable(data,rownames = FALSE)
 </br>
 
 
-From the above table, we can see that the states 43 & 56 are transitioning only to each other, which is why the simulations are in a zig-zag pattern. As a result, the central tendency measures (median and mode) are identical, with no variability. This is an undesired outcome, as it indicates a lack of variation in the simulation except two states. This scenario represents an edge case that requires attention. Below is an explanation of why this occurred, what it signifies, and how it can be addressed.
+From the above table, we can see that the states 43 & 56 are transitioning only to each other, which is why the simulations are in a dead state transition cycle. As a result, the central tendency measures (median and mode) are identical, with no variability. This is an undesired outcome, as it indicates a lack of variation in the simulation except two states. This scenario represents an edge case that requires attention. Below is an explanation of why this occurred, what it signifies, and how it can be addressed.
 
 ## 8.1 State Transition Problem
 
-There are certain edge cases that may cause simulations as a straight line (stuck in a single state) or a zig-zag pattern (only between two states - back and forth) without any variability or exploring other states. We are naming this scenario as **State Transition Problem** and below are the cases that may lead to this issue.
+There are certain edge cases that may cause simulations as a straight line (stuck in a single state) or a dead state transition cycle (only between two states - back and forth) without any variability or exploring other states. We are naming this scenario as **State Transition Problem** and below are the cases that may lead to this issue.
 
 - **Case 1: Absence Transitions:** This occurs when a state lacks any outgoing transitions to other states or itself. Once the simulation reaches such a state, it becomes stuck because there is no path forward, effectively halting the simulation in the same state.
 
@@ -1362,12 +1360,9 @@ The dendrogram clearly shows that states **43, 44, 39, and 48** belong to the sa
 
 
 
-```{r, warning=FALSE,message=FALSE, fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8, fig.height = 6.5}
-ex_ante$cluster_heatmap 
+```{r, warning=FALSE,message=FALSE, fig.align = "center", fig.show ='hold', include=TRUE, results='asis', fig.width = 8, fig.height = 6.5, class.chunk='custom-heatmap-plot'}
+ex_ante$cluster_heatmap
 ```
-
-
-Now when we look at the simulation below, we can see that there are no more Zig-Zag pattern in the simulations. The simulation is now exploring other states and not stuck between two states.
 
 #### Ex- Ante Plots without Simulation lines {.tabset}
 
@@ -1445,7 +1440,7 @@ ex_ante$plots$centroids_plot[[10]]
 
 Let's run the Ex-Ante simulation with `show_simulation` set to `TRUE` to see the simulation lines in the plots.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 ex_ante <- msm(state_time_data = temporal_data,
                forecast_type = "ex-ante",
                transition_probability_matrix = prob_trans_matx,
