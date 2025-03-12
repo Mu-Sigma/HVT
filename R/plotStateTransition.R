@@ -138,7 +138,12 @@ plotStateTransition <- function(df, sample_size = NULL, line_plot = NULL,
         xaxis = axis_settings$xaxis,
         yaxis = axis_settings$yaxis,
         showlegend = FALSE,
-        hovermode = "closest" )
+        hovermode = "closest",
+        hoverlabel = list(
+          bgcolor = "black",
+          font = list(color = "white") 
+        )
+        )
     
     # Add time period highlighting if specified
     if (!is.null(time_periods)) {

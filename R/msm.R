@@ -25,8 +25,11 @@
 #' @param n_nearest_neighbor Integer. A number of nearest neighbors to consider when handling problematic states.
 #' Default is 1.
 #' @param show_simulation Logical. To indicate whether to show the simulation lines in plots or not. Default is TRUE.
-#' @param mae_metric Character. A character to indicate which metric to calculate Mean Absolute Error. 
+#' @param time_column Character. The name of the time column in the input dataframe.
+#' @param mae_metric Character. A character to indicate which metric to calculate Mean Absolute Error.
 #' Accepted entries are "mean", "median", or "mode". Default is "median".
+#' @param plot_type Character. A character to indicate what type of plot should be generated.
+#' Accepred entries are "static" (ggplot object) or "interactive"(plotly object). Default is "static".
 #' @return A list object that contains the forecasting plots and MAE values.
 #' \item{[[1]]}{Simulation plots and MAE values for state and centroids plot} 
 #' \item{[[2]]}{Summary Table, Dendogram plot and Clustered Heatmap when handle_problematic_states is TRUE} 
@@ -59,8 +62,9 @@
 #'               trainHVT_results = hvt.results,
 #'               actual_data = ex_post_forecasting,
 #'               raw_dataset = dataset,
-#'              mae_metric = "median",
-#'              show_simulation = FALSE)
+#'               mae_metric = "median",
+#'              show_simulation = FALSE,
+#'              time_column = 't')
 #' @export msm
 
 
@@ -77,7 +81,9 @@ msm <- function(state_time_data,
                 k = 5,
                 handle_problematic_states = FALSE,
                 n_nearest_neighbor = 1,show_simulation=TRUE,
-                mae_metric = "median") {
+                mae_metric = "median",
+                time_column = NULL,
+                plot_type = "static") {
   
   suppressWarnings(suppressMessages(requireNamespace('NbClust')))
   
@@ -90,12 +96,12 @@ msm <- function(state_time_data,
     stop("actual_data is required for ex-post predictions")
   }
   
-  if (!mae_metric %in% c("median", "mean", "mode")) {
-    stop("Only 'mean', 'median', or 'mode' are accepted as mae_metric")
+  if (!plot_type %in% c("static", "interactive")) {
+    stop("Only `static`, `interactive` are accepted as plot_type")
   }
   
-  if(!"t" %in% colnames(raw_dataset)) {
-    stop("Please rename the time column in your dataset to 't' in all places")
+  if (!mae_metric %in% c("median", "mean", "mode")) {
+    stop("Only 'mean', 'median', or 'mode' are accepted as mae_metric")
   }
   
   if(!"Cell.ID" %in% colnames(state_time_data)) {
@@ -122,61 +128,94 @@ msm <- function(state_time_data,
     stop("Invalid prediction type. Please choose either 'ex-post' or 'ex-ante'")
   }
   
+  # Identify problematic states
+  max_state <- max(state_time_data$Cell.ID, na.rm = TRUE)
+  cell_seq <- seq(1, max_state)
+  missing_states <- cell_seq[!(cell_seq %in% transition_probability_matrix$Current_State)]
+  
+  # Find self-transition states
+  self_transition_states <- transition_probability_matrix %>%
+    group_by(Current_State) %>%
+    summarize(
+      is_self_only = n() == 1 && all(Current_State == Next_State),
+      .groups = 'drop'
+    ) %>%
+    filter(is_self_only) %>%
+    pull(Current_State)
+  
+  # Find cyclic states
+  find_cyclic_states <- function(trans_table) {
+    # Get all unique states
+    all_states <- unique(c(trans_table$Current_State, trans_table$Next_State))
+    # Create a state information list for easy lookup
+    state_info <- list()
+    for (state in all_states) {
+      # Get all transitions from this state
+      transitions <- trans_table[trans_table$Current_State == state, ]
+      # Get unique next states
+      next_states <- unique(transitions$Next_State)
+      # Store this information
+      state_info[[as.character(state)]] <- list(
+        next_states = next_states,
+        num_next_states = length(next_states)
+      )
+    }
+    # Identify cyclic pairs
+    cyclic_states <- c()
+    # First approach: Using dplyr to find states with exactly two transitions
+    states_with_two <- trans_table %>%
+      dplyr::group_by(Current_State) %>%
+      dplyr::summarize(
+        transitions = n_distinct(Next_State),
+        next_states = list(unique(Next_State)),
+        .groups = 'drop'
+      ) %>%
+      dplyr::filter(transitions == 2)  # Include states with exactly 2 transitions
+    for (i in 1:nrow(states_with_two)) {
+      current_state <- states_with_two$Current_State[i]
+      curr_next_states <- unlist(states_with_two$next_states[i])
+      # Skip if we've already identified this state as part of a cycle
+      if (current_state %in% cyclic_states) next
+      # Check if the current state transitions to itself
+      if (current_state %in% curr_next_states) {
+        # Find the other state it transitions to
+        other_state <- curr_next_states[curr_next_states != current_state]
+        # Check if other state exists in our data
+        if (other_state %in% names(state_info)) {
+          # Get the states that other_state transitions to
+          other_next_states <- state_info[[as.character(other_state)]]$next_states
+          # Conditions for being cyclic:
+          # 1. Current state transitions to itself and other_state only
+          # 2. Other state transitions to current_state (plus possibly itself)
+          # 3. Other state transitions to at most 2 states (itself and current_state)
+          if (length(other_next_states) <= 2 && 
+              current_state %in% other_next_states && 
+              all(other_next_states %in% c(current_state, other_state))) {
+            # These form a cycle
+            cyclic_states <- c(cyclic_states, current_state, other_state)
+          }
+        }
+      }
+    }
+    # Return unique cyclic states
+    return(unique(cyclic_states))
+  }  
+  
+  cyclic_states <- find_cyclic_states(transition_probability_matrix)
+  
+  # Combine all problematic states
+  problematic_states <- unique(c(missing_states, self_transition_states, cyclic_states))
+  
+  # if(length(problematic_states) >= 1){
+  #   print("Problematic States Found")
+  # }else{
+  #   print("No Problematic States Found")
+  # }
+  
   if(handle_problematic_states) {
     
     pdf(NULL)
-    
-    # Identify problematic states
-    max_state <- max(state_time_data$Cell.ID, na.rm = TRUE)
-    cell_seq <- seq(1, max_state)
-    missing_states <- cell_seq[!(cell_seq %in% transition_probability_matrix$Current_State)]
-    
-    # Find self-transition states
-    self_transition_states <- transition_probability_matrix %>%
-      group_by(Current_State) %>%
-      summarize(
-        is_self_only = n() == 1 && all(Current_State == Next_State),
-        .groups = 'drop'
-      ) %>%
-      filter(is_self_only) %>%
-      pull(Current_State)
-    
-    # Find cyclic states
-    find_cyclic_states <- function(trans_table) {
-      states_with_two <- trans_table %>%
-        group_by(Current_State) %>%
-        summarize(
-          transitions = n_distinct(Next_State),
-          next_states = list(unique(Next_State)),
-          .groups = 'drop'
-        ) %>%
-        filter(transitions == 2)
-      
-      cyclic_states <- states_with_two %>%
-        rowwise() %>%
-        filter({
-          curr_next_states <- unlist(next_states)
-          next_states_trans <- trans_table %>%
-            filter(Current_State %in% curr_next_states) %>%
-            group_by(Current_State) %>%
-            summarize(n_trans = n_distinct(Next_State), 
-                      trans_to = list(unique(Next_State)),
-                      .groups = 'drop')
-          
-          all(next_states_trans$n_trans == 2) &&
-            all(unlist(next_states_trans$trans_to) %in% c(Current_State, curr_next_states)) &&
-            all(sapply(next_states_trans$trans_to, function(x) Current_State %in% x))
-        }) %>%
-        pull(Current_State)
-      
-      return(cyclic_states)
-    }
-    
-    cyclic_states <- find_cyclic_states(transition_probability_matrix)
-    
-    # Combine all problematic states
-    problematic_states <- unique(c(missing_states, self_transition_states, cyclic_states))
-    
+
     # Handle clustering if there are problematic states
     if(length(problematic_states) > 0) {
       # Perform clustering
@@ -424,14 +463,16 @@ msm <- function(state_time_data,
     centroid_data = centroid_data,
     centroid_2d_points = centroid_2d_points, 
     actual_data = if(forecast_type == "ex-post") actual_data else NULL,
-    time_column = 't',
+    time_column,
     state_time_data = state_time_data,
     forecast_type = forecast_type, 
     n_ahead_ante = n_ahead_ante,
     type = "MSM",
     raw_dataset = raw_dataset,
     show_simulation = show_simulation,
-    mae_metric = mae_metric)
+    mae_metric = mae_metric,
+    trainHVT_results,
+    plot_type = plot_type)
   
   # Return results
   if(handle_problematic_states) {

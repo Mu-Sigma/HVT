@@ -429,7 +429,9 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
           freq_unit = freq_unit
         ) %>%
         ungroup()
+      anime_data$latency <- round(anime_data$latency,0)
       
+#browser()      
       format_string <- switch(freq_unit,
                               "years" = "%Y",
                               "months" = "%Y-%m",
