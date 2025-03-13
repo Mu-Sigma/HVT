@@ -207,11 +207,11 @@ msm <- function(state_time_data,
   # Combine all problematic states
   problematic_states <- unique(c(missing_states, self_transition_states, cyclic_states))
   
-  if(length(problematic_states) >= 1){
-    print("Problematic States Found")
-  }else{
-    print("No Problematic States Found")
-  }
+  # if(length(problematic_states) >= 1){
+  #   print("Problematic States Found")
+  # }else{
+  #   print("No Problematic States Found")
+  # }
   
   if(handle_problematic_states) {
     pdf(NULL)

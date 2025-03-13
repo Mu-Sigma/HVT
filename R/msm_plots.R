@@ -49,7 +49,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
   names(predicted_dfs) <- name_columns
   
   ########### Scaling the predicted centroids ##########
-browser()  
+  
   if(trainHVT_results[["model_info"]][["input_parameters"]][["normalize"]]){
   scaled_dfs <- lapply(names(predicted_dfs), function(name) {
     scale_df <- predicted_dfs[[name]] %>%

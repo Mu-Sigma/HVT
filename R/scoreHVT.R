@@ -271,7 +271,7 @@ scoreHVT <- function(dataset,
   cellID_coordinates <- do.call(rbind.data.frame, coordinates_value1)
   colnames(cellID_coordinates) <- c("x", "y")
   cellID_coordinates$Cell.ID <- hvt_res2
-  cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
+  # cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
   
   ##################
   boundaryCoords2 <-
