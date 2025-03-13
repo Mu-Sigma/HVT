@@ -49,7 +49,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
   names(predicted_dfs) <- name_columns
   
   ########### Scaling the predicted centroids ##########
-  
+browser()  
   if(trainHVT_results[["model_info"]][["input_parameters"]][["normalize"]]){
   scaled_dfs <- lapply(names(predicted_dfs), function(name) {
     scale_df <- predicted_dfs[[name]] %>%
@@ -546,7 +546,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
           height = 400, 
           yaxis = list(
             title = list(
-              text = paste0(variable_name, " (raw units)"),
+              text = paste0("States"),
               standoff = 10
             )
           ),
@@ -662,7 +662,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
           # } +
           theme_minimal() +
           labs(x = "Timestamps", 
-               y = paste0( variable_name, " (raw units"), 
+               y = paste0( variable_name, " (raw units)"), 
                title = paste0(type, ": Ex-Ante Predicted ", variable_name),
                color = " ")+theme_plot +
           theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -801,50 +801,51 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
           {if(show_simulation)
           geom_line(data = plot_data,
                   aes(x = time, y = value, group = simulation, color = "Simulations",
-                                             text = paste("Time:", time, "<br>Value:", value, "<br>Simulation:", simulation)), 
+                                             text = paste("Time:", time, "<br>Value:", value, "<br>Simulation:", simulation)),
                                          alpha = 0.4, size = 0.4)} +
-            geom_line(data = summary_data, aes(x = time, y = mode, 
-                                              color = "Mode"), 
+            geom_line(data = summary_data, aes(x = time, y = mode,
+                                              color = "Mode"),
                       size = 0.4) +
-            geom_point(data = summary_data, aes(x = time, y = mode, 
+            geom_point(data = summary_data, aes(x = time, y = mode,
                                                 color = "Mode",
-                                                text = paste("Time:", time, "<br>Mode", variable_name, " :", mode)), 
+                                                text = paste("Time:", time, "<br>Mode", variable_name, " :", mode)),
                       size = 1.2) +
-            geom_line(data = actual_raw_dfs[[variable_name]], 
-                      aes(x = time, y = !!sym(actual_col_name), 
-                          color = "Actual"), 
+            geom_line(data = actual_raw_dfs[[variable_name]],
+                      aes(x = time, y = !!sym(actual_col_name),
+                          color = "Actual"),
                       size = 1.0) +
-            geom_point(data = actual_raw_dfs[[variable_name]], 
-                      aes(x = time, y = !!sym(actual_col_name), 
+            geom_point(data = actual_raw_dfs[[variable_name]],
+                      aes(x = time, y = !!sym(actual_col_name),
                           color = "Actual",
-                          text = paste("Time:", time, "<br>Actual", variable_name, " :", !!sym(actual_col_name))), 
+                          text = paste("Time:", time, "<br>Actual", variable_name, " :", !!sym(actual_col_name))),
                       size = 1.5) +
-            geom_line(data = summary_data, aes(x = time, y = mean, 
-                                              color = "Mean"), 
+            geom_line(data = summary_data, aes(x = time, y = mean,
+                                              color = "Mean"),
                       size = 0.4) +
-            geom_point(data = summary_data, aes(x = time, y = mean, 
+            geom_point(data = summary_data, aes(x = time, y = mean,
                                                 color = "Mean",
-                                                text = paste("Time:", time, "<br>Mean", variable_name, " :", mean)), 
+                                                text = paste("Time:", time, "<br>Mean", variable_name, " :", mean)),
                       size = 1.2) +
-            geom_line(data = summary_data, aes(x = time, y = median, 
-                                              color = "Median"), 
+            geom_line(data = summary_data, aes(x = time, y = median,
+                                              color = "Median"),
                       size = 0.5) +
-            geom_point(data = summary_data, aes(x = time, y = median, 
+            geom_point(data = summary_data, aes(x = time, y = median,
                                                 color = "Median",
-                                                text = paste("Time:", time, "<br>Median", variable_name, " :", median)), 
+                                                text = paste("Time:", time, "<br>Median", variable_name, " :", median)),
                       size = 1.2) +
-          scale_colour_manual(values = c("Simulations" = "darkgray", 
-                                         "Median" = "red", 
-                                         "Mean" = "darkgreen", 
-                                         "Actual" = "black", 
+          scale_colour_manual(values = c("Simulations" = "darkgray",
+                                         "Median" = "red",
+                                         "Mean" = "darkgreen",
+                                         "Actual" = "black",
                                          "Mode" = "#0901FF")) +
           theme_minimal() +
-          labs(x = "Timestamps", 
+          labs(x = "Timestamps",
                y = paste0( variable_name, " (raw units)"),
                title = paste0(type, ": Ex-Post Actual ", variable_name, " vs Predicted ", variable_name),
                color = " ") + theme_plot +
           theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
+          
+       
         
         
         

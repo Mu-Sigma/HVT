@@ -12,6 +12,7 @@ vignette: >
   %\VignetteIndexEntry{HVT: Collection of functions used to build hierarchical topology preserving maps}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+tangle: false
 ---
 
 
@@ -62,7 +63,7 @@ knitr::opts_chunk$set(
   fig.align = "center",
   fig.retina = 1,
   dpi = 150,
-  tangle = TRUE,
+  tangle = FALSE,
   eval = TRUE
 )
 ```

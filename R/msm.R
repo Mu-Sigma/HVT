@@ -207,16 +207,37 @@ msm <- function(state_time_data,
   # Combine all problematic states
   problematic_states <- unique(c(missing_states, self_transition_states, cyclic_states))
   
-  # if(length(problematic_states) >= 1){
-  #   print("Problematic States Found")
-  # }else{
-  #   print("No Problematic States Found")
-  # }
+  if(length(problematic_states) >= 1){
+    print("Problematic States Found")
+  }else{
+    print("No Problematic States Found")
+  }
   
   if(handle_problematic_states) {
-    
     pdf(NULL)
-
+    
+    # Diagnostic check for centroid_2d_points
+    if(is.null(centroid_2d_points) || nrow(centroid_2d_points) == 0) {
+      stop("centroid_2d_points is empty or NULL. Cannot proceed with problematic state handling.")
+    }
+    
+    # Ensure required columns exist and are in the correct order
+    centroid_2d_points <- centroid_2d_points[, c("Cell.ID", "x", "y")]
+    
+    # Ensure columns are of the correct type
+    centroid_2d_points$Cell.ID <- as.integer(centroid_2d_points$Cell.ID)
+    centroid_2d_points$x <- as.numeric(centroid_2d_points$x)
+    centroid_2d_points$y <- as.numeric(centroid_2d_points$y)
+    
+    # Initialize variables to prevent potential errors
+    neighbor_mapping <- NULL
+    stp_list <- NULL
+    cluster_heatmap <- NULL
+    all_nearest_neighbors <- c()
+    clust.results <- NULL
+    
+    
+    
     # Handle clustering if there are problematic states
     if(length(problematic_states) > 0) {
       # Perform clustering
@@ -230,7 +251,7 @@ msm <- function(state_time_data,
         suppressWarnings({
           suppressMessages({
             clust.results <- clustHVT(
-              data <- centroid_2d_points %>% select(-Cell.ID),
+              data = centroid_2d_points %>% select(-Cell.ID),
               trainHVT_results = trainHVT_results,
               scoreHVT_results = scoreHVT_results,
               clusters_k = k
@@ -239,7 +260,7 @@ msm <- function(state_time_data,
         })
       })
       
-      grDevices:: dev.off()
+      grDevices::dev.off()
       
       clusters <- stats::cutree(clust.results$hc, k = k)
       
@@ -248,8 +269,6 @@ msm <- function(state_time_data,
         cluster = clusters,
         names.column = scoreHVT_results$centroidData$names.column
       )
-      
-     
       
       # Check for singleton clusters
       cluster_counts <- table(cluster_data$cluster)
@@ -292,13 +311,55 @@ msm <- function(state_time_data,
         })
       
       # Convert neighbor mapping to stp_list format
-      stp_list <- neighbor_mapping %>%
-        mutate(nearest_neighbor = sapply(nearest_neighbor, 
-                                         function(x) paste(x, collapse=",")))
+      stp_list <- if(!is.null(neighbor_mapping) && nrow(neighbor_mapping) > 0) {
+        neighbor_mapping %>%
+          mutate(nearest_neighbor = sapply(nearest_neighbor, 
+                                           function(x) paste(x, collapse=",")))
+      } else {
+        NULL
+      }
+      
+      # Safely create all_nearest_neighbors
+      all_nearest_neighbors <- if(!is.null(neighbor_mapping) && nrow(neighbor_mapping) > 0) {
+        neighbor_mapping %>%
+          pull(nearest_neighbor) %>%  
+          unlist() %>%              
+          unique()
+      } else {
+        c()
+      }
+      
+      # Generate cluster heatmap with both problematic states and their neighbors
+      cluster_heatmap <- clusterPlot(
+        dataset = data.frame(
+          Cell.ID = cluster_data$Cell.ID,
+          Cluster = as.factor(cluster_data$cluster),
+          names.column = cluster_data$names.column
+        ),
+        hvt.results = trainHVT_results,
+        domains.column = "Cluster",
+        highlight_cells = c(problematic_states, all_nearest_neighbors)
+      )
+    } else {
+      # If no problematic states or no centroid points, create a default cluster_data
+      if(nrow(centroid_2d_points) > 0) {
+        cluster_data <- data.frame(
+          Cell.ID = centroid_2d_points$Cell.ID,
+          cluster = seq_len(nrow(centroid_2d_points)),
+          names.column = rep("", nrow(centroid_2d_points))
+        )
+      } else {
+        # Fallback if centroid_2d_points is empty
+        cluster_data <- data.frame(
+          Cell.ID = numeric(),
+          cluster = numeric(),
+          names.column = character()
+        )
+        
+        # Use a warning to alert the user
+        warning("No centroid points available for clustering.")
+      }
     }
-    
-    
-
     
     # Core simulation functions
     find_next_state <- function(random_shock, transition) {
@@ -307,51 +368,32 @@ msm <- function(state_time_data,
     }
     
     find_nearest_neighbor <- function(problematic_state, cluster_data, centroid_2d_points, problematic_states) {
-      current_cluster <- cluster_data$cluster[cluster_data$Cell.ID == problematic_state]
-      coords <- centroid_2d_points[centroid_2d_points$Cell.ID %in% 
-                                     cluster_data$Cell.ID[cluster_data$cluster == current_cluster], ]
-      
-      current_coords <- coords[coords$Cell.ID == problematic_state, c("x", "y")]
-      distances <- sqrt((coords$x - current_coords$x)^2 + (coords$y - current_coords$y)^2)
-      
-      valid_neighbors <- coords$Cell.ID[!coords$Cell.ID %in% c(problematic_state, problematic_states)]
-      
-      if(length(valid_neighbors) > 0) {
-        neighbor_distances <- distances[coords$Cell.ID %in% valid_neighbors]
-        num_neighbors <- min(length(valid_neighbors), n_nearest_neighbor)
-        nearest_n <- valid_neighbors[order(neighbor_distances)][1:num_neighbors]
+      # Only attempt neighbor finding if cluster_data has rows
+      if(nrow(cluster_data) > 0) {
+        current_cluster <- cluster_data$cluster[cluster_data$Cell.ID == problematic_state]
+        coords <- centroid_2d_points[centroid_2d_points$Cell.ID %in% 
+                                       cluster_data$Cell.ID[cluster_data$cluster == current_cluster], ]
         
-        neighbor_probs <- 1/neighbor_distances[order(neighbor_distances)][1:num_neighbors]
-        neighbor_probs <- neighbor_probs/sum(neighbor_probs)
+        current_coords <- coords[coords$Cell.ID == problematic_state, c("x", "y")]
+        distances <- sqrt((coords$x - current_coords$x)^2 + (coords$y - current_coords$y)^2)
         
-        random_shock <- round(stats::runif(min=0, max=1, n=1), 4)
-        cumulative_probs <- cumsum(neighbor_probs)
-        return(nearest_n[which.max(random_shock <= cumulative_probs)])
+        valid_neighbors <- coords$Cell.ID[!coords$Cell.ID %in% c(problematic_state, problematic_states)]
+        
+        if(length(valid_neighbors) > 0) {
+          neighbor_distances <- distances[coords$Cell.ID %in% valid_neighbors]
+          num_neighbors <- min(length(valid_neighbors), n_nearest_neighbor)
+          nearest_n <- valid_neighbors[order(neighbor_distances)][1:num_neighbors]
+          
+          neighbor_probs <- 1/neighbor_distances[order(neighbor_distances)][1:num_neighbors]
+          neighbor_probs <- neighbor_probs/sum(neighbor_probs)
+          
+          random_shock <- round(stats::runif(min=0, max=1, n=1), 4)
+          cumulative_probs <- cumsum(neighbor_probs)
+          return(nearest_n[which.max(random_shock <= cumulative_probs)])
+        }
       }
       return(problematic_state)
     }
-    
-    
-    
-    ################
-    all_nearest_neighbors <- neighbor_mapping %>%
-      pull(nearest_neighbor) %>%  
-      unlist() %>%              
-      unique()                
-    
-    # Generate cluster heatmap with both problematic states and their neighbors
-    cluster_heatmap <- clusterPlot(
-      dataset = data.frame(
-        Cell.ID = cluster_data$Cell.ID,
-        Cluster = as.factor(cluster_data$cluster),
-        names.column = cluster_data$names.column
-      ),
-      hvt.results = trainHVT_results,
-      domains.column = "Cluster",
-      highlight_cells = c(problematic_states, all_nearest_neighbors)
-    )
-    ###################
-    
     
     simulate_step <- function(i, current_state) {
       if (i == 1) {
