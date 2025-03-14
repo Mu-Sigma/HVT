@@ -21,7 +21,9 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
   mean_raw <- raw_dataset_wo_time %>% summarise(across(everything(), ~ round(mean(.), 4)))
   sd_raw <- raw_dataset_wo_time %>% summarise(across(everything(), ~ round(stats::sd(.), 4)))
 
+  #####################################
 
+  
   ######### joining the dataframe ##########
   centroid_dataframe <- cbind(centroid_data, Cell.ID = centroid_2d_points$Cell.ID)
   
@@ -286,7 +288,9 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       test_dataset <- actual_data
       ####################
       
-      test_data <- tail(state_time_data, nrow(test_dataset))
+     # test_data <- tail(state_time_data, nrow(test_dataset))
+      test_data <- state_time_data[state_time_data$t %in% simulation_results$time, ]
+      
       ##########################
       
       actual_raw_dfs <- lapply(name_columns, function(col_name) {
@@ -355,10 +359,10 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
                color = " ") + theme_plot +
           theme(axis.text.x = element_text(angle = 45, hjust = 1))
           
-        
-        
-          
-        
+        if(all(residuals_df$residuals == 0)) {
+          residuals_df$studentized_residuals <- 0
+        }
+     
         # Residuals Plot (p2)
         p2 <- ggplot() +
           geom_line(data = residuals_df, aes(x = t, y = studentized_residuals, color = "Studentized\nResiduals"), size = 0.8) +
@@ -518,6 +522,10 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       options(scipen = 999)
       mape <- round(mean(residuals_df$mape_component),4)
       mae <- round(mean(abs(residuals_df$residuals)), 4)
+      
+      if(all(residuals_df$residuals == 0)) {
+        residuals_df$studentized_residuals <- 0
+      }
       
       pb <- ggplot() +
         geom_line(data = residuals_df, aes(x = t, y = studentized_residuals, color = "Studentized\nResiduals"), size = 0.8) +
@@ -692,6 +700,8 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       summary_data <- simulation_results %>%
         select(time, mean, median, mode)
       
+   
+      
       p2 <- ggplot() +
         {if(show_simulation)geom_line(data = plot_data, aes(x = time, y = value, group = simulation, color = "Simulations"), alpha = 0.4, size = 0.3)} +
         geom_line(data = summary_data, aes(x = time, y = mode, color = "Mode"),
@@ -745,7 +755,9 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       test_dataset <- actual_data
       ####################
       
-      test_data <- tail(state_time_data, nrow(test_dataset))
+     # test_data <- tail(state_time_data, nrow(test_dataset))
+      test_data <- state_time_data[state_time_data$t %in% simulation_results$time, ]
+      
       ##########################
       
       actual_raw_dfs <- lapply(name_columns, function(col_name) {
@@ -869,7 +881,9 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
             )
         }
         
-
+       if(all(residuals_df$residuals == 0)) {
+         residuals_df$studentized_residuals <- 0
+       }
         
         p2 <- ggplot() +
           geom_line(data = residuals_df, aes(x = t, y = studentized_residuals, color = "Studentized\nResiduals"), size = 0.8) +
@@ -1126,6 +1140,10 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       options(scipen = 999)
       mape <- round(mean(residuals_df$mape_component),4)
       mae <- round(mean(abs(residuals_df$residuals)), 4)
+      
+      if(all(residuals_df$residuals == 0)) {
+        residuals_df$studentized_residuals <- 0
+      }
       
       pb <- ggplot() +
         geom_line(data = residuals_df, aes(x = time, y = studentized_residuals, color = "Studentized\nResiduals"), size = 0.8) +

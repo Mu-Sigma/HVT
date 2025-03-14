@@ -117,6 +117,8 @@ msm <- function(state_time_data,
   
   # Data variable assignation
   centroid_2d_points <- scoreHVT_results$cellID_coordinates
+  #centroid_2d_points <- centroid_2d_points[order(centroid_2d_points$Cell.ID), ]
+  
   centroid_data <- trainHVT_results[[3]][["centroid_data"]]
   
   # Set prediction horizon
@@ -125,9 +127,18 @@ msm <- function(state_time_data,
     n_ahead <- nrow(actual_data)
   } else if(forecast_type == "ex-ante") {
     n_ahead <- length(n_ahead_ante)
+    if(n_ahead_ante[1] <= tail(state_time_data$t, 1)) {
+      stop("The prediction horizon should be greater than the last timestamp in the input data")
+    }
   } else {
     stop("Invalid prediction type. Please choose either 'ex-post' or 'ex-ante'")
   }
+  
+  #####
+  
+  
+ 
+  
   
   # Identify problematic states
   max_state <- max(state_time_data$Cell.ID, na.rm = TRUE)
@@ -228,6 +239,7 @@ msm <- function(state_time_data,
     centroid_2d_points$Cell.ID <- as.integer(centroid_2d_points$Cell.ID)
     centroid_2d_points$x <- as.numeric(centroid_2d_points$x)
     centroid_2d_points$y <- as.numeric(centroid_2d_points$y)
+    rownames(centroid_2d_points) <- centroid_2d_points$Cell.ID
     
     # Initialize variables to prevent potential errors
     neighbor_mapping <- NULL
@@ -237,7 +249,7 @@ msm <- function(state_time_data,
     clust.results <- NULL
     
     
-    
+#browser()    
     # Handle clustering if there are problematic states
     if(length(problematic_states) > 0) {
       # Perform clustering
@@ -246,7 +258,9 @@ msm <- function(state_time_data,
         x_coordinate = centroid_2d_points$x,
         y_coordinate = centroid_2d_points$y
       )
-      
+      #cluster_data <- cluster_data[order(cluster_data$Cell.ID), ]
+
+#browser()    
       temp <- utils::capture.output({
         suppressWarnings({
           suppressMessages({

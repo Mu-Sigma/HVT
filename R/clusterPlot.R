@@ -5,11 +5,12 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
     
     # Define color palette
     domain.color <- c(
-      "#FFD700" ,"#FF0000", "#00FFFF", "#0000FF", "#FF00FF",
-      "#00FF00", "#F012BE", "#85144b", "#3D9970", "#39CCCC",
+      "#0000FF" ,"#00FFFF", "#FFD700", "#00FF00", "#FF00FF",
+      "#FF0000", "#F012BE", "#85144b", "#3D9970", "#39CCCC",
       "#01FF70", "#DDDDDD", "#AAAAAA", "#FF6F61", "#6B5B95",
       "#88B04B", "#F7CAC9", "#92A8D1", "#955251", "#B565A7"
     )
+
     
     # Extract HVT results
     hvt_list <- hvt.results
@@ -28,7 +29,7 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
     cellID_coordinates <- do.call(rbind.data.frame, coordinates_value1)
     colnames(cellID_coordinates) <- c("x", "y")
     cellID_coordinates$Cell.ID <- hvt_res2
-    
+    cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
     maxDepth <- 1
     
     # Initialize boundaries

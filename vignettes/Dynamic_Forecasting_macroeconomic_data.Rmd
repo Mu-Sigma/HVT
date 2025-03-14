@@ -249,7 +249,7 @@ The ultimate goal of this notebook is to dynamically forecast the HVT states in 
   - *Ex-Ante Forecasting:* 2025-01-01 to 2025-12-01  
 
 ```{r}
-expost_forecasting <- entire_dataset[entire_dataset$t > "2022-12-01" & entire_dataset$t <= "2024-12-01", ]
+expost_forecasting <- entire_dataset[entire_dataset$t > "2023-01-01" & entire_dataset$t <= "2024-12-01", ]
 ```
 
 
@@ -342,7 +342,7 @@ hvt.results <- trainHVT(
   entire_dataset[,-1],
   n_cells = 76,
   depth = 1,
-  quant.err = 0.26,
+  quant.err = 0.25,
   normalize = TRUE,
   distance_metric = "L1_Norm",
   error_metric = "max",
