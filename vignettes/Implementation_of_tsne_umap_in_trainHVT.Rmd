@@ -337,7 +337,8 @@ Each of the parameters of `trainHVT` function has been explained below:
 
 -   **`n_cells`** - An integer, indicating the number of cells per
     hierarchy (level). This parameter determines the granularity or
-    level of detail in the hierarchical vector quantization.
+    level of detail in the hierarchical vector quantization. Minimum
+    n_cells per hierarchy is 3.
 
 -   **`depth`** - An integer, indicating the number of levels. A depth
     of 1 means no hierarchy (single level), while higher values indicate

@@ -49,6 +49,9 @@ getOptimalCentroids <-
             distance_metric = "L1_Norm",
             quant_method=c("kmeans","kmedoids"),...
   ){
+    
+    print(paste0("Data dimensions before clustering:", nrow(x), "and", ncol(x)))
+    
     if(quant_method == "kmeans"){
       
       # Start with splitting data into three clusters
@@ -56,6 +59,8 @@ getOptimalCentroids <-
       outkinit <- list(centers = numeric(),maxQE = numeric(),meanQE = numeric(), values = logical() , nsize = numeric())
       quantok <- rep(T, n_cells)
       
+      # In trainHVT before calling getOptimalCentroids
+
       # Check if 3 <= No of clusters AND No of cells in a cluster > 3 AND flag to check QE for all clusters
       while(nclust_iter <= n_cells & nrow(x) > nclust_iter & (sum(quantok,na.rm = TRUE) > 0)) {
         resplt <- list()

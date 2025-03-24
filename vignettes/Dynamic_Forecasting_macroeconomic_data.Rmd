@@ -36,7 +36,7 @@ vignette: >
   max-width: 1000px;/* Adjust this value to match the width of the TOC + some margin */
 }
 body{
-max-width:1800px;
+max-width:1830px;
 width: 60%;
 min-width: 700px;
 }
@@ -968,7 +968,7 @@ ex_post[["plots"]][["states_plots"]][[1]]
 
 ##### centroid CPI_Food
 
-```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+```{r, fig.width=8.5, out.width='98%',fig.height=6, fig.align='center'}
 ex_post[["plots"]][[1]][[1]]$centroids_plot
 ```
 

@@ -252,6 +252,16 @@ The dataset is prepped and ready for constructing the HVT model, which is the fi
 
 **NOTE:** *The compression takes place only for the X, Y and Z coordinates and not for U(velocity) and t(Timestamp). After training & Scoring, we merge back the U and t columns with the dataset.*
 
+
+
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
+
+
 ```{r ,warning=FALSE,fig.show='hold',message=FALSE, results='hide'}
 hvt.results <- trainHVT(
   dataset[,-c(4:5)],
@@ -390,7 +400,8 @@ plotStateTransition(
 plotStateTransition(df = temporal_data, 
                     cellid_column = "Cell.ID", 
                     time_column = "t",
-                    sample_size = 0.2)
+                    sample_size = 0.2,
+                    line_plot = TRUE)
 ```
 
 For the demo of 'sample_size' argument, we are replicating the same plot above with the entire dataset.
@@ -399,7 +410,8 @@ For the demo of 'sample_size' argument, we are replicating the same plot above w
 plotStateTransition(df = temporal_data, 
                     cellid_column = "Cell.ID", 
                     time_column = "t",
-                    sample_size = 1)
+                    sample_size = 1,
+                    line_plot = TRUE)
 ```
 </br>
 
@@ -568,7 +580,7 @@ knitr::opts_chunk$set(
 flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
                                      transition_probability_df =trans_table,
                                      df = temporal_data, 
-                                     animation = "All", flow_map = 'All',
+                                     animation = 'All', flow_map = 'All',
                                      fps_time = 30, fps_state =  5, 
                                      time_duration = 180,state_duration = 20,
                                      cellid_column = "Cell.ID", time_column = "t")

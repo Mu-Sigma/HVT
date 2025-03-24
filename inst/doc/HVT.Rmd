@@ -16,6 +16,7 @@ tangle: false
 ---
 
 
+
 ```{css, echo=FALSE}
 /* CSS for floating TOC on the left side */
 #TOC {
@@ -63,9 +64,8 @@ knitr::opts_chunk$set(
   fig.align = "center",
   fig.retina = 1,
   dpi = 150,
-  tangle = FALSE,
-  eval = TRUE
-)
+  eval = TRUE,
+  tangle = FALSE)
 ```
 
 # 1. Abstract
