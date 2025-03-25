@@ -171,10 +171,10 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
   
   if (!is.null(flow_map)) {
     if(flow_map %in% c('self_state', 'All')) {
-
+      
       # Get min and max probabilities
-      min_prob <- min(merged_df2$Probability)
-      max_prob <- max(merged_df2$Probability)
+      min_prob <- min(merged_df2$Probability, na.rm = TRUE)
+      max_prob <- max(merged_df2$Probability, na.rm = TRUE)
       
       # Check if all probability values are the same
       if(length(unique(merged_df2$Probability)) == 1) {
@@ -191,23 +191,34 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
         # Create breaks based on 30% quantiles
         probs_seq <- seq(0, 1, by = 0.3)
         custom_breaks <- stats::quantile(merged_df2$Probability, probs = probs_seq)
-
-        # Ensure breaks are unique by checking and adjusting if needed
+        
+        # Fix the duplicate breaks issue
         if(any(duplicated(custom_breaks))) {
-          # Find smallest increment that makes breaks unique
-          epsilon <- (max_prob - min_prob) / (1000 * length(probs_seq))
+          # Find the unique probability values
+          unique_probs <- sort(unique(merged_df2$Probability))
           
-          # Add tiny incrementing values to make each break unique
-          for(i in 2:length(custom_breaks)) {
-            if(custom_breaks[i] <= custom_breaks[i-1]) {
-              custom_breaks[i] <- custom_breaks[i-1] + epsilon
+          # If there are few unique values, use those directly
+          if(length(unique_probs) <= length(probs_seq)) {
+            # Add small epsilon to create slightly different breaks
+            epsilon <- (max_prob - min_prob) / 1000
+            if(epsilon == 0) epsilon <- 0.001 # Ensure non-zero epsilon
+            
+            # Create breaks that ensure each unique probability value falls in a different bin
+            custom_breaks <- c(min_prob - epsilon)
+            for(i in 1:(length(unique_probs) - 1)) {
+              custom_breaks <- c(custom_breaks, (unique_probs[i] + unique_probs[i+1]) / 2)
             }
+            custom_breaks <- c(custom_breaks, max_prob + epsilon)
+          } else {
+            # If there are many unique values but still have duplicates in the quantiles
+            # Use evenly spaced breaks between min and max
+            custom_breaks <- seq(min_prob, max_prob, length.out = length(probs_seq))
           }
         }
         
         # Make sure first break is slightly lower than minimum
         custom_breaks[1] <- min_prob - 0.001
-        custom_breaks[length(custom_breaks)] <- max(merged_df2$Probability) + 0.001
+        custom_breaks[length(custom_breaks)] <- max_prob + 0.001
         
         # Assign circle sizes
         merged_df2$CircleSize <- as.numeric(cut(merged_df2$Probability, 
@@ -228,39 +239,64 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
         breaks <- as.numeric(custom_breaks)
         breaks[1] <- breaks[1] + 0.001
         
-        # Generate legend labels
-        last_label_max <- min(max(merged_df2$Probability), 1.000)
+        # Generate legend labels - fix to avoid duplicate values
+        last_label_max <- min(max_prob, 1.000)
         
-        legend_labels <- c(
-          paste0(format(round(custom_breaks[1] + 0.001, 3), nsmall = 3), " - ", format(round(custom_breaks[2] - 0.001, 3), nsmall = 3)),
-          paste0(format(round(custom_breaks[2], 3), nsmall = 3), " - ", format(round(custom_breaks[3] - 0.001, 3), nsmall = 3)),
-          paste0(format(round(custom_breaks[3], 3), nsmall = 3), " - ", format(round(last_label_max, 3), nsmall = 3))
-        )
+        generate_legend_labels <- function(custom_breaks) {
+          # Ensure custom_breaks is sorted (just in case)
+          custom_breaks <- sort(custom_breaks)
+          
+          # Initialize an empty vector for labels
+          legend_labels <- c()
+          
+          # Loop through the breakpoints to create labels
+          for (i in seq_along(custom_breaks)[-length(custom_breaks)]) {
+            lower_bound <- round(custom_breaks[i], 3)
+            upper_bound <- round(custom_breaks[i + 1] - 0.001, 3)
+            
+            # Ensure lower bound is not equal to upper bound
+            if (lower_bound == upper_bound) {
+              legend_labels <- c(legend_labels, paste0("\u2264", format(lower_bound, nsmall = 3)))
+            } else {
+              legend_labels <- c(legend_labels, paste0(format(lower_bound, nsmall = 3), " - ", format(upper_bound, nsmall = 3)))
+            }
+          }
+          
+          # Append the last range correctly
+          last_label_max <- min(max(custom_breaks), 1.000)
+          legend_labels[length(legend_labels)] <- paste0(format(round(custom_breaks[length(custom_breaks) - 1], 3), nsmall = 3), " - ", format(last_label_max, nsmall = 3))
+          
+          return(legend_labels)
+        }
+        legend_labels <- generate_legend_labels(custom_breaks)
+        
+        
       }
       
-      # Create the plot
       self_state_plot <- ggplot2::ggplot() +
         ggplot2::geom_point(data = cellID_coordinates, aes(x = x, y = y, color = prob1), size = 0.9) +
-        ggplot2::geom_point(data = merged_df2, 
+        ggplot2::geom_point(data = merged_df2,
                             aes(x = x1, y = y1, size = CircleSize),
-                            shape = 1,  
+                            shape = 1,
                             color = "blue") +
         ggplot2::geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3) +
         scale_color_gradient(low = "black", high = "black",
                              name = "Probability",
-                             breaks = if(length(unique(merged_df2$Probability)) == 1) unique(merged_df2$Probability) else breaks[-length(breaks)],  
+                             breaks = if(length(unique(merged_df2$Probability)) == 1) unique(merged_df2$Probability) else breaks[-length(breaks)],
                              labels = legend_labels) +
         scale_size(range = c(2, 10)) +
         labs(title = "State Transitions: Circle size based on Transition Probability",
              subtitle = "considering self state transitions",
-             x = "x-coordinates",  
+             x = "x-coordinates",
              y = "y-coordinates") +
-        guides(color = guide_legend(title = "Transition\nProbability", 
-                                    override.aes = list(shape = 21, size = legend_size, color = "blue")), 
+        guides(color = guide_legend(title = "Transition\nProbability",
+                                    override.aes = list(shape = 21, size = legend_size, color = "blue")),
                fill = guide_legend(title = "Probability", override.aes = list(color = "blue", size = legend_size)),
                size = "none") +
         theme_minimal()
     }
+    
+    
     
     if(flow_map %in% c('without_self_state', 'All')) {
 
