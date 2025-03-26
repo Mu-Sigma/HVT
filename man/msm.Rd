@@ -19,7 +19,9 @@ msm(
   handle_problematic_states = FALSE,
   n_nearest_neighbor = 1,
   show_simulation = TRUE,
-  mae_metric = "median"
+  mae_metric = "median",
+  time_column = NULL,
+  plot_type = "static"
 )
 }
 \arguments{
@@ -58,8 +60,13 @@ Default is 1.}
 
 \item{show_simulation}{Logical. To indicate whether to show the simulation lines in plots or not. Default is TRUE.}
 
-\item{mae_metric}{Character. A character to indicate which metric to calculate Mean Absolute Error. 
+\item{mae_metric}{Character. A character to indicate which metric to calculate Mean Absolute Error.
 Accepted entries are "mean", "median", or "mode". Default is "median".}
+
+\item{time_column}{Character. The name of the column containing time data. Used for aligning and plotting the results.}
+
+\item{plot_type}{Character. A character to indicate what type of plot should be generated.
+Accepred entries are "static" (ggplot object) or "interactive"(plotly object). Default is "static".}
 }
 \value{
 A list object that contains the forecasting plots and MAE values.
@@ -98,8 +105,9 @@ ex_post <- msm(state_time_data = temporal_data,
               trainHVT_results = hvt.results,
               actual_data = ex_post_forecasting,
               raw_dataset = dataset,
-             mae_metric = "median",
-             show_simulation = FALSE)
+              mae_metric = "median",
+             show_simulation = FALSE,
+             time_column = 't')
 }
 \author{
 Vishwavani <vishwavani@mu-sigma.com>

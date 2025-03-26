@@ -139,7 +139,7 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   hc <- stats::hclust(dist(hclust_data), clustering_method)
   clusters <- stats::cutree(hc, k = no_of_clusters)
   
-  
+#browser()  
   # Replace the existing plot_dendrogram function with this:
   plot_dendrogram <- function(hc_1, no_of_clusters_1) {
     function() {
@@ -149,13 +149,17 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   }
   
   a <- plot_dendrogram(hc_1 = hc, no_of_clusters_1 = no_of_clusters)
-  
-  
+
+    
+#browser()  
   
   # Prepare data for clusterPlotly
   cluster_data <- scoreHVT_results$centroidData %>% 
     dplyr::select("Cell.ID", "names.column") %>%
     mutate(clusters =  clusters)
+  
+  #cluster_data <- cluster_data[order(cluster_data$Cell.ID), ]
+  
   
   b <- clusterPlot(dataset= cluster_data, hvt.results  = trainHVT_results, domains.column = "clusters" )
   

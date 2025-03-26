@@ -354,7 +354,7 @@ trainHVT <-
     }
     
     ###### Silhouette Score
-    calculate_average_silhouette <- function(data, centers = 4, seed = 123) {
+    calculate_average_silhouette <- function(data, centers = 2, seed = 123) {
       
       set.seed(seed)
       
@@ -416,25 +416,48 @@ trainHVT <-
     }
 
     ## KNN_retention function
-    knn_retention <- function(high_dim_embeddings, low_dim_embeddings, k = 5) {
-      # Convert embeddings to matrices (if not already)
+    # knn_retention <- function(high_dim_embeddings, low_dim_embeddings, k = 5) {
+    #   # Convert embeddings to matrices (if not already)
+    #   high_dim_embeddings <- as.matrix(high_dim_embeddings)
+    #   low_dim_embeddings <- as.matrix(low_dim_embeddings)
+    #   # Find k-nearest neighbors in high-dimensional space
+    #   high_dim_nn <- FNN::knn.index(high_dim_embeddings, k = k)
+    #   # Find k-nearest neighbors in low-dimensional space
+    #   low_dim_nn <- FNN::knn.index(low_dim_embeddings, k = k)
+    #   # Calculate overlap
+    #   total_overlap <- 0
+    #   n <- nrow(high_dim_embeddings)
+    #   # Calculate total overlap without using a for loop
+    #   total_overlap <- sum(sapply(1:n, function(i) {
+    #     length(intersect(high_dim_nn[i, ], low_dim_nn[i, ]))
+    #   }))
+    #   # Calculate average retention
+    #   avg_retention <- total_overlap / (n * k)
+    #   return(avg_retention)
+    # }
+    knn_retention <- function(high_dim_embeddings, low_dim_embeddings, k = 8) {
       high_dim_embeddings <- as.matrix(high_dim_embeddings)
       low_dim_embeddings <- as.matrix(low_dim_embeddings)
+      
+      n <- nrow(high_dim_embeddings)  # Total data points
+      k <- min(k, n - 1)  # Ensure k is not greater than available points
+      
       # Find k-nearest neighbors in high-dimensional space
       high_dim_nn <- FNN::knn.index(high_dim_embeddings, k = k)
+      
       # Find k-nearest neighbors in low-dimensional space
       low_dim_nn <- FNN::knn.index(low_dim_embeddings, k = k)
-      # Calculate overlap
-      total_overlap <- 0
-      n <- nrow(high_dim_embeddings)
-      # Calculate total overlap without using a for loop
+      
+      # Calculate total overlap
       total_overlap <- sum(sapply(1:n, function(i) {
         length(intersect(high_dim_nn[i, ], low_dim_nn[i, ]))
       }))
+      
       # Calculate average retention
       avg_retention <- total_overlap / (n * k)
       return(avg_retention)
     }
+    
     
     if(depth == 1){
       points2d_df = as.data.frame(points2d)
@@ -622,7 +645,7 @@ trainHVT <-
         train_validation_split_ratio = train_validation_split_ratio
       )
       
-    
+#browser()    
   
       if(depth == 1){
         

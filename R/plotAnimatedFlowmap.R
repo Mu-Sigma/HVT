@@ -163,70 +163,145 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
   prob1 <- merged_df2$Probability 
   cellID_coordinates$prob1 <- prob1
   
+  # Initialize plot variables
+  self_state_plot <- NULL
+  arrow_flow_map <- NULL
+  time_animation <- NULL
+  state_animation <- NULL
+  
   if (!is.null(flow_map)) {
     if(flow_map %in% c('self_state', 'All')) {
-
+      
       # Get min and max probabilities
-      min_prob <- min(merged_df2$Probability)
-      max_prob <- max(merged_df2$Probability)
+      min_prob <- min(merged_df2$Probability, na.rm = TRUE)
+      max_prob <- max(merged_df2$Probability, na.rm = TRUE)
       
-      # Create breaks based on 30% quantiles
-      custom_breaks <- stats::quantile(merged_df2$Probability, probs = seq(0, 1, by = 0.3))
-      custom_breaks[1] <- min_prob - 0.001
+      # Check if all probability values are the same
+      if(length(unique(merged_df2$Probability)) == 1) {
+        # If all values are identical, use a single circle size for all points
+        merged_df2$CircleSize <- 3  # Set a moderate circle size
+        
+        # Create a simple legend with just the single value
+        single_value <- unique(merged_df2$Probability)
+        breaks <- c(single_value - 0.001, single_value + 0.001)
+        legend_labels <- format(round(single_value, 3), nsmall = 3)
+        legend_size <- 5  # A single, moderate legend size
+      } else {
+        # Normal case with varying probabilities
+        # Create breaks based on 30% quantiles
+        probs_seq <- seq(0, 1, by = 0.3)
+        custom_breaks <- stats::quantile(merged_df2$Probability, probs = probs_seq)
+        
+        # Fix the duplicate breaks issue
+        if(any(duplicated(custom_breaks))) {
+          # Find the unique probability values
+          unique_probs <- sort(unique(merged_df2$Probability))
+          
+          # If there are few unique values, use those directly
+          if(length(unique_probs) <= length(probs_seq)) {
+            # Add small epsilon to create slightly different breaks
+            epsilon <- (max_prob - min_prob) / 1000
+            if(epsilon == 0) epsilon <- 0.001 # Ensure non-zero epsilon
+            
+            # Create breaks that ensure each unique probability value falls in a different bin
+            custom_breaks <- c(min_prob - epsilon)
+            for(i in 1:(length(unique_probs) - 1)) {
+              custom_breaks <- c(custom_breaks, (unique_probs[i] + unique_probs[i+1]) / 2)
+            }
+            custom_breaks <- c(custom_breaks, max_prob + epsilon)
+          } else {
+            # If there are many unique values but still have duplicates in the quantiles
+            # Use evenly spaced breaks between min and max
+            custom_breaks <- seq(min_prob, max_prob, length.out = length(probs_seq))
+          }
+        }
+        
+        # Make sure first break is slightly lower than minimum
+        custom_breaks[1] <- min_prob - 0.001
+        custom_breaks[length(custom_breaks)] <- max_prob + 0.001
+        
+        # Assign circle sizes
+        merged_df2$CircleSize <- as.numeric(cut(merged_df2$Probability, 
+                                                breaks = custom_breaks, 
+                                                labels = seq(1, length(custom_breaks) - 1),
+                                                include.lowest = TRUE))
+        
+        # Handle NA values
+        merged_df2$CircleSize <- ifelse(is.na(merged_df2$CircleSize), 
+                                        max(merged_df2$CircleSize, na.rm = TRUE), 
+                                        merged_df2$CircleSize)
+        
+        # Create legend sizes dynamically based on number of unique categories
+        n_categories <- length(unique(merged_df2$CircleSize))
+        legend_size <- 2.6 * seq_len(n_categories)
+        
+        # Create breaks for legend
+        breaks <- as.numeric(custom_breaks)
+        breaks[1] <- breaks[1] + 0.001
+        
+        # Generate legend labels - fix to avoid duplicate values
+        last_label_max <- min(max_prob, 1.000)
+        
+        generate_legend_labels <- function(custom_breaks) {
+          # Ensure custom_breaks is sorted (just in case)
+          custom_breaks <- sort(custom_breaks)
+          
+          # Initialize an empty vector for labels
+          legend_labels <- c()
+          
+          # Loop through the breakpoints to create labels
+          for (i in seq_along(custom_breaks)[-length(custom_breaks)]) {
+            lower_bound <- round(custom_breaks[i], 3)
+            upper_bound <- round(custom_breaks[i + 1] - 0.001, 3)
+            
+            # Ensure lower bound is not equal to upper bound
+            if (lower_bound == upper_bound) {
+              legend_labels <- c(legend_labels, paste0("\u2264", format(lower_bound, nsmall = 3)))
+            } else {
+              legend_labels <- c(legend_labels, paste0(format(lower_bound, nsmall = 3), " - ", format(upper_bound, nsmall = 3)))
+            }
+          }
+          
+          # Append the last range correctly
+          last_label_max <- min(max(custom_breaks), 1.000)
+          legend_labels[length(legend_labels)] <- paste0(format(round(custom_breaks[length(custom_breaks) - 1], 3), nsmall = 3), " - ", format(last_label_max, nsmall = 3))
+          
+          return(legend_labels)
+        }
+        legend_labels <- generate_legend_labels(custom_breaks)
+        
+        
+      }
       
-      # Assign circle sizes
-      merged_df2$CircleSize <- as.numeric(cut(merged_df2$Probability, 
-                                              breaks = custom_breaks, 
-                                              labels = seq(1, length(custom_breaks) - 1)))
-      
-      # Handle NA values
-      merged_df2$CircleSize <- ifelse(is.na(merged_df2$CircleSize), 
-                                      max(merged_df2$CircleSize, na.rm = TRUE), 
-                                      merged_df2$CircleSize)
-      
-      # Create legend sizes dynamically based on number of unique categories
-      n_categories <- length(unique(merged_df2$CircleSize))
-      legend_size <- 2.6 * seq_len(n_categories)
-      
-      # Create breaks for legend
-      breaks <- as.numeric(custom_breaks)
-      breaks[1] <- breaks[1] + 0.001
-      
-      # Generate legend labels
-      legend_labels <- paste0(format(round(breaks[-length(breaks)], 3), nsmall = 3), 
-                              " to ", 
-                              format(round(breaks[-1], 3), nsmall = 3))
-
-      # Create the plot
       self_state_plot <- ggplot2::ggplot() +
         ggplot2::geom_point(data = cellID_coordinates, aes(x = x, y = y, color = prob1), size = 0.9) +
-        ggplot2::geom_point(data = merged_df2, 
+        ggplot2::geom_point(data = merged_df2,
                             aes(x = x1, y = y1, size = CircleSize),
-                            shape = 1,  
+                            shape = 1,
                             color = "blue") +
         ggplot2::geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3) +
         scale_color_gradient(low = "black", high = "black",
                              name = "Probability",
-                             breaks = breaks[-length(breaks)],  
+                             breaks = if(length(unique(merged_df2$Probability)) == 1) unique(merged_df2$Probability) else breaks[-length(breaks)],
                              labels = legend_labels) +
         scale_size(range = c(2, 10)) +
         labs(title = "State Transitions: Circle size based on Transition Probability",
              subtitle = "considering self state transitions",
-             x = "x-coordinates",  
+             x = "x-coordinates",
              y = "y-coordinates") +
-        guides(color = guide_legend(title = "Transition\nProbability", 
-                                    override.aes = list(shape = 21, size = legend_size, color = "blue")), 
+        guides(color = guide_legend(title = "Transition\nProbability",
+                                    override.aes = list(shape = 21, size = legend_size, color = "blue")),
                fill = guide_legend(title = "Probability", override.aes = list(color = "blue", size = legend_size)),
                size = "none") +
         theme_minimal()
     }
+    
+    
+    
     if(flow_map %in% c('without_self_state', 'All')) {
 
       # Initial transition matrix with removal of self-transitions
-      trans_prob_matx  <- getTransitionProbability(df = df,
-                                                                cellid_column = "Cell.ID",
-                                                                time_column = "t",
-                                                                type = "with_self_state")
+      trans_prob_matx <- transition_probability_df
       
       # Keep track of states that have only single transition AND it's to themselves
       single_transition_states <- trans_prob_matx %>%
@@ -261,267 +336,262 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
 
       third_df <- filtered_trans_prob %>% dplyr::select(c(Next_State, Transition_Probability))
  
-  # Dataframe for second_highest state
-  merged_df3 <- cbind(current_state_data, third_df)
-  merged_df3 <- merged_df3 %>%
-    left_join(dplyr::select(merged_df3, Cell.ID, x1, y1), by = c("Next_State" = "Cell.ID")) %>%
-    dplyr::mutate(x2 = x1.y, y2 = y1.y) %>%
-    dplyr::select(-x1.y, -y1.y)
-  colnames(merged_df3) <- c("x1", "y1", "Cell.ID", "Next_State", "Probability", "x2", "y2")
-  merged_df3$Probability <- round(merged_df3$Probability, digits = 1)
-  
- 
-  # NEW CODE FOR PLOT LEGEND
-  segment_length <- function(p) {
-    case_when(
-      p <= 0.3 ~ 0.2,
-      p <= 0.6 ~ 0.4,
-      p <= 0.8 ~ 0.7,
-      TRUE ~ 0.9
-    )
-  }
-
-  # Calculate segment lengths
-  merged_df3$segment_len <- segment_length(merged_df3$Probability)
-
-  # Calculate relative ranges to position legend consistently
-  y_range <- range(merged_df3$y1)
-  x_range <- range(merged_df3$x1)
-  plot_width <- diff(x_range)
-  plot_height <- diff(y_range)
-  
-  # Set fixed positions relative to plot dimensions
-  y1_l <- max(y_range) - 0.1*plot_height  
-  y2_l <- max(y_range) - 0.15*plot_height
-  
-  x1_l <- max(x_range) + 0.15*plot_width
-  x2_l <- max(x_range) + 0.2*plot_width 
-  x3_l <- max(x_range) + 0.35*plot_width
-  
-  y1_l <- mean(y_range)  # Center vertically
-  x1_l <- max(x_range) + 0.05*plot_width  # Slightly right of plot
-  
-  # Dynamically scale arrow lengths based on plot dimensions 
-  arrow_scale <- min(plot_width, plot_height) / 20  # Scale factor
-  
-  # Check actual probability ranges in data
-  prob_ranges <- case_when(
-    merged_df3$Probability <= 0.3 ~ "0 to 0.3",
-    merged_df3$Probability > 0.3 & merged_df3$Probability <= 0.6 ~ "0.4 to 0.6",
-    merged_df3$Probability > 0.6 & merged_df3$Probability <= 0.8 ~ "0.7 to 0.8", 
-    merged_df3$Probability > 0.8 ~ "0.9 to 1"
-  )
-  
-  unique_ranges <- rev(unique(prob_ranges))
-  
-  create_legend <- function(x1_l, x2_l, x3_l, y1_l, y2_l) {
-    labels <- unique_ranges  # Use actual ranges found in data
-    arrow_lengths <- seq(1, length(labels)*2 , by=1) * arrow_scale
-    spacing <- plot_height / 20
-    
-    legend_elements <- list(
-      annotate("text", x = x1_l + 2*arrow_scale, y = y1_l + spacing, 
-               label = "Transition\nProbability", size = 4)
-    )
-    
-    for(i in seq_along(labels)) {
-      y_pos <- y1_l - i * spacing
+      # Dataframe for second_highest state
+      merged_df3 <- cbind(current_state_data, third_df)
+      merged_df3 <- merged_df3 %>%
+        left_join(dplyr::select(merged_df3, Cell.ID, x1, y1), by = c("Next_State" = "Cell.ID")) %>%
+        dplyr::mutate(x2 = x1.y, y2 = y1.y) %>%
+        dplyr::select(-x1.y, -y1.y)
+      colnames(merged_df3) <- c("x1", "y1", "Cell.ID", "Next_State", "Probability", "x2", "y2")
+      merged_df3$Probability <- round(merged_df3$Probability, digits = 1)
       
-      legend_elements[[length(legend_elements) + 1]] <- 
-        annotate("segment", 
-                 x = x1_l, 
-                 xend = x1_l + arrow_lengths[i],
-                 y = y_pos, 
-                 yend = y_pos,
-                 color = "blue",
-                 arrow = arrow(length = unit(1.5, "mm"), type = "open"))
+     
+      # NEW CODE FOR PLOT LEGEND
+      segment_length <- function(p) {
+        case_when(
+          p <= 0.3 ~ 0.2,
+          p <= 0.6 ~ 0.4,
+          p <= 0.8 ~ 0.7,
+          TRUE ~ 0.9
+        )
+      }
+
+      # Calculate segment lengths
+      merged_df3$segment_len <- segment_length(merged_df3$Probability)
+
+      # Calculate relative ranges to position legend consistently
+      y_range <- range(merged_df3$y1)
+      x_range <- range(merged_df3$x1)
+      plot_width <- diff(x_range)
+      plot_height <- diff(y_range)
       
-      legend_elements[[length(legend_elements) + 1]] <- 
-        annotate("text", 
-                 x = x1_l + arrow_lengths[i] + arrow_scale/2,
-                 y = y_pos, 
-                 label = labels[i], 
-                 size = 3,
-                 hjust = 0)
-    }
-    return(legend_elements)
-  }
-  # Generate legend
-  annotate_list <- create_legend(
-    x1_l = x1_l,
-    x2_l = x2_l,
-    x3_l = x3_l,
-    y1_l = y1_l,
-    y2_l = y2_l
-  )
-  
-  # Create the plot
-  arrow_flow_map <- ggplot(merged_df3, aes(x = x1, y = y1)) +
-    geom_point(color = "black", size = 0.9) +
-    geom_text(aes(label = Cell.ID), vjust = -1, size = 3) +
-    geom_segment(aes(xend = x1 + (x2 - x1) * segment_len,
-                     yend = y1 + (y2 - y1) * segment_len),
-                 arrow = arrow(length = unit(merged_df3$segment_len * 3, "mm")),
-                 color = "blue") +
-    labs(title = "State Transitions: Arrow size based on Transition Probability",
-         subtitle = "without considering self state transitions",
-         x = "x-coordinates",
-         y = "y-coordinates") +
-    theme_minimal()+
-    scale_x_continuous(limits = c(min(merged_df3$x1), max(merged_df3$x1) + plot_width/3))
-  
-  # Add legend annotations
-  for(annotation in annotate_list) {
-    arrow_flow_map <- arrow_flow_map + annotation
-  }
-  
+      # Set fixed positions relative to plot dimensions
+      y1_l <- max(y_range) - 0.1*plot_height  
+      y2_l <- max(y_range) - 0.15*plot_height
+      
+      x1_l <- max(x_range) + 0.15*plot_width
+      x2_l <- max(x_range) + 0.2*plot_width 
+      x3_l <- max(x_range) + 0.35*plot_width
+      
+      y1_l <- mean(y_range)  # Center vertically
+      x1_l <- max(x_range) + 0.05*plot_width  # Slightly right of plot
+      
+      # Dynamically scale arrow lengths based on plot dimensions 
+      arrow_scale <- min(plot_width, plot_height) / 20  # Scale factor
+      
+      # Check actual probability ranges in data
+      prob_ranges <- case_when(
+        merged_df3$Probability <= 0.3 ~ "0 to 0.3",
+        merged_df3$Probability > 0.3 & merged_df3$Probability <= 0.6 ~ "0.4 to 0.6",
+        merged_df3$Probability > 0.6 & merged_df3$Probability <= 0.8 ~ "0.7 to 0.8", 
+        merged_df3$Probability > 0.8 ~ "0.9 to 1"
+      )
+      
+      unique_ranges <- rev(unique(prob_ranges))
+      
+      create_legend <- function(x1_l, x2_l, x3_l, y1_l, y2_l) {
+        labels <- unique_ranges  # Use actual ranges found in data
+        arrow_lengths <- seq(1, length(labels)*2 , by=1) * arrow_scale
+        spacing <- plot_height / 20
+        
+        legend_elements <- list(
+          annotate("text", x = x1_l + 2*arrow_scale, y = y1_l + spacing, 
+                   label = "Transition\nProbability", size = 4)
+        )
+        
+        for(i in seq_along(labels)) {
+          y_pos <- y1_l - i * spacing
+          
+          legend_elements[[length(legend_elements) + 1]] <- 
+            annotate("segment", 
+                     x = x1_l, 
+                     xend = x1_l + arrow_lengths[i],
+                     y = y_pos, 
+                     yend = y_pos,
+                     color = "blue",
+                     arrow = arrow(length = unit(1.5, "mm"), type = "open"))
+          
+          legend_elements[[length(legend_elements) + 1]] <- 
+            annotate("text", 
+                     x = x1_l + arrow_lengths[i] + arrow_scale/2,
+                     y = y_pos, 
+                     label = labels[i], 
+                     size = 3,
+                     hjust = 0)
+        }
+        return(legend_elements)
+      }
+      # Generate legend
+      annotate_list <- create_legend(
+        x1_l = x1_l,
+        x2_l = x2_l,
+        x3_l = x3_l,
+        y1_l = y1_l,
+        y2_l = y2_l
+      )
+      
+      # Create the plot
+      arrow_flow_map <- ggplot(merged_df3, aes(x = x1, y = y1)) +
+        geom_point(color = "black", size = 0.9) +
+        geom_text(aes(label = Cell.ID), vjust = -1, size = 3) +
+        geom_segment(aes(xend = x1 + (x2 - x1) * segment_len,
+                         yend = y1 + (y2 - y1) * segment_len),
+                     arrow = arrow(length = unit(merged_df3$segment_len * 3, "mm")),
+                     color = "blue") +
+        labs(title = "State Transitions: Arrow size based on Transition Probability",
+             subtitle = "without considering self state transitions",
+             x = "x-coordinates",
+             y = "y-coordinates") +
+        theme_minimal()+
+        scale_x_continuous(limits = c(min(merged_df3$x1), max(merged_df3$x1) + plot_width/3))
+      
+      # Add legend annotations
+      for(annotation in annotate_list) {
+        arrow_flow_map <- arrow_flow_map + annotation
+      }
     }
   }  
-    if (!is.null(animation)) {
-      if(animation %in% c('time_based', 'All')) {
-    sampled_df <- df %>% dplyr::select(Cell.ID, Timestamp)
-    anime_data <- merge(sampled_df, cellID_coordinates, by = "Cell.ID", all.x = TRUE) %>%
-      dplyr::arrange(Timestamp) %>%
-      dplyr::select(-prob1) %>%
-      dplyr::group_by(grp = cumsum(Cell.ID != lag(Cell.ID, default = first(Cell.ID)))) %>% 
-      dplyr::mutate(colour = 2 - row_number() %% 2) %>%
-      dplyr::ungroup() %>%
-      dplyr::select(-grp) 
+  
+  if (!is.null(animation)) {
+    if(animation %in% c('time_based', 'All')) {
+      sampled_df <- df %>% dplyr::select(Cell.ID, Timestamp)
+      anime_data <- merge(sampled_df, cellID_coordinates, by = "Cell.ID", all.x = TRUE) %>%
+        dplyr::arrange(Timestamp) %>%
+        dplyr::select(-prob1) %>%
+        dplyr::group_by(grp = cumsum(Cell.ID != lag(Cell.ID, default = first(Cell.ID)))) %>% 
+        dplyr::mutate(colour = 2 - row_number() %% 2) %>%
+        dplyr::ungroup() %>%
+        dplyr::select(-grp) 
 
 
-    if (!inherits(df$Timestamp, c("POSIXct", "POSIXt", "numeric"))) {
-      stop("Accepted Timestamp data types: POSIXct, POSIXt and numeric")
-    }
-    
-    if (!inherits(df$Timestamp, c("POSIXct", "POSIXt", "numeric"))) {
-      stop("Accepted Timestamp data types: POSIXct, POSIXt and numeric")
-    }
-    
-    if (inherits(anime_data$Timestamp, c("POSIXct", "POSIXt"))) {
-      # Calculate time differences in days
-      time_diffs <- as.numeric(difftime(lead(anime_data$Timestamp), 
-                                        anime_data$Timestamp, 
-                                        units = "days"))
-      
-      # Determine frequency
-      med_diff <- stats::median(time_diffs, na.rm = TRUE)
-      if (med_diff >= 365) {
-        freq_unit <- "years"
-        scale_factor <- 1/365
-      } else if (med_diff >= 28) {
-        freq_unit <- "months"
-        scale_factor <- 1/30.44
-      } else if (med_diff >= 1) {
-        freq_unit <- "days"
-        scale_factor <- 1
-      } else if (med_diff >= 1/24) {
-        freq_unit <- "hours"
-        scale_factor <- 24
-      } else {
-        freq_unit <- "mins"
-        scale_factor <- 24*60
+      if (!inherits(df$Timestamp, c("POSIXct", "POSIXt", "numeric"))) {
+        stop("Accepted Timestamp data types: POSIXct, POSIXt and numeric")
       }
       
-      anime_data <- anime_data %>%
-        arrange(Timestamp) %>%
-        mutate(
-          latency = as.numeric(difftime(lead(Timestamp), Timestamp, units = "days")) * scale_factor,
-          freq_unit = freq_unit
-        ) %>%
-        ungroup()
+      if (inherits(anime_data$Timestamp, c("POSIXct", "POSIXt"))) {
+        # Calculate time differences in days
+        time_diffs <- as.numeric(difftime(lead(anime_data$Timestamp), 
+                                          anime_data$Timestamp, 
+                                          units = "days"))
+        
+        # Determine frequency
+        med_diff <- stats::median(time_diffs, na.rm = TRUE)
+        if (med_diff >= 365) {
+          freq_unit <- "years"
+          scale_factor <- 1/365
+        } else if (med_diff >= 28) {
+          freq_unit <- "months"
+          scale_factor <- 1/30.44
+        } else if (med_diff >= 1) {
+          freq_unit <- "days"
+          scale_factor <- 1
+        } else if (med_diff >= 1/24) {
+          freq_unit <- "hours"
+          scale_factor <- 24
+        } else {
+          freq_unit <- "mins"
+          scale_factor <- 24*60
+        }
+        
+        anime_data <- anime_data %>%
+          arrange(Timestamp) %>%
+          mutate(
+            latency = as.numeric(difftime(lead(Timestamp), Timestamp, units = "days")) * scale_factor,
+            freq_unit = freq_unit
+          ) %>%
+          ungroup()
+        anime_data$latency <- round(anime_data$latency,0)
+        
+        
+        format_string <- switch(freq_unit,
+                                "years" = "%Y",
+                                "months" = "%Y-%m",
+                                "days" = "%Y-%m-%d",
+                                "hours" = "%Y-%m-%d %H:00",
+                                "mins" = "%Y-%m-%d %H:%M"
+        )
+        
+        subtitle_text <- paste0(
+          "\n\ntime(t): {format(frame_time, format_string)}\n",
+          "Latency: {round(anime_data$latency[findInterval(as.numeric(frame_time), 
+                                     as.numeric(anime_data$Timestamp))], 2)} ",
+          freq_unit
+        )
+      } else if (is.numeric(anime_data$Timestamp)) {
+        anime_data <- anime_data %>%
+          arrange(Timestamp) %>%
+          mutate(latency = lead(Timestamp) - Timestamp) %>%
+          mutate(latency = formatC(latency, format = "f", digits = 5)) %>%
+          ungroup()
+        
+        subtitle_text <- paste0(
+          "\n\ntime(t): {round(frame_time, 3)} seconds\n",
+          "Latency: {anime_data$latency[frame]} seconds"
+        )
+      }
       
-      format_string <- switch(freq_unit,
-                              "years" = "%Y",
-                              "months" = "%Y-%m",
-                              "days" = "%Y-%m-%d",
-                              "hours" = "%Y-%m-%d %H:00",
-                              "mins" = "%Y-%m-%d %H:%M"
-      )
+      dot_anim <- ggplot2::ggplot(anime_data, aes(x = x, y = y)) +
+        ggplot2::geom_point(data = cellID_coordinates, aes(x = x, y = y), color = "black", size = 1) +
+        ggplot2::geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3) +
+        ggplot2::geom_point(aes(x = x, y = y, color = ifelse(colour == 1, "Active state at t", " ")), alpha = 0.7, size = 5) +
+        scale_color_manual(values = c("Active state at t" = "red", " " = "white")) +
+        theme_minimal() +
+        labs(x = "x-coordinates", 
+             y = "y-coordinates", 
+             color = "Time Transition",
+             title = "Animation showing state transitions considering self state transitions",
+             subtitle = subtitle_text) +
+        theme(plot.subtitle = element_text(margin = margin(t = 20))) +
+        gganimate::transition_time(Timestamp) +
+        gganimate::shadow_wake(wake_length = 0.05, alpha = FALSE, wrap = FALSE)
       
-      subtitle_text <- paste0(
-        "\n\ntime(t): {format(frame_time, format_string)}\n",
-        "Latency: {round(anime_data$latency[findInterval(as.numeric(frame_time), 
-                                   as.numeric(anime_data$Timestamp))], 2)} ",
-        freq_unit
-      )
-    } else if (is.numeric(anime_data$Timestamp)) {
-      anime_data <- anime_data %>%
-        arrange(Timestamp) %>%
-        mutate(latency = lead(Timestamp) - Timestamp) %>%
-        mutate(latency = formatC(latency, format = "f", digits = 5)) %>%
-        ungroup()
-      
-      subtitle_text <- paste0(
-        "\n\ntime(t): {round(frame_time, 3)} seconds\n",
-        "Latency: {anime_data$latency[frame]} seconds"
-      )
-    }
-
-#browser()    
-    dot_anim <- ggplot2::ggplot(anime_data, aes(x = x, y = y)) +
-      ggplot2::geom_point(data = cellID_coordinates, aes(x = x, y = y), color = "black", size = 1) +
-      ggplot2::geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3) +
-      ggplot2::geom_point(aes(x = x, y = y, color = ifelse(colour == 1, "Active state at t", " ")), alpha = 0.7, size = 5) +
-      scale_color_manual(values = c("Active state at t" = "red", " " = "white")) +
-      theme_minimal() +
-      labs(x = "x-coordinates", 
-           y = "y-coordinates", 
-           color = "Time Transition",
-           title = "Animation showing state transitions considering self state transitions",
-           subtitle = subtitle_text) +
-      theme(plot.subtitle = element_text(margin = margin(t = 20))) +
-      gganimate::transition_time(Timestamp) +
-      gganimate::shadow_wake(wake_length = 0.05, alpha = FALSE, wrap = FALSE)
-    
-    time_animation <- gganimate::animate(dot_anim, 
-                              fps = fps_time, 
-                              duration = time_duration, 
-                              renderer = gganimate::gifski_renderer())
-    
-  } 
-
-   
-      if(animation %in% c('state_based', 'All')) {
-  ### Animation based on next state
-  df_a <- df %>%group_by(Cell.ID) %>%dplyr::mutate(Frequency = with(rle(Cell.ID), rep(lengths, lengths)))
-  state_data <- df_a %>%group_by(grp = cumsum(c(TRUE, diff(Cell.ID) != 0))) %>% slice(n())
-  order <- unique(state_data$Cell.ID)
-  anime_df <- merged_df1[order, ]
-  anime_df$order_map <- 1:nrow(anime_df)
-  anime_df$label <- rep("Successive states", nrow(anime_df))
-
-
-  #NEWLY ADDED FOR ARROW HEAD SIZE
-  x <- anime_df$x1
-  y <- anime_df$y1
-  xend <- anime_df$x1 + (anime_df$x2 - anime_df$x1) * 0.5
-  yend <- anime_df$y1 + (anime_df$y2 - anime_df$y1) * 0.5
-  segment_lengths <- sqrt((anime_df$x2 - anime_df$x1)^2 + (anime_df$y2 - anime_df$y1)^2)
-  
-  # Scale arrow head length based on segment length
-  arrow_head_length <- case_when(
-    segment_lengths <= 5 ~ 1,
-    segment_lengths <= 10 ~ 2,
-    segment_lengths <= 20 ~ 3,
-    TRUE ~ 4
-  )
-
-  arrow_anim <- ggplot2::ggplot(anime_df, aes(x = x1, y = y1)) +
-    geom_segment(data = anime_df, mapping = aes(x = x1, y = y1, xend = x1 + (x2 - x1) * 0.5, yend = y1 + (y2 - y1) * 0.5, color = label),
-                 arrow = arrow(length = unit(arrow_head_length, "mm")), show.legend = TRUE) +
-    ggplot2::geom_point(data = cellID_coordinates, aes(x = x, y = y), size = 1, show.legend = FALSE) +
-    geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3 ) +
-    scale_color_manual(values = c("Successive states" = "blue")) + 
-    labs(x = "x-coordinates", y = "y-coordinates", color = "State Transition") + theme_minimal()
-  
-  animation1 <- arrow_anim + gganimate::transition_states(order_map, wrap = FALSE) + gganimate::shadow_mark() +
-    labs(title = "Animation showing state transitions",
-         subtitle = "without considering self-state transitions")
-  
-  state_animation <- gganimate::animate(animation1, fps = fps_state, duration = state_duration, renderer = gganimate::gifski_renderer())
+      time_animation <- gganimate::animate(dot_anim, 
+                                fps = fps_time, 
+                                duration = time_duration, 
+                                renderer = gganimate::gifski_renderer())
     } 
-   
-    }
+
+     
+    if(animation %in% c('state_based', 'All')) {
+      ### Animation based on next state
+      df_a <- df %>%group_by(Cell.ID) %>%dplyr::mutate(Frequency = with(rle(Cell.ID), rep(lengths, lengths)))
+      state_data <- df_a %>%group_by(grp = cumsum(c(TRUE, diff(Cell.ID) != 0))) %>% slice(n())
+      order <- unique(state_data$Cell.ID)
+      anime_df <- merged_df1[order, ]
+      anime_df$order_map <- 1:nrow(anime_df)
+      anime_df$label <- rep("Successive states", nrow(anime_df))
+
+
+      #NEWLY ADDED FOR ARROW HEAD SIZE
+      x <- anime_df$x1
+      y <- anime_df$y1
+      xend <- anime_df$x1 + (anime_df$x2 - anime_df$x1) * 0.5
+      yend <- anime_df$y1 + (anime_df$y2 - anime_df$y1) * 0.5
+      segment_lengths <- sqrt((anime_df$x2 - anime_df$x1)^2 + (anime_df$y2 - anime_df$y1)^2)
+      
+      # Scale arrow head length based on segment length
+      arrow_head_length <- case_when(
+        segment_lengths <= 5 ~ 1,
+        segment_lengths <= 10 ~ 2,
+        segment_lengths <= 20 ~ 3,
+        TRUE ~ 4
+      )
+
+      arrow_anim <- ggplot2::ggplot(anime_df, aes(x = x1, y = y1)) +
+        geom_segment(data = anime_df, mapping = aes(x = x1, y = y1, xend = x1 + (x2 - x1) * 0.5, yend = y1 + (y2 - y1) * 0.5, color = label),
+                     arrow = arrow(length = unit(arrow_head_length, "mm")), show.legend = TRUE) +
+        ggplot2::geom_point(data = cellID_coordinates, aes(x = x, y = y), size = 1, show.legend = FALSE) +
+        geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3 ) +
+        scale_color_manual(values = c("Successive states" = "blue")) + 
+        labs(x = "x-coordinates", y = "y-coordinates", color = "State Transition") + theme_minimal()
+      
+      animation1 <- arrow_anim + gganimate::transition_states(order_map, wrap = FALSE) + gganimate::shadow_mark() +
+        labs(title = "Animation showing state transitions",
+             subtitle = "without considering self-state transitions")
+      
+      state_animation <- gganimate::animate(animation1, fps = fps_state, duration = state_duration, renderer = gganimate::gifski_renderer())
+    } 
+  }
   
   plots <- list()
   
@@ -544,5 +614,4 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
   }
   
   return(plots)
-  
 }

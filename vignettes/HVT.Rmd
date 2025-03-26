@@ -12,6 +12,7 @@ vignette: >
   %\VignetteIndexEntry{HVT: Collection of functions used to build hierarchical topology preserving maps}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+tangle: false
 ---
 
 
@@ -62,8 +63,8 @@ knitr::opts_chunk$set(
   fig.align = "center",
   fig.retina = 1,
   dpi = 150,
-  tangle = TRUE,
-  eval=TRUE
+  eval=TRUE,
+  tangle = FALSE
 )
 ```
 
@@ -100,7 +101,7 @@ library(knitr)
 library(kableExtra)
 # Create a data frame with hyperlinks
 vignette_data <- data.frame(
-  Version_Number = c("v18.05.17", "v18.05.17", "v23.05.16", "v23.10.26", "v24.05.16","v24.08.14", "v25.01.01"),
+  Version_Number = c("v18.05.17", "v18.05.17", "v23.05.16", "v23.10.26", "v24.05.16","v24.08.14", "v25.03.01"),
   Vignette_Title = c(
   "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html' target='_blank'>HVT Vignette</a>",
   "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_model_diagnostics_vignette.html' target='_blank'>HVT Model Diagnostics Vignette</a>",
@@ -132,9 +133,9 @@ kable(vignette_data, format = "html",
 # 3. Version History
 
 
-## HVT (v25.2.2) | What's New? {-}
+## HVT (v25.2.3) | What's New? {-}
 
-27th January, 2025
+26th March, 2025
 
 In this version of the HVT package, the following new features and vignette have been introduced:
 
@@ -244,7 +245,7 @@ This version of the HVT package offers features for both training an HVT model a
 
 
 
-# 4. Installation of HVT (v25.2.2)
+# 4. Installation of HVT (v25.2.3)
 
 **CRAN Installation**
 

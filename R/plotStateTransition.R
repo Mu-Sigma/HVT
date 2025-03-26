@@ -90,6 +90,13 @@ plotStateTransition <- function(df, sample_size = NULL, line_plot = NULL,
     dplyr::mutate(Frequency = n()) %>%
     dplyr::arrange(Timestamp)
   
+  max_cell_id <- max(sampled_data$Cell.ID, na.rm = TRUE)
+  min_cell_id <- min(sampled_data$Cell.ID, na.rm = TRUE)
+  
+  range_size <- max_cell_id - min_cell_id
+  dtick_val <- if (range_size <= 15) 2 else if (range_size <= 30) 5 else if (range_size <= 100) 10 else ceiling(range_size / 10)
+  
+  
   axis_settings <- list(
     xaxis = list(
       title = "Timestamp",
@@ -99,7 +106,7 @@ plotStateTransition <- function(df, sample_size = NULL, line_plot = NULL,
       title = "Cell ID",
       range = c(1, max(sampled_data$Cell.ID) + 2),
       tickmode = "linear",
-      dtick = 10,
+      dtick = dtick_val,
       tick0 = 0    )
   )
   
@@ -138,7 +145,12 @@ plotStateTransition <- function(df, sample_size = NULL, line_plot = NULL,
         xaxis = axis_settings$xaxis,
         yaxis = axis_settings$yaxis,
         showlegend = FALSE,
-        hovermode = "closest" )
+        hovermode = "closest",
+        hoverlabel = list(
+          bgcolor = "black",
+          font = list(color = "white") 
+        )
+        )
     
     # Add time period highlighting if specified
     if (!is.null(time_periods)) {

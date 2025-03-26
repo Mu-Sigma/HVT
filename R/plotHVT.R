@@ -283,7 +283,7 @@ plotHVT <- function(hvt.results,
     )
     
     # Get alignment values for the current position
-    alignment <- alignments[[cell_id_position]] %||% alignments$bottom
+    alignment <- rlang::`%||%`(alignments[[cell_id_position]], alignments$bottom)
     
     # Add geom_text to the plot
     p <- p + ggplot2::geom_text(
@@ -633,7 +633,7 @@ plotHVT <- function(hvt.results,
         bottom = list(hjust = 0.5, vjust = 1.5),
         top = list(hjust = 0.5, vjust = -0.5) )
       
-      alignment <- alignments[[cell_id_position]] %||% alignments$bottom
+      alignment <- rlang::`%||%`(alignments[[cell_id_position]], alignments$bottom)
       
       p <- p + ggplot2::geom_text(
         data = subset_data,

@@ -271,7 +271,7 @@ scoreHVT <- function(dataset,
   cellID_coordinates <- do.call(rbind.data.frame, coordinates_value1)
   colnames(cellID_coordinates) <- c("x", "y")
   cellID_coordinates$Cell.ID <- hvt_res2
-  cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
+ # cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
   
   ##################
   boundaryCoords2 <-
@@ -612,8 +612,9 @@ if(analysis.plots) {
 #############################  
     names_data <- boundaryCoords2_1 %>% dplyr::select("Cell.ID","names.column")    
     names_data <- names_data %>% 
-      distinct(Cell.ID, .keep_all = TRUE)  
-    centroid_data = merge(cellID_coordinates, names_data, by = 'Cell.ID') %>% as.data.frame()
+      distinct(Cell.ID, .keep_all = TRUE) 
+    a <- cellID_coordinates %>% arrange(Cell.ID)
+    centroid_data = merge(a, names_data, by = 'Cell.ID') %>% as.data.frame()
     
 
   
