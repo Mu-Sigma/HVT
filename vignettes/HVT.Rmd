@@ -135,7 +135,7 @@ kable(vignette_data, format = "html",
 
 ## HVT (v25.2.3) | What's New? {-}
 
-27th January, 2025
+26th March, 2025
 
 In this version of the HVT package, the following new features and vignette have been introduced:
 

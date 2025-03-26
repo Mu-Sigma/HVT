@@ -75,7 +75,7 @@ Following are the links to the vignettes for the HVT package:
 
 ## 3.5 HVT (v25.2.3) 
 
-27th January, 2025
+26th March, 2025
 
 In this version of the HVT package, the following new features and vignette have been introduced:
 
