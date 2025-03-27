@@ -880,7 +880,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
          geom_point(data = actual_raw_dfs[[variable_name]],
                     aes(x = time, y = !!sym(actual_col_name),
                         color = "Actual",
-                        text = paste("Time:", time, "<br>Actual", variable_name, " :", !!sym(actual_col_name))),
+                        text = paste("Time:", time, "<br>Actual", variable_name, " :", round(!!sym(actual_col_name),4))),
                     size = 1.5) +
           scale_colour_manual(values = c("Simulations" = "darkgray",
                                          "Median" = "red",
@@ -925,7 +925,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
         p2 <- ggplot() +
           geom_line(data = residuals_df, aes(x = t, y = studentized_residuals, color = "Studentized\nResiduals"), size = 0.8) +
           geom_point(data = residuals_df, aes(x = t, y = studentized_residuals, color = "Studentized\nResiduals",
-                                              text = paste("Time:", t, "<br>Residuals",variable_name, " :", studentized_residuals)), 
+                                              text = paste("Time:", t, "<br>Residuals",variable_name, " :", round(studentized_residuals,4))), 
                      size = 1.5) +
           geom_hline(yintercept = 0, col = "black", linetype = "dashed") +
           geom_hline(yintercept = -1, col = "blue", linetype = "dashed") +
@@ -1185,7 +1185,7 @@ msm_plots <- function(simulation_results, centroid_data,centroid_2d_points, actu
       
       pb <- ggplot() +
         geom_line(data = residuals_df, aes(x = time, y = studentized_residuals, color = "Studentized\nResiduals"), size = 0.8) +
-        geom_point(data = residuals_df, aes(x = time, y = studentized_residuals, color = "Studentized\nResiduals", text = paste("Time:", time, "<br>Residuals:", studentized_residuals)), size =1.2) +
+        geom_point(data = residuals_df, aes(x = time, y = studentized_residuals, color = "Studentized\nResiduals", text = paste("Time:", time, "<br>Residuals:", round(studentized_residuals,4))), size =1.2) +
         geom_hline(yintercept = 0, col = "black", linetype = "dashed") +
         geom_hline(yintercept = -1, col = "blue", linetype = "dashed") +
         geom_hline(yintercept = 1, col = "blue", linetype = "dashed") +

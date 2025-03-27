@@ -139,13 +139,6 @@ calculate_dynamic_length_menu <- function(total_entries, base_step = 100) {
   return(options)}
 ```
 
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = FALSE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
-
 
 # 3. Dataset Preparation and Exploration
 
