@@ -67,6 +67,11 @@ scoreHVT <- function(dataset,
   requireNamespace("dplyr")
   requireNamespace("purrr")
   requireNamespace("data.table")
+  
+  if (any(is.na(dataset))) {
+    stop("The dataset uploaded have NA Values, Please remove the NAs and upload")
+  } 
+  
 
   if (!("Cell.ID" %in% colnames(hvt.results.model[[3]]$summary))) {
     hvt.results.model[[3]]$summary <- getCellId(hvt.results = hvt.results.model)

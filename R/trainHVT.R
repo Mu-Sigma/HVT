@@ -121,6 +121,11 @@ trainHVT <-
     # requireNamespace("magrittr")
     # requireNamespace("kableExtra")
     
+    if (any(is.na(dataset))) {
+      stop("The dataset uploaded have NA Values, Please remove the NAs and upload")
+       } 
+    
+    
     if(quant_method=="kmedoids"){message(' K-Medoids: Run time for vector quantization using K-Medoids is very high for large number of clusters.')}
     dataset <- as.data.frame(dataset)
     # dataset <- as.data.frame(sapply(dataset[,1:length(dataset[1,])], as.numeric))
