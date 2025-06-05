@@ -121,6 +121,11 @@ trainHVT <-
     # requireNamespace("magrittr")
     # requireNamespace("kableExtra")
     
+    if (any(is.na(dataset))) {
+      stop("Input dataframe contains missing (NA) values. Please handle missing data before using this function (e.g., via na.omit(), na.fill(), or imputation).")
+       } 
+    
+    
     if(quant_method=="kmedoids"){message(' K-Medoids: Run time for vector quantization using K-Medoids is very high for large number of clusters.')}
     dataset <- as.data.frame(dataset)
     # dataset <- as.data.frame(sapply(dataset[,1:length(dataset[1,])], as.numeric))
@@ -399,19 +404,18 @@ trainHVT <-
     }
     
     ## Sammon's Stresss
-    sammon_stress <- function(original_distances, projected_embeddings) {
-      # Calculate pairwise distances for projected embeddings
-      projected_distances <- dist(projected_embeddings)
-      # Filter out zero distances to avoid division by zero
-      mask <- original_distances > 0
-      original_distances <- original_distances[mask]
-      projected_distances <- projected_distances[mask]
-      # Compute the numerator and denominator
-      numerator <- sum(((original_distances - projected_distances) / original_distances) ^2)
-      denominator <- sum(original_distances ^ 2)  # Usually just the sum of squared original distances
-      # print(sum(original_distances))
-      # print((sum(((original_distances - projected_distances) / original_distances) ^2)/sum(original_distances ^ 2)))
-      stress <-  numerator/denominator
+    sammon_stress <- function(original_embeddings, projected_embeddings) {
+      # Compute pairwise distances
+      orig_dist <- as.vector(original_embeddings)
+      proj_dist <- as.vector(dist(projected_embeddings))
+      
+      # Avoid division by zero
+      mask <- orig_dist > 0
+      orig_dist <- orig_dist[mask]
+      proj_dist <- proj_dist[mask]
+      
+      # Sammon stress formula
+      stress <- sum(((orig_dist - proj_dist)^2) / orig_dist) / sum(orig_dist)
       return(stress)
     }
 
@@ -483,7 +487,7 @@ trainHVT <-
       # Calculate pairwise distances in the original space
       original_distances <- dist(embeddingss$original)
       # Calculate Sammon's Stress 
-      stress_score <- sammon_stress(original_distances, embeddingss$points_df)
+      stress_score <- sammon_stress(original_distances, embeddingss$points_df/projection.scale)
       
       ## KNN Retention
       avg_retention_score <- knn_retention(embeddingss[["original"]], embeddingss[["points_df"]], k = 8)

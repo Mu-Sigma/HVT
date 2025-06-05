@@ -133,9 +133,9 @@ kable(vignette_data, format = "html",
 # 3. Version History
 
 
-## HVT (v25.2.3) | What's New? {-}
+## HVT (v25.2.4) | What's New? {-}
 
-26th March, 2025
+04th June, 2025
 
 In this version of the HVT package, the following new features and vignette have been introduced:
 
@@ -245,7 +245,7 @@ This version of the HVT package offers features for both training an HVT model a
 
 
 
-# 4. Installation of HVT (v25.2.3)
+# 4. Installation of HVT (v25.2.4)
 
 **CRAN Installation**
 

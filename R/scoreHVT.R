@@ -67,6 +67,11 @@ scoreHVT <- function(dataset,
   requireNamespace("dplyr")
   requireNamespace("purrr")
   requireNamespace("data.table")
+  
+  if (any(is.na(dataset))) {
+    stop("Input dataframe contains missing (NA) values. Please handle missing data before using this function (e.g., via na.omit(), na.fill(), or imputation).")
+  } 
+  
 
   if (!("Cell.ID" %in% colnames(hvt.results.model[[3]]$summary))) {
     hvt.results.model[[3]]$summary <- getCellId(hvt.results = hvt.results.model)
