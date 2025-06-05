@@ -122,7 +122,7 @@ trainHVT <-
     # requireNamespace("kableExtra")
     
     if (any(is.na(dataset))) {
-      stop("The dataset uploaded have NA Values, Please remove the NAs and upload")
+      stop("Input dataframe contains missing (NA) values. Please handle missing data before using this function (e.g., via na.omit(), na.fill(), or imputation).")
        } 
     
     
