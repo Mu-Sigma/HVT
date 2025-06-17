@@ -183,17 +183,12 @@ The HVT package is a collection of R functions to facilitate building <a href="h
 
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE, echo=FALSE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
+
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr","magrittr", "ggplot2", "kableExtra", "gridExtra","grid", "httr", "stats", 
                       "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly", "tidyr",
-                      "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable")
+                      "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable", "HVT")
 
 new.packages <-
   list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
