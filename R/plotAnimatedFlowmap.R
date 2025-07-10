@@ -8,16 +8,7 @@
 #' @param transition_probability_df List. Output from getTransitionProbability function
 #' @param df Data frame. The input dataframe should contain two columns, 
 #' cell ID from scoreHVT function and time stamp of that dataset.
-#' @param animation Character. Type of animation ('state_based', 'time_based', 'All' or  NULL)
 #' @param flow_map Character. Type of flow map ('self_state', 'without_self_state', 'All' or NULL)
-#' @param fps_time Numeric. A numeric value for the frames per second of the time transition gif.
-#' (Must be a numeric value and a factor of 100). Default value is 1.
-#' @param fps_state Numeric. A numeric value for the frames per second of the state transition gif.
-#' (Must be a numeric value and a factor of 100). Default value is 1.
-#' @param time_duration Numeric. A numeric value for the duration of the time transition gif.
-#' Default value is 2.
-#' @param state_duration Numeric. A numeric value for the duration of the state transition gif.
-#' Default value is 2.
 #' @param cellid_column Character. Name of the column containing cell IDs.
 #' @param time_column Character. Name of the column containing time stamps
 #' @return A list of flow maps and animation gifs.
@@ -38,27 +29,26 @@
 #' cell_id <- scoring$scoredPredictedData$Cell.ID
 #' time_stamp <- dataset$date
 #' dataset <- data.frame(cell_id, time_stamp)
-#' table <- getTransitionProbability(dataset, cellid_column = "cell_id",time_column = "time_stamp")
-#' plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results, transition_probability_df = table,
-#' df = dataset, animation = 'All', flow_map = 'All',fps_time = 1,fps_state =  1,time_duration = 3,
-#' state_duration = 3,cellid_column = "cell_id", time_column = "time_stamp")
+#' table <- getTransitionProbability(dataset, cellid_column = "cell_id",
+#' time_column = "time_stamp")
+#' plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
+#' transition_probability_df = table,df = dataset,
+#' flow_map = 'All',cellid_column = "cell_id", time_column = "time_stamp")
 #' @export plotAnimatedFlowmap
 
 plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df, 
-                                animation = "All", flow_map = "All", 
-                                fps_time = 1, fps_state = 1, time_duration = 2, 
-                                state_duration = 2, cellid_column, time_column) {
+                                flow_map = "All",cellid_column, time_column) {
   
   
   ##for cran warnings
-  CircleSize  <- Current_State <- Next_State <- Transition_Probability <- Cumulative_Probability <- Relative_Frequency <- latency <- NULL
+  CircleSize  <- Current_State <- Next_State <- Transition_Probability <- Cumulative_Probability <- Relative_Frequency  <- NULL
   
   valid_animation <- c("All", "state_based", "time_based", NULL)
   valid_flowmap <- c("All", "self_state", "without_self_state", NULL)
   
-  if (!is.null(animation) && !(animation %in% valid_animation)) {
-    stop("Invalid animation argument. Must be one of: 'All', 'state_based', 'time_based', or NULL")
-  }
+  # if (!is.null(animation) && !(animation %in% valid_animation)) {
+  #   stop("Invalid animation argument. Must be one of: 'All', 'state_based', 'time_based', or NULL")
+  # }
   
   if (!is.null(flow_map) && !(flow_map %in% valid_flowmap)) {
     stop("Invalid flow_map argument. Must be one of: 'All', 'self_state', 'without_self_state', or NULL") 
@@ -166,8 +156,8 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
   # Initialize plot variables
   self_state_plot <- NULL
   arrow_flow_map <- NULL
-  time_animation <- NULL
-  state_animation <- NULL
+  #time_animation <- NULL
+  #state_animation <- NULL
   
   if (!is.null(flow_map)) {
     if(flow_map %in% c('self_state', 'All')) {
@@ -280,20 +270,20 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
                             shape = 1,
                             color = "blue") +
         ggplot2::geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3) +
-        scale_color_gradient(low = "black", high = "black",
+        ggplot2::scale_color_gradient(low = "black", high = "black",
                              name = "Probability",
                              breaks = if(length(unique(merged_df2$Probability)) == 1) unique(merged_df2$Probability) else breaks[-length(breaks)],
                              labels = legend_labels) +
-        scale_size(range = c(2, 10)) +
-        labs(title = "State Transitions: Circle size based on Transition Probability",
+        ggplot2::scale_size(range = c(2, 10)) +
+        ggplot2::labs(title = "State Transitions: Circle size based on Transition Probability",
              subtitle = "considering self state transitions",
              x = "x-coordinates",
              y = "y-coordinates") +
-        guides(color = guide_legend(title = "Transition\nProbability",
+        ggplot2::guides(color = guide_legend(title = "Transition\nProbability",
                                     override.aes = list(shape = 21, size = legend_size, color = "blue")),
                fill = guide_legend(title = "Probability", override.aes = list(color = "blue", size = legend_size)),
                size = "none") +
-        theme_minimal()
+        ggplot2::theme_minimal()
     }
     
     
@@ -409,7 +399,7 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
                      y = y_pos, 
                      yend = y_pos,
                      color = "blue",
-                     arrow = arrow(length = unit(1.5, "mm"), type = "open"))
+                     arrow = grid::arrow(length = grid::unit(1.5, "mm"), type = "open"))
           
           legend_elements[[length(legend_elements) + 1]] <- 
             annotate("text", 
@@ -432,18 +422,18 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
       
       # Create the plot
       arrow_flow_map <- ggplot(merged_df3, aes(x = x1, y = y1)) +
-        geom_point(color = "black", size = 0.9) +
-        geom_text(aes(label = Cell.ID), vjust = -1, size = 3) +
-        geom_segment(aes(xend = x1 + (x2 - x1) * segment_len,
+        ggplot2::geom_point(color = "black", size = 0.9) +
+        ggplot2::geom_text(aes(label = Cell.ID), vjust = -1, size = 3) +
+        ggplot2::geom_segment(aes(xend = x1 + (x2 - x1) * segment_len,
                          yend = y1 + (y2 - y1) * segment_len),
-                     arrow = arrow(length = unit(merged_df3$segment_len * 3, "mm")),
+                     arrow = grid::arrow(length = grid::unit(merged_df3$segment_len * 3, "mm")),
                      color = "blue") +
-        labs(title = "State Transitions: Arrow size based on Transition Probability",
+        ggplot2::labs(title = "State Transitions: Arrow size based on Transition Probability",
              subtitle = "without considering self state transitions",
              x = "x-coordinates",
              y = "y-coordinates") +
-        theme_minimal()+
-        scale_x_continuous(limits = c(min(merged_df3$x1), max(merged_df3$x1) + plot_width/3))
+        ggplot2::theme_minimal()+
+        ggplot2::scale_x_continuous(limits = c(min(merged_df3$x1), max(merged_df3$x1) + plot_width/3))
       
       # Add legend annotations
       for(annotation in annotate_list) {
@@ -452,146 +442,146 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
     }
   }  
   
-  if (!is.null(animation)) {
-    if(animation %in% c('time_based', 'All')) {
-      sampled_df <- df %>% dplyr::select(Cell.ID, Timestamp)
-      anime_data <- merge(sampled_df, cellID_coordinates, by = "Cell.ID", all.x = TRUE) %>%
-        dplyr::arrange(Timestamp) %>%
-        dplyr::select(-prob1) %>%
-        dplyr::group_by(grp = cumsum(Cell.ID != lag(Cell.ID, default = first(Cell.ID)))) %>% 
-        dplyr::mutate(colour = 2 - row_number() %% 2) %>%
-        dplyr::ungroup() %>%
-        dplyr::select(-grp) 
-
-
-      if (!inherits(df$Timestamp, c("POSIXct", "POSIXt", "numeric"))) {
-        stop("Accepted Timestamp data types: POSIXct, POSIXt and numeric")
-      }
-      
-      if (inherits(anime_data$Timestamp, c("POSIXct", "POSIXt"))) {
-        # Calculate time differences in days
-        time_diffs <- as.numeric(difftime(lead(anime_data$Timestamp), 
-                                          anime_data$Timestamp, 
-                                          units = "days"))
-        
-        # Determine frequency
-        med_diff <- stats::median(time_diffs, na.rm = TRUE)
-        if (med_diff >= 365) {
-          freq_unit <- "years"
-          scale_factor <- 1/365
-        } else if (med_diff >= 28) {
-          freq_unit <- "months"
-          scale_factor <- 1/30.44
-        } else if (med_diff >= 1) {
-          freq_unit <- "days"
-          scale_factor <- 1
-        } else if (med_diff >= 1/24) {
-          freq_unit <- "hours"
-          scale_factor <- 24
-        } else {
-          freq_unit <- "mins"
-          scale_factor <- 24*60
-        }
-        
-        anime_data <- anime_data %>%
-          arrange(Timestamp) %>%
-          mutate(
-            latency = as.numeric(difftime(lead(Timestamp), Timestamp, units = "days")) * scale_factor,
-            freq_unit = freq_unit
-          ) %>%
-          ungroup()
-        anime_data$latency <- round(anime_data$latency,0)
-        
-        
-        format_string <- switch(freq_unit,
-                                "years" = "%Y",
-                                "months" = "%Y-%m",
-                                "days" = "%Y-%m-%d",
-                                "hours" = "%Y-%m-%d %H:00",
-                                "mins" = "%Y-%m-%d %H:%M"
-        )
-        
-        subtitle_text <- paste0(
-          "\n\ntime(t): {format(frame_time, format_string)}\n",
-          "Latency: {round(anime_data$latency[findInterval(as.numeric(frame_time), 
-                                     as.numeric(anime_data$Timestamp))], 2)} ",
-          freq_unit
-        )
-      } else if (is.numeric(anime_data$Timestamp)) {
-        anime_data <- anime_data %>%
-          arrange(Timestamp) %>%
-          mutate(latency = lead(Timestamp) - Timestamp) %>%
-          mutate(latency = formatC(latency, format = "f", digits = 5)) %>%
-          ungroup()
-        
-        subtitle_text <- paste0(
-          "\n\ntime(t): {round(frame_time, 3)} seconds\n",
-          "Latency: {anime_data$latency[frame]} seconds"
-        )
-      }
-      
-      dot_anim <- ggplot2::ggplot(anime_data, aes(x = x, y = y)) +
-        ggplot2::geom_point(data = cellID_coordinates, aes(x = x, y = y), color = "black", size = 1) +
-        ggplot2::geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3) +
-        ggplot2::geom_point(aes(x = x, y = y, color = ifelse(colour == 1, "Active state at t", " ")), alpha = 0.7, size = 5) +
-        scale_color_manual(values = c("Active state at t" = "red", " " = "white")) +
-        theme_minimal() +
-        labs(x = "x-coordinates", 
-             y = "y-coordinates", 
-             color = "Time Transition",
-             title = "Animation showing state transitions considering self state transitions",
-             subtitle = subtitle_text) +
-        theme(plot.subtitle = element_text(margin = margin(t = 20))) +
-        gganimate::transition_time(Timestamp) +
-        gganimate::shadow_wake(wake_length = 0.05, alpha = FALSE, wrap = FALSE)
-      
-      time_animation <- gganimate::animate(dot_anim, 
-                                fps = fps_time, 
-                                duration = time_duration, 
-                                renderer = gganimate::gifski_renderer())
-    } 
-
-     
-    if(animation %in% c('state_based', 'All')) {
-      ### Animation based on next state
-      df_a <- df %>%group_by(Cell.ID) %>%dplyr::mutate(Frequency = with(rle(Cell.ID), rep(lengths, lengths)))
-      state_data <- df_a %>%group_by(grp = cumsum(c(TRUE, diff(Cell.ID) != 0))) %>% slice(n())
-      order <- unique(state_data$Cell.ID)
-      anime_df <- merged_df1[order, ]
-      anime_df$order_map <- 1:nrow(anime_df)
-      anime_df$label <- rep("Successive states", nrow(anime_df))
-
-
-      #NEWLY ADDED FOR ARROW HEAD SIZE
-      x <- anime_df$x1
-      y <- anime_df$y1
-      xend <- anime_df$x1 + (anime_df$x2 - anime_df$x1) * 0.5
-      yend <- anime_df$y1 + (anime_df$y2 - anime_df$y1) * 0.5
-      segment_lengths <- sqrt((anime_df$x2 - anime_df$x1)^2 + (anime_df$y2 - anime_df$y1)^2)
-      
-      # Scale arrow head length based on segment length
-      arrow_head_length <- case_when(
-        segment_lengths <= 5 ~ 1,
-        segment_lengths <= 10 ~ 2,
-        segment_lengths <= 20 ~ 3,
-        TRUE ~ 4
-      )
-
-      arrow_anim <- ggplot2::ggplot(anime_df, aes(x = x1, y = y1)) +
-        geom_segment(data = anime_df, mapping = aes(x = x1, y = y1, xend = x1 + (x2 - x1) * 0.5, yend = y1 + (y2 - y1) * 0.5, color = label),
-                     arrow = arrow(length = unit(arrow_head_length, "mm")), show.legend = TRUE) +
-        ggplot2::geom_point(data = cellID_coordinates, aes(x = x, y = y), size = 1, show.legend = FALSE) +
-        geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3 ) +
-        scale_color_manual(values = c("Successive states" = "blue")) + 
-        labs(x = "x-coordinates", y = "y-coordinates", color = "State Transition") + theme_minimal()
-      
-      animation1 <- arrow_anim + gganimate::transition_states(order_map, wrap = FALSE) + gganimate::shadow_mark() +
-        labs(title = "Animation showing state transitions",
-             subtitle = "without considering self-state transitions")
-      
-      state_animation <- gganimate::animate(animation1, fps = fps_state, duration = state_duration, renderer = gganimate::gifski_renderer())
-    } 
-  }
+  # if (!is.null(animation)) {
+  #   if(animation %in% c('time_based', 'All')) {
+  #     sampled_df <- df %>% dplyr::select(Cell.ID, Timestamp)
+  #     anime_data <- merge(sampled_df, cellID_coordinates, by = "Cell.ID", all.x = TRUE) %>%
+  #       dplyr::arrange(Timestamp) %>%
+  #       dplyr::select(-prob1) %>%
+  #       dplyr::group_by(grp = cumsum(Cell.ID != lag(Cell.ID, default = first(Cell.ID)))) %>% 
+  #       dplyr::mutate(colour = 2 - row_number() %% 2) %>%
+  #       dplyr::ungroup() %>%
+  #       dplyr::select(-grp) 
+  # 
+  # 
+  #     if (!inherits(df$Timestamp, c("POSIXct", "POSIXt", "numeric"))) {
+  #       stop("Accepted Timestamp data types: POSIXct, POSIXt and numeric")
+  #     }
+  #     
+  #     if (inherits(anime_data$Timestamp, c("POSIXct", "POSIXt"))) {
+  #       # Calculate time differences in days
+  #       time_diffs <- as.numeric(difftime(lead(anime_data$Timestamp), 
+  #                                         anime_data$Timestamp, 
+  #                                         units = "days"))
+  #       
+  #       # Determine frequency
+  #       med_diff <- stats::median(time_diffs, na.rm = TRUE)
+  #       if (med_diff >= 365) {
+  #         freq_unit <- "years"
+  #         scale_factor <- 1/365
+  #       } else if (med_diff >= 28) {
+  #         freq_unit <- "months"
+  #         scale_factor <- 1/30.44
+  #       } else if (med_diff >= 1) {
+  #         freq_unit <- "days"
+  #         scale_factor <- 1
+  #       } else if (med_diff >= 1/24) {
+  #         freq_unit <- "hours"
+  #         scale_factor <- 24
+  #       } else {
+  #         freq_unit <- "mins"
+  #         scale_factor <- 24*60
+  #       }
+  #       
+  #       anime_data <- anime_data %>%
+  #         arrange(Timestamp) %>%
+  #         mutate(
+  #           latency = as.numeric(difftime(lead(Timestamp), Timestamp, units = "days")) * scale_factor,
+  #           freq_unit = freq_unit
+  #         ) %>%
+  #         ungroup()
+  #       anime_data$latency <- round(anime_data$latency,0)
+  #       
+  #       
+  #       format_string <- switch(freq_unit,
+  #                               "years" = "%Y",
+  #                               "months" = "%Y-%m",
+  #                               "days" = "%Y-%m-%d",
+  #                               "hours" = "%Y-%m-%d %H:00",
+  #                               "mins" = "%Y-%m-%d %H:%M"
+  #       )
+  #       
+  #       subtitle_text <- paste0(
+  #         "\n\ntime(t): {format(frame_time, format_string)}\n",
+  #         "Latency: {round(anime_data$latency[findInterval(as.numeric(frame_time), 
+  #                                    as.numeric(anime_data$Timestamp))], 2)} ",
+  #         freq_unit
+  #       )
+  #     } else if (is.numeric(anime_data$Timestamp)) {
+  #       anime_data <- anime_data %>%
+  #         arrange(Timestamp) %>%
+  #         mutate(latency = lead(Timestamp) - Timestamp) %>%
+  #         mutate(latency = formatC(latency, format = "f", digits = 5)) %>%
+  #         ungroup()
+  #       
+  #       subtitle_text <- paste0(
+  #         "\n\ntime(t): {round(frame_time, 3)} seconds\n",
+  #         "Latency: {anime_data$latency[frame]} seconds"
+  #       )
+  #     }
+  #     
+  #     dot_anim <- ggplot2::ggplot(anime_data, aes(x = x, y = y)) +
+  #       ggplot2::geom_point(data = cellID_coordinates, aes(x = x, y = y), color = "black", size = 1) +
+  #       ggplot2::geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3) +
+  #       ggplot2::geom_point(aes(x = x, y = y, color = ifelse(colour == 1, "Active state at t", " ")), alpha = 0.7, size = 5) +
+  #       ggplot2::scale_color_manual(values = c("Active state at t" = "red", " " = "white")) +
+  #       ggplot2::theme_minimal() +
+  #       ggplot2::labs(x = "x-coordinates", 
+  #            y = "y-coordinates", 
+  #            color = "Time Transition",
+  #            title = "Animation showing state transitions considering self state transitions",
+  #            subtitle = subtitle_text) +
+  #       ggplot2::theme(plot.subtitle = element_text(margin = margin(t = 20))) +
+  #       gganimate::transition_time(Timestamp) +
+  #       gganimate::shadow_wake(wake_length = 0.05, alpha = FALSE, wrap = FALSE)
+  #     
+  #     time_animation <- gganimate::animate(dot_anim, 
+  #                               fps = fps_time, 
+  #                               duration = time_duration, 
+  #                               renderer = gganimate::gifski_renderer())
+  #   } 
+  # 
+  #    
+  #   if(animation %in% c('state_based', 'All')) {
+  #     ### Animation based on next state
+  #     df_a <- df %>%group_by(Cell.ID) %>%dplyr::mutate(Frequency = with(rle(Cell.ID), rep(lengths, lengths)))
+  #     state_data <- df_a %>%group_by(grp = cumsum(c(TRUE, diff(Cell.ID) != 0))) %>% slice(n())
+  #     order <- unique(state_data$Cell.ID)
+  #     anime_df <- merged_df1[order, ]
+  #     anime_df$order_map <- 1:nrow(anime_df)
+  #     anime_df$label <- rep("Successive states", nrow(anime_df))
+  # 
+  # 
+  #     #NEWLY ADDED FOR ARROW HEAD SIZE
+  #     x <- anime_df$x1
+  #     y <- anime_df$y1
+  #     xend <- anime_df$x1 + (anime_df$x2 - anime_df$x1) * 0.5
+  #     yend <- anime_df$y1 + (anime_df$y2 - anime_df$y1) * 0.5
+  #     segment_lengths <- sqrt((anime_df$x2 - anime_df$x1)^2 + (anime_df$y2 - anime_df$y1)^2)
+  #     
+  #     # Scale arrow head length based on segment length
+  #     arrow_head_length <- case_when(
+  #       segment_lengths <= 5 ~ 1,
+  #       segment_lengths <= 10 ~ 2,
+  #       segment_lengths <= 20 ~ 3,
+  #       TRUE ~ 4
+  #     )
+  # 
+  #     arrow_anim <- ggplot2::ggplot(anime_df, aes(x = x1, y = y1)) +
+  #       geom_segment(data = anime_df, mapping = aes(x = x1, y = y1, xend = x1 + (x2 - x1) * 0.5, yend = y1 + (y2 - y1) * 0.5, color = label),
+  #                    arrow = grid::arrow(length = grid::unit(arrow_head_length, "mm")), show.legend = TRUE) +
+  #       ggplot2::geom_point(data = cellID_coordinates, aes(x = x, y = y), size = 1, show.legend = FALSE) +
+  #       geom_text(data = cellID_coordinates, aes(x = x, y = y, label = Cell.ID), vjust = -1, size = 3 ) +
+  #       ggplot2::scale_color_manual(values = c("Successive states" = "blue")) + 
+  #       ggplot2::labs(x = "x-coordinates", y = "y-coordinates", color = "State Transition") + theme_minimal()
+  #     
+  #     animation1 <- arrow_anim + gganimate::transition_states(order_map, wrap = FALSE) + gganimate::shadow_mark() +
+  #       ggplot2::labs(title = "Animation showing state transitions",
+  #            subtitle = "without considering self-state transitions")
+  #     
+  #     state_animation <- gganimate::animate(animation1, fps = fps_state, duration = state_duration, renderer = gganimate::gifski_renderer())
+  #   } 
+  # }
   
   plots <- list()
   
@@ -604,14 +594,14 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
     }
   }
   
-  if (!is.null(animation)) {
-    if(animation %in% c('time_based', 'All')) {
-      plots$time_based <- time_animation
-    }
-    if(animation %in% c('state_based', 'All')) {
-      plots$state_based <- state_animation
-    } 
-  }
+  # if (!is.null(animation)) {
+  #   if(animation %in% c('time_based', 'All')) {
+  #     plots$time_based <- time_animation
+  #   }
+  #   if(animation %in% c('state_based', 'All')) {
+  #     plots$state_based <- state_animation
+  #   } 
+  # }
   
   return(plots)
 }

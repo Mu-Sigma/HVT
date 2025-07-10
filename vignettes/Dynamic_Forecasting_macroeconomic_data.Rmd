@@ -118,7 +118,7 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr", "tidyr","patchwork", "feather","ggplot2","kableExtra", "htmltools",
-                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust","HVT")
+                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust", "HVT")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
@@ -717,25 +717,19 @@ Below are brief explanations of the features in the transition probability matri
 - *Cumulative_Probability*: The sum of the `Transition_Probability` for all the `Next_State` for a particular `Current_State`.
 
 
-### Flowmaps & Animations {.tabset}
+### Flowmaps {.tabset}
 
-Flowmaps visualize the flow of data between states over time including and excluding self states to identify patterns and trends. The animations provide a dynamic representation of the data flow, enabling a comprehensive understanding of state transitions and their evolution over time.
+Flowmaps visualize the flow of data between states over time including and excluding self states to identify patterns and trends. 
 
 - The Self State Flowmap including self-state transitions, is represented by the circle size around each cell, where larger sizes indicate a stronger likelihood of staying in the same cell.
 
 - The Non-Self State Flowmap, excluding self-state transitions, is represented by arrow sizes, where larger arrows indicate higher probabilities of transitioning to the next state, with arrow directions showing the target cell.
 
-- The Time-based Animation, including self-state transitions, is represented by a red point moving through cells over time, with blinks indicating the duration of staying in the same cell, as shown in the plot's sub-header.
-
-- The State-based Animation, excluding self-transitions, shows an arrow moving between cells, with its length indicating transition probabilities. The animation highlights movement between states over time.
 
 ```{r, warning=FALSE,out.width = "672px", out.height = "480px", fig.width = 8.5, fig.height = 6.5,fig.align = "center"}
 flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
                                      transition_probability_df =prob_trans_matx,
-                                     df = temporal_data,
-                                     animation = "All" , flow_map = "All",
-                                     fps_time = 10,time_duration = 30,
-                                     fps_state = 10,state_duration = 30,
+                                     df = temporal_data,flow_map = "All",
                                      cellid_column = "Cell.ID", time_column = "t")
 ```
 
@@ -751,20 +745,6 @@ flowmap_plots$self_state
 
 ```{r, fig.width=9, fig.height=5.5,fig.align='center', warning=FALSE}
 flowmap_plots$without_self_state
-```
-
-#### Time-based Animation
-
-
-```{r,  warning=FALSE, fig.align='center'}
-flowmap_plots$time_based
-```
-
-#### State-based Animation
-
-
-```{r,  warning=FALSE, fig.align='center'}
-flowmap_plots$state_based
 ```
 
 

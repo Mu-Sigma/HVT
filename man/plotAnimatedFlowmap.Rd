@@ -8,12 +8,7 @@ plotAnimatedFlowmap(
   hvt_model_output,
   transition_probability_df,
   df,
-  animation = "All",
   flow_map = "All",
-  fps_time = 1,
-  fps_state = 1,
-  time_duration = 2,
-  state_duration = 2,
   cellid_column,
   time_column
 )
@@ -26,21 +21,7 @@ plotAnimatedFlowmap(
 \item{df}{Data frame. The input dataframe should contain two columns, 
 cell ID from scoreHVT function and time stamp of that dataset.}
 
-\item{animation}{Character. Type of animation ('state_based', 'time_based', 'All' or  NULL)}
-
 \item{flow_map}{Character. Type of flow map ('self_state', 'without_self_state', 'All' or NULL)}
-
-\item{fps_time}{Numeric. A numeric value for the frames per second of the time transition gif.
-(Must be a numeric value and a factor of 100). Default value is 1.}
-
-\item{fps_state}{Numeric. A numeric value for the frames per second of the state transition gif.
-(Must be a numeric value and a factor of 100). Default value is 1.}
-
-\item{time_duration}{Numeric. A numeric value for the duration of the time transition gif.
-Default value is 2.}
-
-\item{state_duration}{Numeric. A numeric value for the duration of the state transition gif.
-Default value is 2.}
 
 \item{cellid_column}{Character. Name of the column containing cell IDs.}
 
@@ -68,10 +49,11 @@ scoring <- scoreHVT(dataset, hvt.results)
 cell_id <- scoring$scoredPredictedData$Cell.ID
 time_stamp <- dataset$date
 dataset <- data.frame(cell_id, time_stamp)
-table <- getTransitionProbability(dataset, cellid_column = "cell_id",time_column = "time_stamp")
-plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results, transition_probability_df = table,
-df = dataset, animation = 'All', flow_map = 'All',fps_time = 1,fps_state =  1,time_duration = 3,
-state_duration = 3,cellid_column = "cell_id", time_column = "time_stamp")
+table <- getTransitionProbability(dataset, cellid_column = "cell_id",
+time_column = "time_stamp")
+plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
+transition_probability_df = table,df = dataset,
+flow_map = 'All',cellid_column = "cell_id", time_column = "time_stamp")
 }
 \seealso{
 \code{\link{trainHVT}} \cr \code{\link{scoreHVT}} \cr \code{\link{getTransitionProbability}}

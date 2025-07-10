@@ -66,8 +66,6 @@ ul {
 
 
 
-
-
 # 1. Background
 
 The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 3D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
@@ -95,7 +93,7 @@ Below are the new functions and its brief descriptions:
 - `plotStateTransition`: Provides the time series flowmap plot.
 - `getTransitionProbability`: Provides a list of transition probabilities.
 - `reconcileTransitionProbability`: Provides plots and tables for comparing transition probabilities calculated manually and from markovchain function.
-- `plotAnimatedFlowmap`: Creates flowmaps and animations for both self state and without self state scenarios.
+- `plotAnimatedFlowmap`: Creates flowmaps for both self state and without self state scenarios.
 
 # 2. Experimental setup 
 
@@ -510,7 +508,7 @@ displayTable(reconcile_plots[[4]], limit = 217)
 
 
 
-# 10.  Animated Flowmaps
+# 10. Flowmaps
 
 The fourth novel function - `plotAnimatedFlowmap` which is used to create flowmaps and animations for the highest transition probability including and excluding self-states. Below is the function signature and its arguments.
 
@@ -519,12 +517,7 @@ plotAnimatedFlowmap(
          hvt_model_output, 
          transition_probability_df, 
          df, 
-         animation = "All", 
          flow_map = "All", 
-         fps_state,
-         fps_time,
-         time_duration,
-         state_duration,
          cellid_column, 
          time_column )
 ```
@@ -536,18 +529,7 @@ plotAnimatedFlowmap(
 
 * __`df`__  - A data frame contains Cell ID and Time stamps.
 
-* __`animation`__  - A character string, if set to 'time_based', an animation in which a red dot moves along cells according to the timestamp will be displayed. If set to 'state_based', an arrow animation based on the highest state excluding self-state will be displayed. If set to 'All', both the animation will be displayed. If set to NULL none will be displayed.
-
 * __`flow_map`__  - A character string. If set to 'self_state', the plot which shows the self-state by circles will be displayed. More the circle size, more probability of the cell stays in the same cell. If set to 'without_self_state', the plot which shows the next state by arrows will be displayed. The arrow head points the next cell to go from the cell which is pointed by the arrow tail. If set to 'All', two flow maps will be displayed. If set to NULL none will be displayed.
-
-* __`fps_time`__  - A numeric value indicating the frames per second for time transition animation.
-(Must be a numeric value and a factor of 100). Default value is 1.
-
-* __`fps_state`__  - A numeric value indicating the frames per second for state transition animation. (Must be numeric value and a factor of 100). Default value is 1.
-
-* __`time_duration`__  - A numeric value indicating the duration of the gif for time transition animation. Default value is 2.
-
-* __`state_duration`__  - A numeric value indicating the duration of the gif for state transition animation. Default value is 2.
 
 * __`cellid_column`__  - A character string specifying the column name of the Cell ID.
 
@@ -570,10 +552,9 @@ knitr::opts_chunk$set(
 flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
                                      transition_probability_df =trans_table,
                                      df = temporal_data, 
-                                     animation = 'All', flow_map = 'All',
-                                     fps_time = 30, fps_state =  5, 
-                                     time_duration = 180,state_duration = 20,
-                                     cellid_column = "Cell.ID", time_column = "t")
+                                     flow_map = 'All',
+                                     cellid_column = "Cell.ID", 
+                                     time_column = "t")
 ```
 
   
@@ -603,36 +584,6 @@ flowmap_plots[[2]]
 
 
 </br>
-
-
-
-
-
-
-
-**3. Flow map animation: Highest state transition probabilities including self-state**
-
-The red point moves through the cells as per the time stamp and blinks mean that its stays in the same cell for a particular amount of time which can be referred from the sub-header in the gif.
-
-
-```{r dot_anime, message=FALSE, warning=FALSE}
-flowmap_plots[[3]] 
-```
-
-
-
-
-
-</br>
-
-
-**4. Flow map animation: Highest state transition probabilities excluding self-states**
-
-The arrow moves from the current cell to the next cell and its length refers to the transitioning probabilities of the next state without including self state.
-
-```{r arrow_anime, message=FALSE, warning=FALSE}
-flowmap_plots[[4]]
-```
 
 
 

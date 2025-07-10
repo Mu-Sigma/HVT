@@ -40,15 +40,15 @@
 #'rownames(EuStockMarkets) <- dataset$date
 #'
 #  #Split in train and test
-#' train <- EuStockMarkets[1:1302, ]
-#' test <- EuStockMarkets[1303:1860, ]
+#' train <- EuStockMarkets[1:500, ]
+#' test <- EuStockMarkets[501:800, ]
 #' 
 #' ###MAP-A
-#' hvt_mapA <- trainHVT(train, n_cells = 150, depth = 1, quant.err = 0.1,
+#' hvt_mapA <- trainHVT(train, n_cells = 70, depth = 1, quant.err = 0.1,
 #'                     distance_metric = "L1_Norm", error_metric = "max",
 #'                     normalize = TRUE,quant_method = "kmeans")
 #'                     
-#' identified_Novelty_cells <- c(127,55,83,61,44,35,27,77)
+#' identified_Novelty_cells <- c(7,55) #example
 #' output_list <- removeNovelty(identified_Novelty_cells, hvt_mapA)
 #' data_with_novelty <- output_list[[1]] 
 #' data_with_novelty <- data_with_novelty[, -c(1,2)]
@@ -60,7 +60,7 @@
 #' data_without_novelty <- output_list[[2]]
 #' 
 #' ### MAP-C
-#' hvt_mapC <- trainHVT(data_without_novelty,n_cells = 135,
+#' hvt_mapC <- trainHVT(data_without_novelty,n_cells = 30,
 #'                     depth = 1, quant.err = 0.1, distance_metric = "L1_Norm",
 #'                     error_metric = "max", quant_method = "kmeans",
 #'                     normalize = TRUE)
