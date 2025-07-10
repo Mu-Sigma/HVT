@@ -1,19 +1,6 @@
-# Re-submission
-This is a re-submission. In this version we have added description to a new function in the Vignette document.
-
-# R CMD check results
-There were no ERRORs or WARNINGs. There were two note related to the re-submission in less than a week and the timestamp verification.
 
 
-checking CRAN incoming feasibility ... [5s/80s] NOTE
-Maintainer: ‘"Mu Sigma, Inc." <ird.experiencelab@mu-sigma.com>’
+##CRAN HVT_25.2.5 Submission Comment
 
-Days since last update: 1
-
-
-checking for future file timestamps ... NOTE
-unable to verify current time
-
-Status: 2 NOTE
-
-
+- Disabled the animation functionality in temporal analysis due to dependency discrepancies with external packages. 
+A re-release will be made once the issue is resolved.
