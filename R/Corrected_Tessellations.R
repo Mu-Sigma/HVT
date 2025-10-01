@@ -1,3 +1,5 @@
+#' @keywords internal
+
 Corrected_Tessellations <-
 function(current_dirsgs, current_tile, current_polygon){
 

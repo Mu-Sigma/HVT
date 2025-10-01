@@ -1,3 +1,4 @@
+#' @keywords internal
 ScaleMat <-
 function(samRectangle, parRectangle){
   

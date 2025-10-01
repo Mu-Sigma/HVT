@@ -1,6 +1,7 @@
 #' @importFrom magrittr %>%
 #' @import dplyr
 #' @import tidyr
+#' @keywords internal
 
 getCentroids_for_opti <- function (x, kout, n_cells,function_to_calculate_distance_metric,function_to_calculate_error_metric){
   requireNamespace("dplyr")   

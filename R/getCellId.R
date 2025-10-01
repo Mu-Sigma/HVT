@@ -1,3 +1,5 @@
+#' @keywords internal
+
 getCellId <-  function(hvt.results, seed = 123) {
   generic_col=c("Segment.Level","Segment.Parent","Segment.Child","n","Quant.Error")
   temp_summary=hvt.results[[3]][["summary"]] %>% dplyr::select(!generic_col) %>% dplyr::mutate(id=row_number())

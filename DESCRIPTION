@@ -1,9 +1,9 @@
 Package: HVT
 Type: Package
-Date: 2025-07-03
+Date: 2025-10-02
 Title: Constructing Hierarchical Voronoi Tessellations and Overlay
         Heatmaps for Data Analysis
-Version: 25.2.5
+Version: 25.2.6
 Authors@R: c(
   person("Zubin", "Dowlaty", email = "zubin.dowlaty@mu-sigma.com", role = c("aut", "cre")),
   person("Mu Sigma, Inc.", role = "cph"))
@@ -12,22 +12,23 @@ License: Apache License 2.0
 Encoding: UTF-8
 Imports: MASS, grDevices, splancs, stats, dplyr, NbClust,
         purrr, magrittr, ggplot2, tidyr, scales, cluster,
-        reshape2, FNN,Rtsne,umap, plyr,
-         markovchain, methods,deldir, gridExtra
+        reshape2, FNN, Rtsne, umap, plyr,
+        markovchain, methods, deldir, gridExtra
 Depends: R (>= 4.0.0)
 BugReports: https://github.com/Mu-Sigma/HVT/issues
 URL: https://github.com/Mu-Sigma/HVT
 RoxygenNote: 7.3.2
 Suggests: knitr,rmarkdown,testthat,geozoo, plotly, rlang,
     DT,patchwork,sp,Hmisc,data.table,gtable,
-    htmlwidgets,skimr,tibble,devtools,gifski,
-    tidyverse,DataExplorer,htmltools,corrplot,kableExtra,polyclip,conf.design 
+    htmlwidgets,skimr,tibble,devtools,gifski,gganimate,
+    tidyverse,DataExplorer,htmltools,corrplot,kableExtra,polyclip,conf.design,
+    furrr, future 
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2025-07-03 00:00:00 UTC;
+Packaged: 2025-10-02 00:00:00 UTC;
 Maintainer: Zubin Dowlaty <zubin.dowlaty@mu-sigma.com>
 Repository: CRAN
-Date/Publication: 2025-07-03 00:00:00 UTC
+Date/Publication: 2025-10-02 00:00:00 UTC
 Collate: 
     'Add_boundary_points.R'
     'Corrected_Tessellations.R'
@@ -35,9 +36,12 @@ Collate:
     'ScaleMat.R'
     'DelaunayInfo.R'
     'Delete_Outpoints.R'
+    'HVTMSM_support.R'
+    'HVTMSMoptimization.R'
     'VQ_codebookSplit.R'
     'clusterPlot.R'
     'clustHVT.R'
+    'create_highlighted_results_table.R'
     'diagPlot.R'
     'diagSuggestion.R'
     'displayTable.R'
@@ -50,11 +54,12 @@ Collate:
     'global.R'
     'hvq.R'
     'madPlot.R'
-    'msm_plots.R'
+    'mcmc_plots.R'
     'msm.R'
     'plotAnimatedFlowmap.R'
     'plotHVT.R'
     'plotModelDiagnostics.R'
+    'plotMsmKN.R'
     'plotNovelCells.R'
     'plotQuantErrorHistogram.R'
     'plotStateTransition.R'

@@ -12,4 +12,9 @@ utils::globalVariables(c(".","k","Segment.Level","Segment.Child","Quant.Error",
                          ,"MapA.Segment.Parent","MapC.Cell.ID","MapC.Cell.Path","MapC.Segment.Child","MapC.Segment.Level","MapC.Segment.Parent",
                          "Row.Number","identified_outlier_cells", "Cell.ID.x", "Cell.ID.y", "Layer1.Cell.ID", "Layer2.Cell.ID", "Segment.Child.x",
                         "Segment.Child.y", "Segment.Level.x", "Segment.Level.y", "Segment.Parent.x", "Segment.Parent.y", "identified_Novelty_cells",
-                        "mapC_cell_path", "results_df","hc","clusters","cluster_data","centroid_data"))
+                        "mapC_cell_path", "results_df","hc","clusters","cluster_data","centroid_data",
+                        "Current_State","Next_State","is_self_only","nearest_neighbor",
+                        "k_numeric","nn_numeric","mae_numeric","k_sort","nn_sort",
+                        "Number of Cells","Number of nearest neighbors","mae","status",
+                        "temp_cluster_data","hoverText","lev","nclust","nn",
+                        "is_overall_best","is_overall_worst","hover_text"))

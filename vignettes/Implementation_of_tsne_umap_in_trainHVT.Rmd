@@ -237,14 +237,18 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r lib, warning=FALSE, message=FALSE,error=FALSE}
 list.of.packages <- c("DT","plotly", "magrittr", "data.table", "tidyverse", "crosstalk",
-                      "kableExtra", "cowplot","gdata","tidyverse", "ggplot2", "gridExtra","tibble", "HVT")
+                      "kableExtra", "cowplot","gdata","tidyverse", "ggplot2", "gridExtra","tibble")
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages)){install.packages(new.packages, repos='https://cloud.r-project.org/')}
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
-
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = FALSE}
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 # 6. Data Understanding
 
 First, let us see how to generate data for torus. We are using a

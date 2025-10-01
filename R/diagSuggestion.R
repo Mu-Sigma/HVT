@@ -1,3 +1,4 @@
+#' @keywords internal
 
 
 diagSuggestion <- function(hvt.results,

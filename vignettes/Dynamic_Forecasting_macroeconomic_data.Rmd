@@ -118,12 +118,18 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr", "tidyr","patchwork", "feather","ggplot2","kableExtra", "htmltools",
-                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust", "HVT")
+                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
   install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
 invisible(lapply(list.of.packages, library, character.only = TRUE))
+```
+
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = FALSE}
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
 ```
 
 
@@ -717,19 +723,25 @@ Below are brief explanations of the features in the transition probability matri
 - *Cumulative_Probability*: The sum of the `Transition_Probability` for all the `Next_State` for a particular `Current_State`.
 
 
-### Flowmaps {.tabset}
+### Flowmaps & Animations {.tabset}
 
-Flowmaps visualize the flow of data between states over time including and excluding self states to identify patterns and trends. 
+Flowmaps visualize the flow of data between states over time including and excluding self states to identify patterns and trends. The animations provide a dynamic representation of the data flow, enabling a comprehensive understanding of state transitions and their evolution over time.
 
 - The Self State Flowmap including self-state transitions, is represented by the circle size around each cell, where larger sizes indicate a stronger likelihood of staying in the same cell.
 
 - The Non-Self State Flowmap, excluding self-state transitions, is represented by arrow sizes, where larger arrows indicate higher probabilities of transitioning to the next state, with arrow directions showing the target cell.
 
+- The Time-based Animation, including self-state transitions, is represented by a red point moving through cells over time, with blinks indicating the duration of staying in the same cell, as shown in the plot's sub-header.
+
+- The State-based Animation, excluding self-transitions, shows an arrow moving between cells, with its length indicating transition probabilities. The animation highlights movement between states over time.
 
 ```{r, warning=FALSE,out.width = "672px", out.height = "480px", fig.width = 8.5, fig.height = 6.5,fig.align = "center"}
 flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
                                      transition_probability_df =prob_trans_matx,
-                                     df = temporal_data,flow_map = "All",
+                                     df = temporal_data,
+                                     animation = "All" , flow_map = "All",
+                                     fps_time = 10,time_duration = 30,
+                                     fps_state = 10,state_duration = 30,
                                      cellid_column = "Cell.ID", time_column = "t")
 ```
 
@@ -745,6 +757,20 @@ flowmap_plots$self_state
 
 ```{r, fig.width=9, fig.height=5.5,fig.align='center', warning=FALSE}
 flowmap_plots$without_self_state
+```
+
+#### Time-based Animation
+
+
+```{r,  warning=FALSE, fig.align='center'}
+flowmap_plots$time_based
+```
+
+#### State-based Animation
+
+
+```{r,  warning=FALSE, fig.align='center'}
+flowmap_plots$state_based
 ```
 
 
@@ -788,7 +814,6 @@ This function uses a transition probability matrix with cumulative probabilities
 
 * __`mae_metric`__ - A Character to indicate which central tendency measure should be selected for calculating residuals for studentized residual plot. Only 'mean', 'median' or 'mode' is allowed. Default value is 'median'.
 
-* __`plot_type`__ - A Character to indicate what type of plot should be generated. Accepted entries are "static" or "interactive". Default is "static".
 
 
 **Function Outputs**
@@ -821,7 +846,7 @@ Let's proceed with the Ex-Post Dynamic Forecasting using the `msm` function.
 
 NOTE: We have selected `Median` as the metric for calculating residuals throughout this notebook.
 
-```{r, warning=FALSE, message=FALSE,fig.align = "center"}
+```{r, warning=FALSE, message=FALSE,fig.align = "center", results='hide'}
 ex_post <- msm(state_time_data = temporal_data,
                forecast_type = "ex-post",
                transition_probability_matrix = prob_trans_matx,
@@ -833,8 +858,7 @@ ex_post <- msm(state_time_data = temporal_data,
                raw_dataset = entire_dataset,
                mae_metric = "median",
                show_simulation = FALSE,
-               time_column = "t",
-               plot_type = "interactive")
+               time_column = "t")
 ```
 
 
@@ -843,7 +867,7 @@ ex_post <- msm(state_time_data = temporal_data,
 ##### States
 
 ```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
-ex_post[["plots"]][["states_plots"]][[1]]
+ex_post[["plots"]][[2]][[1]]
 ```
 
 
@@ -915,7 +939,7 @@ ex_post[["plots"]][[1]][[10]]$centroids_plot
 
 Let's run the Ex-Post simulation with `show_simulation` set to `TRUE` to see the simulation lines in the plots.
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, results='hide'}
 ex_post <- msm(state_time_data = temporal_data,
                forecast_type = "ex-post",
                transition_probability_matrix = prob_trans_matx,
@@ -927,15 +951,14 @@ ex_post <- msm(state_time_data = temporal_data,
                raw_dataset = entire_dataset,
                mae_metric = "median",
                show_simulation = TRUE,
-               time_column = "t",
-               plot_type = "interactive")
+               time_column = "t")
 
 ```
 
 ##### States
 
 ```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
-ex_post[["plots"]][["states_plots"]][[1]]
+ex_post[["plots"]][[2]][[1]]
 ```
 
 
@@ -1037,7 +1060,7 @@ Now that Ex-Post is done, we now proceed with Ex-Ante Forecasting. In this secti
 
 - Ex-Ante Forecast: t+12 (2025-01-01 to 2025-12-01)
 
-```{r warning=FALSE}
+```{r warning=FALSE, results='hide'}
 ex_ante_period <- seq.POSIXt(from = as.POSIXct("2025-01-01"),to = as.POSIXct("2025-12-01"),by = "1 month")
 ex_ante_period <- as.POSIXct(format(ex_ante_period, "%Y-%m-%d"), tz = "")
 
@@ -1052,8 +1075,7 @@ ex_ante <- msm(state_time_data = temporal_data,
                raw_dataset = entire_dataset,
                mae_metric = "median",
                show_simulation= FALSE,
-               time_column = "t",
-               plot_type = "interactive")
+               time_column = "t")
 
 ```
 
@@ -1133,7 +1155,7 @@ ex_ante$plots$centroids_plot[[10]]
 
 The forecast seems unusual, showing some flat line and irregular pattern. We'll re-run it with the simulation lines visible to figure out what might be causing the issue.
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, results='hide'}
 ex_ante <- msm(state_time_data = temporal_data,
                forecast_type = "ex-ante",
                transition_probability_matrix = prob_trans_matx,
@@ -1145,8 +1167,7 @@ ex_ante <- msm(state_time_data = temporal_data,
                raw_dataset = entire_dataset,
                mae_metric = "median",
                show_simulation = TRUE,
-               time_column = "t",
-               plot_type = "interactive")
+               time_column = "t")
 ```
 
 ### Ex-Ante Plots {.tabset}
@@ -1294,7 +1315,7 @@ datatable(hclust_data,rownames = FALSE, options=list(lengthMenu = dynamic_length
 
 Let's execute the simulation using the `msm` function with the `handle_problematic_states` parameter set to `TRUE`, enabling the identification of problematic states and performing clustering analysis. To achieve more detailed and stable clusters, we will set `k` to 6. Additionally, we will set `n_nearest_neighbor` to 3, so that 3 nearest neighbors are considered for each problematic state. This will help address the issues by enabling transitions to appropriate neighboring states based on the clustering results.
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, results='hide'}
 ex_ante_period <- seq.POSIXt(from = as.POSIXct("2025-01-01"),to = as.POSIXct("2025-12-01"),by = "1 month")
 ex_ante_period <- as.POSIXct(format(ex_ante_period, "%Y-%m-%d"), tz = "")
 
@@ -1311,8 +1332,7 @@ ex_ante <- msm(state_time_data = temporal_data,
                k=6, n_nearest_neighbor = 3,
                mae_metric = "median",
                show_simulation = FALSE,
-                time_column = "t",
-               plot_type = "interactive")
+                time_column = "t")
 
 ```
 
@@ -1322,13 +1342,13 @@ summary(ex_ante)
 ```
 
 
-According to the summary from the 'msm' function, the state *43* is a problematic state and its 3 nearest neighbors are *44,39 & 48* and the state *56* is a problematic state and its 3 nearest neighbors are *55,50 & 49*. Below is the cluster dendrogram.
+According to the summary from the 'msm' function, the state *43* is a problematic state and its 3 nearest neighbors are *44,39 & 37* and the state *56* is a problematic state and its 3 nearest neighbors are *55,50 & 49*. Below is the cluster dendrogram.
 
 ```{r,fig.align = "center",fig.width= 11, fig.height=5,out.width="100%"}
 ex_ante$dendogram()
 ```
 
-The dendrogram clearly shows that states **43, 44, 39, and 48** belong to the same cluster, which is the second-to-last cluster outlined with a dark blue border. Similarly, states **56, 55, 50, and 49** are part of a cluster of the same type. This is further confirmed in the heatmap below, where the group of states **43, 44, 39, and 48** and the group **56, 55, 50, and 49** (highlighted with white borders) are positioned one below the other near the center of the plot, within the same dark blue-colored cluster.
+The dendrogram clearly shows that states **43, 44, 39, and 37** belong to the same cluster, which is the second-to-last cluster outlined with a dark blue border. Similarly, states **56, 55, 50, and 49** are part of a cluster of the same type. This is further confirmed in the heatmap below, where the group of states **43, 44, 39, and 37** and the group **56, 55, 50, and 49** (highlighted with white borders) are positioned one below the other near the center of the plot, within the same dark blue-colored cluster.
 
 
 
@@ -1413,7 +1433,7 @@ ex_ante$plots$centroids_plot[[10]]
 
 Let's run the Ex-Ante simulation with `show_simulation` set to `TRUE` to see the simulation lines in the plots.
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, results='hide'}
 ex_ante <- msm(state_time_data = temporal_data,
                forecast_type = "ex-ante",
                transition_probability_matrix = prob_trans_matx,
@@ -1427,8 +1447,7 @@ ex_ante <- msm(state_time_data = temporal_data,
                k=6, n_nearest_neighbor = 3,
                mae_metric = "median",
                show_simulation = TRUE,
-               time_column = "t",
-               plot_type = "interactive")
+               time_column = "t")
 ```
 
 ##### States

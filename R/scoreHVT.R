@@ -304,30 +304,30 @@ scoreHVT <- function(dataset,
   anomalyPlot <- plotHVT(
     hvt.results.model,
     child.level = child.level
-  ) + ggtitle(paste(
+  ) + ggplot2::ggtitle(paste(
     "Hierarchical Voronoi Tessellation for Level",
     child.level
   )) +
-    theme(
-      plot.title = element_text(
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(
         size = 18,
         hjust = 0.5,
-        margin = margin(0, 0, 20, 0)
+        margin = ggplot2::margin(0, 0, 20, 0)
       ),
       # legend.title = element_blank(),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.background = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank(),
-      axis.title.x = element_blank(),
-      axis.text.y = element_blank(),
-      axis.ticks.y = element_blank(),
-      axis.title.y = element_blank(),
+      panel.grid.major = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_blank(),
+      axis.ticks.x = ggplot2::element_blank(),
+      axis.title.x = ggplot2::element_blank(),
+      axis.text.y = ggplot2::element_blank(),
+      axis.ticks.y = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_blank(),
       legend.position = "bottom"
     ) +
-    scale_x_continuous(expand = c(0, 0)) +
-    scale_y_continuous(expand = c(0, 0))
+    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ggplot2::scale_y_continuous(expand = c(0, 0))
   
   
   colour_scheme <- c(
@@ -358,9 +358,9 @@ scoreHVT <- function(dataset,
     hoverText <- NULL
   }
   # browser()
-  anomalyPlot <- anomalyPlot + geom_polygon(
+  anomalyPlot <- anomalyPlot + ggplot2::geom_polygon(
     data = boundaryCoords2,
-    aes(
+    ggplot2::aes(
       x = bp.x,
       y = bp.y,
       group = interaction(Segment.Level, Segment.Parent, Segment.Child),
@@ -370,9 +370,9 @@ scoreHVT <- function(dataset,
     color = "red",
     size = 1
   ) +
-    geom_point(data = boundaryCoords2 %>% distinct(x, y), aes(x = x, y = y), size = 1.5) +
-    scale_fill_gradientn(colours = colour_scheme) +
-    guides(colour = "none")
+    ggplot2::geom_point(data = boundaryCoords2 %>% distinct(x, y), ggplot2::aes(x = x, y = y), size = 1.5) +
+    ggplot2::scale_fill_gradientn(colours = colour_scheme) +
+    ggplot2::guides(colour = "none")
   
   plotlyPredict <- plotly::ggplotly(anomalyPlot, tooltip = "text")
   
@@ -505,26 +505,26 @@ if(analysis.plots) {
       hvt.results.model,
       child.level = child.level
     ) +
-      theme(
-        plot.title = element_text(
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(
           size = 18,
           hjust = 0.5,
-          margin = margin(0, 0, 20, 0)
+          margin = ggplot2::margin(0, 0, 20, 0)
         ),
         # legend.title = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.title.y = element_blank(),
+        panel.grid.major = ggplot2::element_blank(),
+        panel.grid.minor = ggplot2::element_blank(),
+        panel.background = ggplot2::element_blank(),
+        axis.text.x = ggplot2::element_blank(),
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.title.x = ggplot2::element_blank(),
+        axis.text.y = ggplot2::element_blank(),
+        axis.ticks.y = ggplot2::element_blank(),
+        axis.title.y = ggplot2::element_blank(),
         legend.position = "bottom"
       ) +
-      scale_x_continuous(expand = c(0, 0)) +
-      scale_y_continuous(expand = c(0, 0))
+      ggplot2::scale_x_continuous(expand = c(0, 0)) +
+      ggplot2:: scale_y_continuous(expand = c(0, 0))
     
     
     colour_scheme <- c(
@@ -569,9 +569,9 @@ if(analysis.plots) {
     
     # Create the plot
     scoredPlot <- scoredPlot +
-      geom_polygon(
+      ggplot2::geom_polygon(
         data = boundaryCoords2_1,
-        aes(
+        ggplot2::aes(
           x = bp.x,
           y = bp.y,
           group = interaction(Segment.Level, Segment.Parent, Segment.Child),
@@ -581,11 +581,11 @@ if(analysis.plots) {
         color = "black",
         size = 0.5
       ) +
-      scale_fill_gradientn(colours = colour_scheme) +
-      guides(colour = "none") +
-      geom_point(
+      ggplot2::scale_fill_gradientn(colours = colour_scheme) +
+      ggplot2::guides(colour = "none") +
+      ggplot2::geom_point(
         data = boundaryCoords2_1 %>% distinct(x, .keep_all = TRUE),
-        aes(x = x, y = y, text = hoverText),
+        ggplot2::aes(x = x, y = y, text = hoverText),
         size = 1
       )
     
@@ -692,10 +692,10 @@ if(analysis.plots) {
   model_mad_plots <- NA
  
   if (!all(is.na(hvt.results.model[[4]]))) {
-    mtrain <- hvt.results.model[[4]]$mad_plot_train + ggtitle("Mean Absolute Deviation Plot: Calibration on Train Data")
+    mtrain <- hvt.results.model[[4]]$mad_plot_train + ggplot2::ggtitle("Mean Absolute Deviation Plot: Calibration on Train Data")
   }
   if (!all(is.na(hvt.results.model[[5]]))) {
-    mtest <- hvt.results.model[[5]][["mad_plot"]] + ggtitle("Mean Absolute Deviation Plot:Validation")
+    mtest <- hvt.results.model[[5]][["mad_plot"]] + ggplot2::ggtitle("Mean Absolute Deviation Plot:Validation")
   }
 
   if (!all(is.na(hvt.results.model[[4]])) & !all(is.na(hvt.results.model[[5]]))) {

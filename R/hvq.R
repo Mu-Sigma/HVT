@@ -1,3 +1,5 @@
+#' @keywords internal
+
 hvq <-
   function (x,
             min_compression_perc = NA,
@@ -27,6 +29,8 @@ hvq <-
       std<-matrix(0, nrow = ncol(x), n_cells)
     }
     set.seed(seed)
+    # Ensure consistent seeding for kmeans calls
+    set.seed(279)
   
     colSd <- function (x, na.rm=FALSE) apply(X=x, MARGIN=2, FUN=stats::sd, na.rm=na.rm)
  
@@ -72,6 +76,8 @@ hvq <-
       ztab3upc<-matrix(0, nrow = ncol(x), n_cells_compress_perc)
       std<-matrix(0, nrow = ncol(x), n_cells_compress_perc)
       # print(n_cells_compress_perc)
+      # Ensure consistent seeding before kmeans
+      set.seed(279)
       outkinit <- getCentroids(x=x,
                                kout = stats::kmeans(x, n_cells_compress_perc, iter.max=10^5, algorithm=algorithm),
                                n_cells=n_cells_compress_perc,
@@ -90,6 +96,8 @@ hvq <-
     n_cells_optimal <- n_cells_compress_perc - 1
     message(paste0("For the given dataset ",min_compression_perc,"% compression rate is achieved at n_cells : ", n_cells_optimal))
     }else{
+      # Ensure consistent seeding before kmeans
+      set.seed(279)
       outkinit <- getCentroids(x=x,
                              kout = stats::kmeans(x, n_cells, iter.max=10^5, algorithm=algorithm),
                              n_cells=n_cells,

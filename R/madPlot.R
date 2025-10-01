@@ -1,3 +1,4 @@
+#' @keywords internal
 
 
 madPlot <- function(hvt.scoring) {

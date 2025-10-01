@@ -1,3 +1,5 @@
+#' @keywords internal
+
 Delete_Outpoints <-
 function(tile, check_dirsgs){
   check_dirsgs[, c("x1","x2","y1", "y2")]<-round(check_dirsgs[, c("x1","x2","y1", "y2")], 6)

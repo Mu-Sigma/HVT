@@ -8,7 +8,7 @@ msm(
   state_time_data,
   forecast_type = "ex-post",
   initial_state,
-  n_ahead_ante,
+  n_ahead_ante = 10,
   transition_probability_matrix,
   num_simulations = 100,
   trainHVT_results,
@@ -20,12 +20,13 @@ msm(
   n_nearest_neighbor = 1,
   show_simulation = TRUE,
   mae_metric = "median",
-  time_column = NULL,
-  plot_type = "static"
+  time_column,
+  precomputed_problematic_states = NULL,
+  plot_mode = c("all", "mae-only")
 )
 }
 \arguments{
-\item{state_time_data}{DataFrame. A dataframe containing state transitions over time(cell id and timestamp)}
+\item{state_time_data}{Dataframe. A dataframe containing state transitions over time(cell id and timestamp)}
 
 \item{forecast_type}{Character. A character to indicate the type of forecasting.
 Accepted values are "ex-post" or "ex-ante".}
@@ -34,7 +35,7 @@ Accepted values are "ex-post" or "ex-ante".}
 
 \item{n_ahead_ante}{Numeric. A vector of n ahead points to be predicted further in ex-ante analyzes.}
 
-\item{transition_probability_matrix}{DataFrame. A dataframe of transition probabilities/ output of 
+\item{transition_probability_matrix}{Dataframe. A dataframe of transition probabilities/ output of 
 `getTransitionProbability` function}
 
 \item{num_simulations}{Integer. A number indicating the total number of simulations to run.
@@ -44,7 +45,7 @@ Default is 100.}
 
 \item{scoreHVT_results}{List. `scoreHVT` function output}
 
-\item{actual_data}{Dataframe. A dataFrame for ex-post prediction period with teh actual raw data values}
+\item{actual_data}{Dataframe. A dataframe for ex-post prediction period with the actual raw data values}
 
 \item{raw_dataset}{DataFrame. A dataframe of input raw dataset from the mean and standard deviation will 
 be calculated to scale up the predicted values}
@@ -65,8 +66,11 @@ Accepted entries are "mean", "median", or "mode". Default is "median".}
 
 \item{time_column}{Character. The name of the column containing time data. Used for aligning and plotting the results.}
 
-\item{plot_type}{Character. A character to indicate what type of plot should be generated.
-Accepred entries are "static" (ggplot object) or "interactive"(plotly object). Default is "static".}
+\item{precomputed_problematic_states}{Vector. An internal parameter used in HVTMSMoptimization call 
+to pass the problematic states detected}
+
+\item{plot_mode}{Character. A character to indicate what should be included in output list 
+"mae-only" values (used in HVTMSMoptimization) and "all" (used in direct call, include plots and mae)}
 }
 \value{
 A list object that contains the forecasting plots and MAE values.
@@ -110,6 +114,6 @@ ex_post <- msm(state_time_data = temporal_data,
              time_column = 't')
 }
 \author{
-Vishwavani <vishwavani@mu-sigma.com>
+Vishwavani <vishwavani@mu-sigma.com>, Nithya <nithya.sn@mu-sigma.com>
 }
 \keyword{Timeseries_Analysis}

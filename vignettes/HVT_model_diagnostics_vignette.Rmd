@@ -262,7 +262,7 @@ the parent polygon. This is done for all the subsequent levels.
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, installs them and attach all the packages in the session environment.
 
 ```{r, message=FALSE, warning=FALSE}
-list.of.packages <- c("dplyr","HVT", "kableExtra", "geozoo", "plotly", "purrr", "DT")
+list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr", "DT")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
@@ -272,6 +272,13 @@ if (length(new.packages))
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
+
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = FALSE}
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
+
 
 
 

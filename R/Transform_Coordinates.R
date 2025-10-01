@@ -1,3 +1,5 @@
+#' @keywords internal
+
 Transform_Coordinates <- function(sam_rectangle, par_rectangle, scale_mat) {
   xrange_sam <- range(sam_rectangle[, 1])
   yrange_sam <- range(sam_rectangle[, 2])
