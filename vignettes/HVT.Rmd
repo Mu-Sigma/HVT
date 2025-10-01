@@ -110,7 +110,7 @@ vignette_data <- data.frame(
   "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/LLM_Embeddings_in_HVT.html' target='_blank'>Visualizing LLM Embeddings using HVT</a>",
   "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html' target='_blank'>Implementation of t-SNE and UMAP in trainHVT function</a>",
   "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html' target='_blank'>Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT</a>",
-  "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html' target='_blank'>Experimentation of Hyperparameters to find best model in msm Dynamic Forecasting</a>"
+  "<a href='https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Experimentation_of_hyperparameters_in_msm.html' target='_blank'>Experimentation of Hyperparameters to find best model in msm Dynamic Forecasting</a>"
 ),
   Description = c(
     "Contains descriptions of the functions used for vector quantization and construction of Hierarchical Voronoi Tessellations for data analysis.",
