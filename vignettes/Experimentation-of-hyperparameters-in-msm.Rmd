@@ -1,0 +1,848 @@
+---
+title: "Experimentation of Hyperparameters to find best model in `msm` Dynamic Forecasting"
+author: "Zubin Dowlaty, Srinivasan Sundarsanam, Vishwavani, Nithya"
+date: "Created Date: 2025-08-25  <br> Modified Date: `r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth : 2
+    tabset: true 
+vignette: >
+  %\VignetteIndexEntry{Experimentation of Hyperparameters to find best model in `msm` Dynamic Forecasting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+```{css, echo=FALSE}
+/* CSS for floating TOC on the left side */
+#TOC {
+    /* float: left; */
+    position: fixed;
+    margin-left: -17vw;
+    width: 15vw;
+    height: fit-content;
+    overflow-y: auto;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background-color: #f9f9f9;
+    border-right: 1px solid #ddd;
+    margin-top: -13em; 
+}
+.main-container {
+  margin-left: 250px; 
+  padding: 20px;
+  max-width: 1000px;/* Adjust this value to match the width of the TOC + some margin */
+}
+body{
+max-width:1830px;
+width: 60%;
+min-width: 700px;
+}
+p {
+text-align: justify;
+}
+
+.plotly {
+  margin: auto;
+  width: 100%;
+  height: 200px;
+}
+
+.caption {
+  text-align: center;
+}
+li {
+  padding-bottom: 5px;
+}
+ul {
+  margin-bottom: 0px !important;
+}
+img {
+  border: none;
+}
+.custom-heatmap-plot g.legendlines {
+    display: none;
+  }
+
+.tab{
+   border: none !important;
+}
+
+#cells-3{
+  background-color: green;
+  font-size: 15px;
+}
+
+#cells-10{
+  background-color: green;
+  font-size: 15px;
+}
+ 
+```
+
+
+
+
+
+
+
+# 1. Background
+
+The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
+
+1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
+
+2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
+
+3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
+
+4.  **Scoring**: Scoring new data sets or test data and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
+
+5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+
+6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling predictions for time-series data.
+
+<span style="font-size: 20px;">**Objective**</span>
+
+- This notebook is designed to systematically explore different combinations of parameters — specifically, the number of cells in `trainHVT` function, the number of clusters (k) and the number of nearest neighbors in the `msm` function. The goal is to evaluate the MAE (Mean Absolute Error) across all variables for each combination and identify the configuration that yields the lowest MAE, thereby indicating the most accurate model selection.
+
+- Number of Cells:
+
+  This value determines how many distinct cells should be formed at each level of the hierarchy during the vector quantization process in the trainHVT function.
+
+
+- Number of Clusters:
+    
+  This determines the granularity of the clustering. It is recommended to provide value within the range of 2 to 9, as higher values may lead to overly fine-grained clusters that lose interpretability and practical significance.
+
+
+- Number of Nearest Neighbors:
+
+  The number of nearest neighbors is dependent on the cluster structure. For each cluster, it ranges from 2 to 7. This parameter helps to pick the next state for the problematic states in the simulation.
+
+
+# 2. Notebook Requirements
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+library(dplyr)
+```
+
+
+Since all the new functions for hyperparameter tuning approach is not in CRAN yet, we are sourcing the scripts from local.
+
+
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
+
+
+
+Below is the function for more dynamic drop down display of data tables.
+
+```{r}
+calculate_dynamic_length_menu <- function(total_entries, base_step = 100) {
+  max_option <- ceiling(total_entries / base_step) * base_step
+  max_option <- max(max_option, 100)
+  options <- seq(base_step, by = base_step, length.out = max_option / base_step)
+  options <- c(10, options)
+  return(options)}
+```
+</b>
+
+# 3. Dataset Preparation and Exploration
+
+
+## 3.1 Dataset Loading
+
+Let's start with importing the dataset. The below code reads and displays the dataset.
+
+```{r,warning=FALSE,message=FALSE}
+entire_dataset <- read.csv("./sample_dataset/macro_raw_model_inputs_v5.csv")
+entire_dataset <-  entire_dataset %>% mutate(across(where(is.numeric), ~ round(., 4)))
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(entire_dataset))
+DT::datatable(entire_dataset,options = list(pageLength = 10,scrollX = TRUE, lengthMenu = dynamic_length_menu), rownames = FALSE)
+```
+
+
+## 3.2 Dataset Preprocessing
+
+Before proceeding, it is crucial to examine the structure of the dataset. This involves verifying the data types of the columns and resolving any inconsistencies. Make sure all data types are accurate and suitable for the intended functions.
+
+```{r}
+str(entire_dataset)
+```
+
+
+Since the time column is in 'Character' format, we are changing it to 'datetime' (POSIXct) format.
+
+```{r}
+entire_dataset <- entire_dataset %>%
+  mutate(t = format(as.POSIXct(t, format = "%m/%d/%y"), "%Y-%m-%d"))
+```
+
+
+## 3.3 Dataset Transformation
+
+We transform the data to compute the 12-month rate of change, which standardizes the features and brings them to a comparable scale, simplifying the analysis of their relative changes. Log difference reduces variability and removes trends, stabilizing the data for more accurate forecasting.
+
+The Rate of change is calculated as follows:
+
+$$
+\text{Rate of Change} = \log(\text{Current Value}) - \log(\text{12-Month Lag Value})
+$$
+
+
+```{r}
+features_data <- entire_dataset %>% select(-t) %>% colnames()
+entire_dataset[features_data] <- lapply(entire_dataset[features_data], function(x) as.numeric(as.character(x)))
+
+invisible(lapply(features_data, function(col) {
+  entire_dataset[[col]] <<- entire_dataset[[col]] %>% log()
+  entire_dataset[[col]] <<- c(rep(NA, 12), round(diff(entire_dataset[[col]], 12),4))}))
+entire_dataset <- entire_dataset %>% na.omit() %>% data.frame()
+rownames(entire_dataset) <- NULL
+```
+
+After the log difference of 12 datapoints (months), the dataset ranges from **December 1999 to July 2025**. Below is the table displaying the transformed dataset.
+
+```{r}
+entire_dataset$t <- as.character(entire_dataset$t)
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(entire_dataset))
+DT::datatable(entire_dataset,options = list(pageLength = 10,scrollX = TRUE,lengthMenu = dynamic_length_menu,columnDefs = list(list(width = '150px', targets = 0))),
+class = "nowrap display",rownames = FALSE)
+entire_dataset$t <- as.POSIXct(entire_dataset$t, format = "%Y-%m-%d")
+```
+
+# 4. Train Test Split {.tabset}
+
+The entire dataset is split into train and test datasets in the 9:1 ratio.
+The train split is passed to the `HVTMSMoptimization` function for model training and scoring. The test split is used as the Ex-Post forecasting period.
+
+```{r}
+train_size <- round(0.9 * nrow(entire_dataset))
+train_dataset <- entire_dataset %>% slice_head(n = train_size)
+test_dataset <- entire_dataset %>% slice_tail(n = nrow(entire_dataset) - train_size)
+```
+
+<br>
+
+## 4.1 Train Dataset
+
+The train dataset is from `r min(train_dataset$t)` to `r max(train_dataset$t)`. Below is the table displaying the train data.
+
+```{r}
+train_dataset$t <- as.character(train_dataset$t)
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(train_dataset))
+DT::datatable(train_dataset,options = list(pageLength = 10,scrollX = TRUE,lengthMenu = dynamic_length_menu,
+columnDefs = list(list(width = '150px', targets = 0))),class = "nowrap display",rownames = FALSE)
+train_dataset$t <- as.POSIXct(train_dataset$t, format = "%Y-%m-%d")
+```
+
+## 4.2 Test Dataset
+
+The test dataset is from `r min(test_dataset$t)` to `r max(test_dataset$t)`. Below is the table displaying the test data.
+
+```{r}
+test_dataset$t <- as.character(test_dataset$t)
+dynamic_length_menu <- calculate_dynamic_length_menu(nrow(test_dataset))
+DT::datatable(test_dataset,options = list(pageLength = 10,scrollX = TRUE,lengthMenu = dynamic_length_menu,
+columnDefs = list(list(width = '150px', targets = 0))),class = "nowrap display",rownames = FALSE)
+test_dataset$t <- as.POSIXct(test_dataset$t, format = "%Y-%m-%d")
+```
+
+<br> 
+
+# 5. Selection of data for Training and Scoring
+
+**Case 1:**
+
+- `trainHVT()` = train dataset from `r min(train_dataset$t)` to `r max(train_dataset$t)`
+
+- `scoreHVT()` = train dataset from `r min(train_dataset$t)` to `r max(train_dataset$t)`
+
+```{r case1 ,warning=FALSE,message=FALSE, error=TRUE, results='hide'}
+# trainHVT
+hvt.results <- trainHVT(
+  train_dataset[,-1],
+  n_cells = 13,
+  depth = 1,
+  quant.err = 0.25,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  dim_reduction_method = "sammon")
+
+# scoreHVT
+scoring <- scoreHVT(train_dataset,hvt.results,analysis.plots = TRUE,names.column = train_dataset[,1])
+scoring$scoredPredictedData$t <- format(train_dataset$t, "%Y-%m-%d")
+scoring$scoredPredictedData <- scoring$scoredPredictedData %>% dplyr::select(c(t, everything()))
+
+# Temporal Data 
+temporal_data <-scoring$scoredPredictedData %>% select(t,Cell.ID)
+temporal_data$t <- as.POSIXct(temporal_data$t, format = "%Y-%m-%d")
+
+# Transition Probability Matrix 
+prob_trans_matx <- getTransitionProbability(df = temporal_data,cellid_column = "Cell.ID",time_column = "t", type = "with_self_state")
+
+#Ex-Post Forecasting
+ex_post <- msm(state_time_data = temporal_data,
+               forecast_type = "ex-post",
+               transition_probability_matrix = prob_trans_matx,
+               initial_state <- temporal_data$Cell.ID[which.max(temporal_data$t)],
+               num_simulations = 5,
+               scoreHVT_results = scoring,
+               trainHVT_results = hvt.results,
+               actual_data = test_dataset,
+               raw_dataset = entire_dataset,
+               handle_problematic_states = FALSE,
+               k = 2,
+               n_nearest_neighbor = 5,
+               mae_metric = "median",
+               show_simulation = FALSE,
+               time_column = "t")
+```
+
+**Observation:** 
+
+Using **train dataset** for `trainHVT()` and `scoreHVT()` will still allow forecasting by taking the last train state (transitions learned on train) as the initial state to forecast. But the test set isn’t scored, so there are no test Cell.IDs (“Actual States”) to compute ex-post MAE, therefore we discard this setup for evaluation.
+
+<br>
+
+**Case 2:**
+
+- `trainHVT()` = train dataset from `r min(train_dataset$t)` to `r max(train_dataset$t)`
+
+- `scoreHVT()` = test dataset from `r min(test_dataset$t)` to `r max(test_dataset$t)`
+
+```{r,warning=FALSE,message=FALSE, results='hide'}
+# trainHVT 
+hvt.results <- trainHVT(
+  train_dataset[,-1],
+  n_cells = 13,
+  depth = 1,
+  quant.err = 0.25,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  dim_reduction_method = "sammon")
+
+# scoreHVT
+scoring <- scoreHVT(test_dataset,hvt.results,analysis.plots = TRUE,names.column = test_dataset[,1])
+scoring$scoredPredictedData$t <- format(test_dataset$t, "%Y-%m-%d")
+scoring$scoredPredictedData <- scoring$scoredPredictedData %>% dplyr::select(c(t, everything()))
+
+# temporal Data
+temporal_data <-scoring$scoredPredictedData %>% select(t,Cell.ID)
+temporal_data$t <- as.POSIXct(temporal_data$t, format = "%Y-%m-%d")
+
+```
+
+```{r,warning=FALSE,message=FALSE}
+ids <- sort(unique(temporal_data$Cell.ID))
+cat("The Unique Cell IDs in Temporal Data:", paste(ids, collapse = ", "), "\n")
+```
+
+
+**Observation:** 
+
+Using **train dataset** for `trainHVT()` and **test dataset** for `scoreHVT()`, the test period maps to only a subset of trained cells and not all Cell.IDs appear in temporal data. Creating probability matrix with this temporal data will be invalid as simulations will be stuck between similar cells.
+
+<br>
+
+**Case 3:**
+
+- `trainHVT()` = train dataset from `r min(train_dataset$t)` to `r max(train_dataset$t)`
+
+- `scoreHVT()` = train + test dataset from `r min(train_dataset$t)` to `r max(test_dataset$t)`
+
+```{r,warning=FALSE,message=FALSE, results='hide'}
+# trainHVT  
+hvt.results <- trainHVT(
+  train_dataset[,-1],
+  n_cells = 13,
+  depth = 1,
+  quant.err = 0.25,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  dim_reduction_method = "sammon")
+
+# scoreHVT
+scoring <- scoreHVT(entire_dataset,hvt.results,analysis.plots = TRUE,names.column = entire_dataset[,1])
+scoring$scoredPredictedData$t <- format(entire_dataset$t, "%Y-%m-%d")
+scoring$scoredPredictedData <- scoring$scoredPredictedData %>% dplyr::select(c(t, everything()))
+
+# Temporal Data
+temporal_data <-scoring$scoredPredictedData %>% select(t,Cell.ID)
+temporal_data$t <- as.POSIXct(temporal_data$t, format = "%Y-%m-%d")
+```
+
+
+```{r, warning=FALSE}
+ids <- sort(unique(temporal_data$Cell.ID))
+cat("The Unique Cell IDs in Temporal Data:", paste(ids, collapse = ", "), "\n")
+```
+
+**Observation:** 
+
+Using **train dataset** for `trainHVT()` and **entire dataset(Train set + Test set)** for `scoreHVT()`, every row (train and test) is mapped to trained cells, so temporal_data has full cell coverage and continuous time as printed above. This enables the Actual States overlay for the test period and computes state-level residuals/MAE. This resolves the problem observed in the other two cases.
+
+<br>
+
+Since **Case 3** is the optimal scenario, where trainHVT is trained with the training set and scoreHVT is evaluated on the entire dataset, this case is considered for further hyperparameter tuning and forecasting.
+
+<br>
+
+# 6. Hyperparameter Tuning
+
+* **Hyperparameter 1 – Number of Cells in `trainHVT`:**
+
+  * Defines the total number of cells to be generated for the dataset.
+  * Can Start from 3 and goes to maximum cells (which is total number of rows divided by 2)
+  
+* **Hyperparameter 2 – Optimal Clusters:**
+
+  * Applied within the `msm` function when problematic states are identified during the simulation process.
+  * Segments the cells into `k` clusters to guide the selection of subsequent states.
+
+* **Hyperparameter 3 – Number of Nearest Neighbors:**
+
+  * Number of Nearest Neighbor(nn) is a parameter dependent on `k`, applied within the `msm` function.
+
+
+Below is the workflow for the hyperparameter tuning:
+
+1. **Train and Score HVT Model**:
+   Loop through each value of `ncell` range, for every iteration, train HVT model (`trainHVT`) on the **training dataset** and perform scoring (`scoreHVT`) on **entire dataset** to assign `Cell.ID` and obtain centroid coordinates.
+
+2. **Prepare Temporal Data and Compute Transition Probabilities**:
+   Merge the assigned `Cell.ID` from scoring results with the training dataset’s time column (`t`) to form temporal data showing state transitions. Then, use this temporal data to generate a transition probability matrix indicating the likelihood of transitions between states.
+
+3. **Identify Problematic States and Run MSM Simulations**:
+   For each `ncell`:
+   * If problematic states are detected, the states are clustered using multiple k values, and various nearest neighbor options are tested to find the minimal yet meaningful selection for optimal state resolution.
+
+4. **Calculate MAE**:
+   Run MSM simulations for each combination of cluster counts (`k`) and nearest neighbors, then calculate the MAE by comparing simulated predictions with actual test data (`expost_forecasting`) for all three MAE metrics **Mean**, **Median**, **Mode**.
+
+5. **Identify and Aggregate Best Parameters**:
+   Record the MAE for every combination of `ncell`, `k`, and `Nearest Neighbor` values tested across all iterations. Summarize all parameter combinations and their results comprehensively across the complete set of iterations.
+
+6. **Visualize Results**:
+   Plot MAE performance across all optimal parameter combinations of ncell, k, and nearest neighbor. Highlight highest and lowest MAE values for optimal parameter selection.
+   
+**Note**: The `expost_forecasting` period will be fixed for all iterations.
+
+## 6.1 Function Signature 
+
+The `HVTMSMoptimization` function automates the entire workflow described above. Rather than executing trainHVT, scoreHVT, and msm separately, it encapsulates all these steps into a single process. This function systematically explores the parameter space to identify the optimal combination of clustering granularity and temporal modeling parameters for superior forecasting performance.
+
+### Core Data Parameters
+
+* **`entire_dataset`** – The train dataset containing timestamps and features; used for HVT model training, scoring, and MSM simulations.
+* **`expost_forecasting`** – The test dataset containing timestamps and actual feature values; used for scoring and to calculate Mean Absolute Error (MAE) for MSM predictions.
+* **`time_column`** – Column name representing timestamps; not included in HVT model training but utilized for building temporal sequences and MSM analysis.
+
+### Hyperparameter Ranges
+
+* **`ncell_range`** – Possible numbers of cells for tessellation in `trainHVT`, min = 3.
+* **`k_range`** – Range of clusters in `msm` when problematic states are found, min = 2
+* **`nn_range`** – Range of nearest-neighbor counts within a cluster to select as next state for problematic states, min = 1.
+
+### Simulation Controls
+
+* **`num_simulations`** – Number of simulations in MSM function
+* **`mae_metric`** – Aggregation method for MAE calculation ("mean", "median", "mode" or "all")
+
+### HVT Configuration - hvt_params
+
+* **`depth`** – Integer specifying hierarchy depth for vector quantization
+* **`quant.err`** – Numeric quantization error threshold for HVT 
+* **`normalize`** – Logical value to indicate whether to normalize input dataset
+* **`distance_metric`** – Distance measure used (e.g., "L1_Norm\Manhattan", "L2_Norm\Euclidean")
+* **`error_metric`** – Error calculation method for HVT (e.g., "max", "mean")
+* **`dim_reduction_method`** – Dimensionality reduction technique (e.g., "sammon", "tsne", "umap")
+
+### Processing Options
+
+* **`parallel`** – Enables parallel processing across cores to speed up optimization (default: TRUE).
+
+<br>
+
+
+# 7. Iterations with MAE metrics
+
+For each variable MAE is calculates as:
+
+$$\text{MAE} =  \sum_{t=1}^{T} |\text{Actual}_{t} - \text{Predicted}_{t}|$$
+where, 
+
+* T = Total number of forecast periods (the forecasting horizon)
+
+* t = Individual time period counter (goes from 1 to T)
+
+- **For the states** : The predicted states is selected based on mae_metric -mean/median/mode of all values across simulations for a particular timestamp, will be subtracted from the actual state which is the scored state from temporal data.
+
+- **For the variables** : The predicted states from the simulations are translated to respective feature centroids from the trainHVT (HVQ compression) and scaled to the raw dataset values by multiplying them by the standard deviation of the raw feature and adding the mean of the raw feature(if data is normalized during model training). The actual values is from the primary dataset which is log diffed in the [section 3.3](#dataset-transformation)
+  
+
+</br>
+
+**Input Parameters for the HVTMSMoptimization function:** 
+  
+* `entire_dataset`: `r min(train_dataset$t)` to `r max(train_dataset$t)`
+* `expost_forecasting`: `r min(test_dataset$t)` to `r max(test_dataset$t)`
+* `ncell_range`: 10:Maximum cells (i.e., 308/2 = 154)
+* `k_range`: 2:9
+* `nn_range`: 2:7
+* `num_simulations`: 100
+* `mae_metric`: median
+* `hvt_params` with default values
+
+
+
+
+```{r,warning=FALSE, message=FALSE, results='hide'}
+max_cells <- (nrow(train_dataset)/2)
+
+msm_model <- HVTMSMoptimization(
+  entire_dataset = train_dataset,
+  expost_forecasting = test_dataset,
+  time_column = "t",
+  ncell_range = 10:max_cells,
+  k_range = 2:9,
+  nn_range = 2:7,
+  num_simulations = 100,
+  mae_metric = "median",
+  hvt_params = list(
+    depth = 1,  
+    quant.err = 0.2,
+    normalize = TRUE,
+    distance_metric = "L1_Norm",
+    error_metric = "max",
+    dim_reduction_method = "sammon"
+  ), parallel = TRUE)
+```
+
+
+
+The table below displays **all tested combinations** of parameters for each cell count `Number of Cells`. For each cell count, multiple combinations of cluster count (k) and nearest neighbors were evaluated to find the optimal parameters for handling problematic states.
+
+Problematic states can be due to three cases:
+
+- **Case 1: Absence Transitions**: This occurs when a state lacks any outgoing transitions to other states or itself. Once the simulation reaches such a state, it becomes stuck because there is no path forward, effectively halting the simulation in the same state.
+
+- **Case 2: Self-State Only Transitions**: In this case, a state transitions exclusively to itself. When the simulation reaches such a state, it remains trapped in this state, unable to explore other states, causing stagnation.
+
+- **Case 3: Cyclic Transitions**: This refers to a situation where states transition back and forth between each other in a closed loop. While the simulation remains active, it is constrained within the cycle, preventing the exploration of states outside the cycle.
+
+
+The status column categories listed below explain why MAE (Mean Absolute Error) values cannot be computed for certain cells:
+
+- **MSM failed: Insufficient NN** - The clustering process cannot proceed because the number of nearest neighbors requested for the simulation is greater than the number of valid neighbors available in the current cluster.
+
+- **MSM failed: Only Problematic states** - A problematic state is placed in a cluster where all other states are also problematic, leaving no valid neighbors for the nearest neighbor simulation.
+
+
+
+Legend:
+
+- <span style="color: green;">Green</span>: Lowest MAE for each cell value in the given range (cell-level optimal performance)
+
+- <span style="color: red;">Red</span>: Lowest MAE achieved globally across all cells and combinations (overall best performance)
+
+```{r, warning=FALSE, message=FALSE}
+msm_model_median <- msm_model$median_mae$all_results
+create_highlighted_results_table(msm_model_median)
+```
+
+<br>
+
+Now that we have all the MAE values for each combination, we have sorted the below table to display the top 3 lowest MAE values.
+
+```{r, warning=FALSE, message=FALSE}
+create_highlighted_results_table(msm_model$median_mae$all_results, show_top_global = 3)
+```
+<br>
+
+### MAE Plot
+
+The interactive plot shows MAE on the Y-axis and the number of cells on the X-axis. Hovering displays the number of cells, MAE, and the hyperparameters k and nn (nearest neighbors). The **Red dot** represents the highest MAE, and the **Green dot** represents the lowest MAE.
+
+```{r, warning=FALSE, fig.width=12, fig.height = 7}
+mae_plot <- plotMsmKN(msm_model$median_mae)
+mae_plot$plot
+```
+
+
+**From the above plot, we can see that the cell `r mae_plot$best_nclust` has lowest MAE which is `r mae_plot$best_mae`, when the hyperparameters k is set to `r mae_plot$best_k` and number of nearest neighbor is set to `r mae_plot$best_nn`.**
+
+<br>
+
+```{r echo=FALSE}
+best_median_config <- msm_model$median_mae$overall_best
+ncell <- as.numeric(best_median_config$`Number of Cells`)
+k <- as.numeric(best_median_config$k)  
+nn <- as.numeric(best_median_config$`Number of nearest neighbors`)
+best_mae <- as.numeric(best_median_config$mae)
+
+best_config <- msm_model$median_mae$overall_best
+best_models <- msm_model$median_mae$best_models
+
+hvt_model <- msm_model$median_mae$overall_best_model$hvt_model
+scoring_model <- msm_model$median_mae$overall_best_model$scoring_model
+```
+
+
+# 8. Ex-Post Dynamic Forecasting
+
+Let's run `msm` function with the selected optimal model from `HVTMSMoptimization` function.
+
+## 8.1 trainHVT 
+
+- Train period: from `r min(train_dataset$t)` to `r max(train_dataset$t)`
+- Number of cells: `r ncell`
+
+*Note: Follow the same values given in `HVTMSMoptimization` function for similar results*
+
+```{r, warning=FALSE, message=FALSE,fig.align = "center",results='hide'}
+hvt.results <- trainHVT(
+  train_dataset[,-1],
+  n_cells = ncell,
+  depth = 1,
+  quant.err = 0.2,
+  normalize = TRUE,
+  distance_metric = "L1_Norm",
+  error_metric = "max",
+  dim_reduction_method = "sammon")
+```
+
+## 8.2 scoreHVT
+
+- Scoring period: from `r min(train_dataset$t)` to `r max(test_dataset$t)`
+
+```{r, warning=FALSE, message=FALSE,fig.align = "center",results='hide'}
+scoring <- scoreHVT(entire_dataset,hvt.results,analysis.plots = FALSE,names.column = entire_dataset[,1])
+scoring$scoredPredictedData$t <- format(entire_dataset$t, "%Y-%m-%d")
+scoring$scoredPredictedData <- scoring$scoredPredictedData %>% dplyr::select(c(t, everything()))
+```
+
+## 8.3 Generating Temporal Data and Transition Probability Matrix
+
+```{r, warning=FALSE, message=FALSE,fig.align = "center",results='hide'}
+# Temporal Data
+temporal_data <-scoring$scoredPredictedData %>% select(t,Cell.ID)
+temporal_data$t <- as.POSIXct(temporal_data$t, format = "%Y-%m-%d")
+
+train_end_timestamp <- max(as.POSIXct(train_dataset$t), na.rm = TRUE)
+
+temporal_train <- temporal_data %>%
+  dplyr::filter(t <= train_end_timestamp) %>%
+  dplyr::arrange(t)
+
+temporal_test <- temporal_data %>%
+  dplyr::filter(t > train_end_timestamp) %>%
+  dplyr::arrange(t)
+
+# Transition matrix
+prob_trans_matx <- getTransitionProbability(
+  df = temporal_train,
+  cellid_column = "Cell.ID",
+  time_column   = "t",
+  type = "with_self_state")
+
+initial_state <- dplyr::last(temporal_train$Cell.ID)
+```
+
+## 8.4 Ex-Post Forecasting using msm function {.tabset}
+
+**Ex-Post forecast time period:**
+
+- Transition Probability Matrix: `r format(min(temporal_train$t), "%Y-%m-%d")` to `r format(max(temporal_train$t), "%Y-%m-%d")`
+
+- Initial timestamp: `r format(max(temporal_train$t), "%Y-%m-%d")`
+
+- Initial state: `r initial_state`
+
+- Ex-Post Forecast: `r format(min(test_dataset$t), "%Y-%m-%d")` to `r format(max(test_dataset$t), "%Y-%m-%d")`
+
+- Residuals: Actual - Predicted Median
+
+- k: `r best_config$k`
+
+- Nearest Neighbor: `r nn`
+
+
+*NOTE: We have selected `Median` as the metric for calculating residuals in `HVTMSMoptimization` function, so using the same here.*
+
+```{r, warning=FALSE, message=FALSE,fig.align = "center", results='hide'}
+ex_post <- msm(
+  state_time_data = temporal_data,
+  forecast_type = "ex-post",
+  transition_probability_matrix = prob_trans_matx,
+  initial_state = initial_state,
+  num_simulations = 100,
+  scoreHVT_results = scoring,
+  trainHVT_results = hvt.results,
+  actual_data = test_dataset,
+  raw_dataset = entire_dataset,
+  k = k,
+  handle_problematic_states = TRUE,
+  n_nearest_neighbor = nn,  
+  mae_metric = "median",
+  show_simulation = FALSE,  
+  time_column = "t")
+```
+
+
+##### States
+
+```{r, fig.width=8.5, out.width='100%',fig.height=6, fig.align='center'}
+ex_post[["plots"]][[2]][[1]]
+```
+
+
+
+##### centroid CPI_U_All_Items_Less_Food_Energy
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[1]]$centroids_plot
+```
+
+##### centroid Coincident_Index
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[2]]$centroids_plot
+```
+
+
+##### centroid Copper_ETF
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[3]]$centroids_plot
+```
+
+
+##### centroid SnP500_ETF
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[4]]$centroids_plot
+```
+
+##### centroid Spot_Oil_Price_West_Texas_Intermediate
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[5]]$centroids_plot
+```
+
+##### centroid US_Dollar_Index
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[6]]$centroids_plot
+```
+
+##### centroid Unemployment_Rate
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[7]]$centroids_plot
+```
+
+
+##### centroid X10_Year_Treasury_Note_Yield
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[8]]$centroids_plot
+```
+
+##### centroid X2_Year_Treasury_Note_Yield
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[9]]$centroids_plot
+```
+
+##### centroid High_Yield_Effective_Yield
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[10]]$centroids_plot
+```
+
+##### centroid XLY
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[11]]$centroids_plot
+```
+
+##### centroid XLP
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[12]]$centroids_plot
+```
+
+##### centroid Risk XLE
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[13]]$centroids_plot
+```
+
+##### centroid Risk XLF
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[14]]$centroids_plot
+```
+
+##### centroid Risk XLV
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[15]]$centroids_plot
+```
+
+##### centroid Risk XLI
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[16]]$centroids_plot
+```
+
+##### centroid Risk XLB
+
+```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
+ex_post[["plots"]][[1]][[17]]$centroids_plot
+```
+
+
+## MAE Table
+
+Below are the MAE (Mean Absolute Deviation) values for each feature and state.The Mean MAE is calculated from only the variables not the states.
+
+```{r}
+mae_values_centroid <- sapply(ex_post[["plots"]][[1]], function(x) x[["mae"]])
+mae_value_states <- ex_post[["plots"]][[2]][["mae"]]
+mean_mae <- round(mean(mae_values_centroid),4)
+mae_values <- c(mae_value_states,mae_values_centroid,mean_mae)
+plot_labels <- c(
+  "States",  "CPI_U_All_Items_Less_Food_Energy","Coincident_Index" ,"Copper_ETF" , "SnP500_ETF","Spot_Oil_Price_West_Texas_Intermediate","US_Dollar_Index" , "Unemployment_Rate","X10_Year_Treasury_Note_Yield" ,"X2_Year_Treasury_Note_Yield", "High_Yield_Effective_Yield" ,"XLY" ,"XLP","XLE" , "XLF", "XLV","XLI", "XLB" , "Mean of Variables' MAE")
+
+data_1 <- data.frame(Plot = plot_labels,MAE = mae_values)
+DT::datatable(data_1, rownames = FALSE, options = list(pageLength = 12))
+```
+
+```{r, echo=FALSE}
+table_mae <- tail(data_1$MAE,1)
+```
+
+**Observation:**
+
+From the results, the Mean of Variables MAE is `r table_mae`, while the MAE for the same combination from HVTMSMoptimization is `r best_mae`, and the two values are quite close. Since the `msm` process involves random number generation for simulation to select the next state, an **error range of 0.02 to 0.1** occurs.
+
+
+# 9. Summary 
+
+- This notebook presents a **systematic hyperparameter optimization framework** for MSM dynamic forecasting that explored three critical parameters: **number of cells** (range: 10 to `r max_cells`), **optimal clusters k** (range: 2 to 9), and **nearest neighbors** (range: 2 to 7). The **HVTMSMoptimization function** automated the complete workflow and identified the **global minimum MAE of `r msm_model[["median_mae"]][["overall_best"]]$mae`** at `r msm_model[["median_mae"]][["overall_best"]]$'Number of Cells'` cells (k=`r msm_model[["median_mae"]][["overall_best"]]$k`, nn=`r msm_model[["median_mae"]][["overall_best"]]$'Number of nearest neighbors'`) that effectively handled problematic states through clustering and neighbor selection strategies.
+
+- **Dataset preparation and configuration** involved loading macroeconomic data from `r format(min(as.POSIXct(entire_dataset$t)), "%B %Y")` to `r format(max(as.POSIXct(entire_dataset$t)), "%B %Y")`, applying 12-month log difference transformation, and splitting into training (`r nrow(train_dataset)` observations) and test sets (`r nrow(test_dataset)` observations). **Case 3 configuration was selected** where trainHVT uses training data while scoreHVT processes the entire dataset, providing complete cell coverage for accurate MAE computation.
+
+- **MSM integration within optimization** ensures the HVTMSMoptimization function incorporates MSM simulations directly within the parameter search process for all simulation runs and MAE value calculations
+

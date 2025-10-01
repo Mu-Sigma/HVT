@@ -1,4 +1,5 @@
 #' @include ScaleMat.R  Transform_Coordinates.R
+#' @keywords internal
 
 DelaunayInfo <-
 function(gidata, poly_info, rawdeldati, n_cells){

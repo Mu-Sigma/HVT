@@ -124,8 +124,8 @@ plotHVT <- function(hvt.results,
     centroid_coordinates <- centroid_coordinates %>% dplyr::select(Row.No,x_coord,y_coord)
     centroid_coordinates1 <- centroid_coordinates %>% data.frame() %>% round(4)
 
-    gg_proj <- ggplot(centroid_coordinates1, aes(x_coord, y_coord)) +
-      geom_point(color = "blue") +
+    gg_proj <- ggplot(centroid_coordinates1, ggplot2::aes(x_coord, y_coord)) +
+      ggplot2::geom_point(color = "blue") +
       labs(title = "2D Projection plot of centroids",
            x = "X", y = "Y")
     
@@ -321,31 +321,31 @@ plotHVT <- function(hvt.results,
       ) +
       ggplot2::theme_bw() + ggplot2::theme(
         plot.background = ggplot2::element_blank(),
-        plot.title = element_text(
+        plot.title = ggplot2::element_text(
           size = 20,
           hjust = 0.5,
-          margin = margin(0, 0, 20, 0)
+          margin = ggplot2::margin(0, 0, 20, 0)
         ),
         panel.grid = ggplot2::element_blank(),
         panel.border = ggplot2::element_blank(),
-        axis.ticks = element_blank(),
-        axis.text = element_blank(),
-        axis.title = element_blank(),
-        panel.background = element_blank()
-      ) + ggplot2::theme(plot.title = element_text(hjust = 0.5)) +
+        axis.ticks = ggplot2::element_blank(),
+        axis.text = ggplot2::element_blank(),
+        axis.title = ggplot2::element_blank(),
+        panel.background = ggplot2::element_blank()
+      ) + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)) +
       ggplot2::scale_x_continuous(expand = c(0, 0)) +
       ggplot2::scale_y_continuous(expand = c(0, 0)) +
       ggplot2::geom_label(
         label = centroidDataframe$outlier_cell,
         nudge_x = 0.45, nudge_y = 0.1,
         check_overlap = TRUE,
-        label.padding = unit(0.55, "lines"),
+        label.padding = grid::unit(0.55, "lines"),
         label.size = 0.4,
         color = "white",
         fill = "#038225"
       ) +
-      ggplot2::ggtitle(paste0("Tesellation Plot of ", n_cells, " cells"))+ theme(
-        plot.title = element_text(hjust = 0, size = 10 ))
+      ggplot2::ggtitle(paste0("Tesellation Plot of ", n_cells, " cells"))+ ggplot2::theme(
+        plot.title = ggplot2::element_text(hjust = 0, size = 10 ))
    
 
     return(suppressMessages(p))
@@ -666,22 +666,22 @@ plotHVT <- function(hvt.results,
     # Continue with the rest of the plot modifications
     p <- p + ggplot2::theme(
       plot.background = ggplot2::element_blank(),
-      plot.title = element_text(
+      plot.title = ggplot2::element_text(
         size = 20,
         hjust = 0.5,
-        margin = margin(0, 0, 20, 0)
+        margin = ggplot2::margin(0, 0, 20, 0)
       ),
       panel.grid = ggplot2::element_blank(),
       panel.border = ggplot2::element_blank(),
-      axis.ticks = element_blank(),
-      axis.text = element_blank(),
-      axis.title = element_blank(),
-      panel.background = element_blank()
+      axis.ticks = ggplot2::element_blank(),
+      axis.text = ggplot2::element_blank(),
+      axis.title = ggplot2::element_blank(),
+      panel.background = ggplot2::element_blank()
     ) +
       ggplot2::scale_x_continuous(expand = c(0, 0)) +
       ggplot2::scale_y_continuous(expand = c(0, 0)) +
-      ggplot2::ggtitle(paste0("Heatmap of ", n_cells, " cells"))+ theme(
-        plot.title = element_text(hjust = 0, size = 10 ))
+      ggplot2::ggtitle(paste0("Heatmap of ", n_cells, " cells"))+ ggplot2::theme(
+        plot.title = ggplot2::element_text(hjust = 0, size = 10 ))
    
     
    

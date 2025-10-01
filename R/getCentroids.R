@@ -1,4 +1,5 @@
 #' @importFrom magrittr %>%
+#' @keywords internal
 
 
 getCentroids <-

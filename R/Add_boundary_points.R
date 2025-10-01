@@ -1,3 +1,4 @@
+#' @keywords internal
 Add_boundary_points <-
   function (tile.child, tile.parent, data.points) {
     desired_index <- c()

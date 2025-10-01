@@ -1,135 +1,34 @@
+#' @keywords internal
+
 clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = NULL) {
   suppressWarnings({
-    hoverText = NULL
-    lev = NULL
+    
+    # ============================================================================
+    # CONSTANTS
+    # ============================================================================
+    LINE_SIZE_NORMAL <- 0.5
+    LINE_SIZE_HIGHLIGHT <- 1.5
+    WRAP_LINE_LENGTH <- 100
+    MAX_TEXT_CHARS <- 500
+    CENTROID_BASE_SIZE <- 1.5
+    CELL_ID_LABEL_YSHIFT <- -10
+    CELL_ID_LABEL_SIZE <- 10
     
     # Define color palette
-    domain.color <- c(
-      "#0000FF" ,"#00FFFF", "#FFD700", "#00FF00", "#FF00FF",
+    DOMAIN_COLORS <- c(
+      "#0000FF", "#00FFFF", "#FFD700", "#00FF00", "#FF00FF",
       "#FF0000", "#F012BE", "#85144b", "#3D9970", "#39CCCC",
       "#01FF70", "#DDDDDD", "#AAAAAA", "#FF6F61", "#6B5B95",
       "#88B04B", "#F7CAC9", "#92A8D1", "#955251", "#B565A7"
     )
-
     
-    # Extract HVT results
-    hvt_list <- hvt.results
-    hvt_res1 <- hvt_list[[2]][[1]]$`1`
-    hvt_res2 <- hvt_list[[3]]$summary$Cell.ID
-    a <- 1:length(hvt_res1)
-    b <- a[hvt_res2]
-    b <- as.vector(b)
-    hvt_res2 <- stats::na.omit(b)
-    
-    # Extract coordinates
-    coordinates_value1 <- lapply(1:length(hvt_res1), function(x) {
-      centroids1 <- hvt_res1[[x]]
-      coordinates1 <- centroids1$pt
-    })
-    cellID_coordinates <- do.call(rbind.data.frame, coordinates_value1)
-    colnames(cellID_coordinates) <- c("x", "y")
-    cellID_coordinates$Cell.ID <- hvt_res2
-    cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
-    maxDepth <- 1
-    
-    # Initialize boundaries
-    min_x <- 1e9
-    min_y <- 1e9
-    max_x <- -1e9
-    max_y <- -1e9
-    
-    # Initialize vectors
-    depthVal <- c()
-    clusterVal <- c()
-    childVal <- c()
-    x_pos <- c()
-    y_pos <- c()
-    x_cor <- c()
-    y_cor <- c()
-    depthPos <- c()
-    clusterPos <- c()
-    childPos <- c()
-    cell_ids <- c()
-    x_coords <- c()
-    y_coords <- c()
-    levelCluster <- c()
-    
-    # Calculate boundaries
-    for (clusterNo in 1:length(hvt_list[[2]][[1]][[1]])) {
-      bp_x <- hvt_list[[2]][[1]][[1]][[clusterNo]][["x"]]
-      bp_y <- hvt_list[[2]][[1]][[1]][[clusterNo]][["y"]]
-      
-      min_x <- min(min_x, min(bp_x))
-      max_x <- max(max_x, max(bp_x))
-      min_y <- min(min_y, min(bp_y))
-      max_y <- max(max_y, max(bp_y))
-    }
-    
-    # Extract cluster information
-    for (depth in 1:maxDepth) {
-      for (clusterNo in 1:length(hvt_list[[2]][[depth]])) {
-        for (childNo in 1:length(hvt_list[[2]][[depth]][[clusterNo]])) {
-          current_cluster <- hvt_list[[2]][[depth]][[clusterNo]][[childNo]]
-          
-          x <- as.numeric(current_cluster[["x"]])
-          y <- as.numeric(current_cluster[["y"]])
-          x_cor <- c(x_cor, as.numeric(current_cluster[["pt"]][["x"]]))
-          y_cor <- c(y_cor, as.numeric(current_cluster[["pt"]][["y"]]))
-          cell_ids[[length(cell_ids) + 1]] <- hvt_res2[childNo]
-          x_coords[[length(x_coords) + 1]] <- x
-          y_coords[[length(y_coords) + 1]] <- y
-          depthVal <- c(depthVal, depth)
-          clusterVal <- c(clusterVal, clusterNo)
-          childVal <- c(childVal, childNo)
-          depthPos <- c(depthPos, rep(depth, length(x)))
-          clusterPos <- c(clusterPos, rep(clusterNo, length(x)))
-          childPos <- c(childPos, rep(childNo, length(x)))
-          x_pos <- c(x_pos, x)
-          y_pos <- c(y_pos, y)
-          levelCluster <- c(levelCluster, depth)
-        }
-      }
-    }
-    
-    # Create dataframes
-    valuesDataframe <- data.frame(depth = depthVal, cluster = clusterVal, 
-                                  child = childVal, cellid = unlist(cell_ids))
-    positionsDataframe <- data.frame(depth = depthPos, cluster = clusterPos, 
-                                     child = childPos, x = x_pos, y = y_pos)
-    centroidDataframe <- data.frame(x = x_cor, y = y_cor, lev = levelCluster)
-    
-    # Merge dataframes
-    datapoly <- merge(valuesDataframe, positionsDataframe, 
-                      by = c("depth", "cluster", "child"))
-    centroidDataframe_2 <- merge(cellID_coordinates, centroidDataframe, 
-                                 by = c("x", "y"))
-    
-    # Rename and merge with dataset
-    colnames(datapoly) <- c("depth", "cluster", "child", "Cell.ID", "x", "y")
-    datapoly <- merge(datapoly, dataset, by = c("Cell.ID"))
-    
-    # Ensure column_color is properly factored
-    column_color <- as.factor(datapoly[, domains.column])
-    n_colors_needed <- length(unique(column_color))
-    
-    # Extend domain.color if needed
-    while(length(domain.color) < n_colors_needed) {
-      domain.color <- c(domain.color, 
-                        sample(domain.color, n_colors_needed - length(domain.color)))
-    }
-    
-    # Process centroid data
-    centroidDataframe <- centroidDataframe %>% 
-      cbind(cellID_coordinates$Cell.ID)
-    names(centroidDataframe) <- c("x", "y", "lev", "Cell.ID")
-    dataset_new <- dataset %>% dplyr::select('Cell.ID', 'names.column')
-    centroidDataframe <- merge(centroidDataframe, dataset_new, by = 'Cell.ID')
-    centroidDataframe_2 <- centroidDataframe_2 %>% 
-      cbind(centroidDataframe$names.column)
-    colnames(centroidDataframe_2) <- c("x", "y", "Cell.ID", "lev", "names.column")
+    # ============================================================================
+    # HELPER FUNCTIONS
+    # ============================================================================
     
     # Text wrapping function
-    wrap_and_limit_text <- function(text, line_length = 100, max_chars = 500) {
+    wrap_and_limit_text <- function(text, line_length = WRAP_LINE_LENGTH, 
+                                     max_chars = MAX_TEXT_CHARS) {
       if (nchar(text) > max_chars) {
         text <- substr(text, 1, max_chars - 3)
         text <- paste0(text, "...")
@@ -140,87 +39,270 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
       paste(wrapped, collapse = "<br>")
     }
     
-    # Add hover text to datapoly
-    if (nrow(datapoly) != 0) {
-      datapoly$hoverText <- apply(datapoly, 1, function(row) {
+    # Add hover text to dataframe
+    add_hover_text <- function(dataframe) {
+      if (nrow(dataframe) == 0) {
+        dataframe$hoverText <- NULL
+        return(dataframe)
+      }
+      
+      dataframe$hoverText <- apply(dataframe, 1, function(row) {
         cell_id <- row["Cell.ID"]
         full_names <- row["names.column"]
         formatted_names <- wrap_and_limit_text(full_names)
         paste("Cell.ID:", cell_id, "\nObservations:", formatted_names)
       })
-    } else {
-      datapoly$hoverText <- NULL
+      
+      return(dataframe)
     }
     
-    # Create plot
+    # Add polygon layer to plot
+    add_polygon_layer <- function(plot, data, fill_colors, border_color, 
+                                   line_size, hovertext_col) {
+      if (nrow(data) == 0) {
+        return(plot)
+      }
+      
+      plot + ggplot2::geom_polygon(
+        data = data,
+        mapping = ggplot2::aes(
+          x = x,
+          y = y,
+          group = interaction(depth, cluster, child),
+          fill = fill_colors,
+          text = hovertext_col
+        ),
+        colour = border_color,
+        size = line_size,
+        tooltip = "text",
+        show.legend = TRUE
+      )
+    }
+    
+    # Extract color palette with sufficient colors
+    get_color_palette <- function(n_needed, base_palette) {
+      if (n_needed <= length(base_palette)) {
+        return(base_palette[1:n_needed])
+      }
+      
+      # Use colorRampPalette for smooth color generation
+      color_func <- grDevices::colorRampPalette(base_palette)
+      return(color_func(n_needed))
+    }
+    
+    # Clean legend labels
+    clean_legend_label <- function(label) {
+      gsub("^\\(1,|\\)$", "", label)
+    }
+    
+    # Safely modify plotly trace properties
+    modify_plotly_trace <- function(trace) {
+      # Clean legend name
+      if (!is.null(trace$name)) {
+        trace$name <- clean_legend_label(trace$name)
+      }
+      
+      # Modify marker properties
+      if (!is.null(trace$marker)) {
+        trace$marker$line$width <- 0
+        if (!is.null(trace$showlegend) && trace$showlegend) {
+          trace$marker$line$color <- "rgba(0,0,0,0)"
+        }
+      }
+      
+      return(trace)
+    }
+    
+    # Extract cluster information from nested list
+    extract_cluster_info <- function(hvt_list, depth, cluster_no, child_no, hvt_res2) {
+      current_cluster <- hvt_list[[2]][[depth]][[cluster_no]][[child_no]]
+      
+      list(
+        x = as.numeric(current_cluster[["x"]]),
+        y = as.numeric(current_cluster[["y"]]),
+        x_cor = as.numeric(current_cluster[["pt"]][["x"]]),
+        y_cor = as.numeric(current_cluster[["pt"]][["y"]]),
+        cell_id = hvt_res2[child_no],
+        depth = depth,
+        cluster = cluster_no,
+        child = child_no
+      )
+    }
+    
+    # ============================================================================
+    # DATA EXTRACTION AND PROCESSING
+    # ============================================================================
+    
+    # Extract HVT results
+    hvt_list <- hvt.results
+    hvt_res1 <- hvt_list[[2]][[1]]$`1`
+    hvt_res2 <- hvt_list[[3]]$summary$Cell.ID
+    a <- seq_along(hvt_res1)
+    b <- a[hvt_res2]
+    b <- as.vector(b)
+    hvt_res2 <- stats::na.omit(b)
+    
+    # Extract coordinates
+    coordinates_value1 <- lapply(seq_along(hvt_res1), function(x) {
+      hvt_res1[[x]]$pt
+    })
+    cellID_coordinates <- do.call(rbind.data.frame, coordinates_value1)
+    colnames(cellID_coordinates) <- c("x", "y")
+    cellID_coordinates$Cell.ID <- hvt_res2
+    cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
+    
+    maxDepth <- 1
+    
+    # ============================================================================
+    # CALCULATE BOUNDARIES (for potential future use)
+    # ============================================================================
+    
+    # Note: boundaries calculation kept for potential future boundary checks
+    # Currently not used in plotting as ggplot handles scaling automatically
+    
+    # ============================================================================
+    # EXTRACT CLUSTER INFORMATION
+    # ============================================================================
+    
+    # Pre-calculate total number of iterations for vector pre-allocation
+    total_cells <- sum(sapply(seq_len(maxDepth), function(depth) {
+      sum(sapply(seq_along(hvt_list[[2]][[depth]]), function(cluster_no) {
+        length(hvt_list[[2]][[depth]][[cluster_no]])
+      }))
+    }))
+    
+    # Initialize lists for collecting data
+    cluster_info_list <- vector("list", total_cells)
+    idx <- 1
+    
+    # Extract all cluster information
+    for (depth in seq_len(maxDepth)) {
+      for (cluster_no in seq_along(hvt_list[[2]][[depth]])) {
+        for (child_no in seq_along(hvt_list[[2]][[depth]][[cluster_no]])) {
+          cluster_info_list[[idx]] <- extract_cluster_info(
+            hvt_list, depth, cluster_no, child_no, hvt_res2
+          )
+          idx <- idx + 1
+        }
+      }
+    }
+    
+    # Convert collected data to vectors
+    cell_info <- list(
+      depthVal = sapply(cluster_info_list, `[[`, "depth"),
+      clusterVal = sapply(cluster_info_list, `[[`, "cluster"),
+      childVal = sapply(cluster_info_list, `[[`, "child"),
+      cell_ids = sapply(cluster_info_list, `[[`, "cell_id"),
+      x_cor = sapply(cluster_info_list, `[[`, "x_cor"),
+      y_cor = sapply(cluster_info_list, `[[`, "y_cor")
+    )
+    
+    # Create position data
+    position_info <- lapply(cluster_info_list, function(info) {
+      n_points <- length(info$x)
+      data.frame(
+        depth = rep(info$depth, n_points),
+        cluster = rep(info$cluster, n_points),
+        child = rep(info$child, n_points),
+        x = info$x,
+        y = info$y,
+        stringsAsFactors = FALSE
+      )
+    })
+    positionsDataframe <- do.call(rbind, position_info)
+    
+    # ============================================================================
+    # CREATE DATAFRAMES
+    # ============================================================================
+    
+    valuesDataframe <- data.frame(
+      depth = cell_info$depthVal,
+      cluster = cell_info$clusterVal,
+      child = cell_info$childVal,
+      cellid = cell_info$cell_ids,
+      stringsAsFactors = FALSE
+    )
+    
+    centroidDataframe <- data.frame(
+      x = cell_info$x_cor,
+      y = cell_info$y_cor,
+      lev = cell_info$depthVal,
+      stringsAsFactors = FALSE
+    )
+    
+    # Merge dataframes
+    datapoly <- merge(valuesDataframe, positionsDataframe, 
+                      by = c("depth", "cluster", "child"))
+    colnames(datapoly) <- c("depth", "cluster", "child", "Cell.ID", "x", "y")
+    datapoly <- merge(datapoly, dataset, by = c("Cell.ID"))
+    
+    # Process centroid dataframes
+    centroidDataframe <- centroidDataframe %>% 
+      cbind(cellID_coordinates$Cell.ID)
+    names(centroidDataframe) <- c("x", "y", "lev", "Cell.ID")
+    
+    dataset_new <- dataset %>% dplyr::select('Cell.ID', 'names.column')
+    centroidDataframe <- merge(centroidDataframe, dataset_new, by = 'Cell.ID')
+    
+    centroidDataframe_2 <- merge(cellID_coordinates, centroidDataframe[, c("x", "y", "lev")], 
+                                 by = c("x", "y"))
+    centroidDataframe_2 <- centroidDataframe_2 %>% 
+      cbind(centroidDataframe$names.column)
+    colnames(centroidDataframe_2) <- c("x", "y", "Cell.ID", "lev", "names.column")
+    
+    # ============================================================================
+    # ADD HOVER TEXT
+    # ============================================================================
+    
+    datapoly <- add_hover_text(datapoly)
+    centroidDataframe <- add_hover_text(centroidDataframe)
+    
+    # ============================================================================
+    # PREPARE COLORS
+    # ============================================================================
+    
+    column_color <- as.factor(datapoly[, domains.column])
+    n_colors_needed <- length(unique(column_color))
+    domain_colors <- get_color_palette(n_colors_needed, DOMAIN_COLORS)
+    
+    # ============================================================================
+    # CREATE PLOT
+    # ============================================================================
+    
     domains_plot <- ggplot2::ggplot()
     
     # Plot polygons for each depth level
     for (i in maxDepth:1) {
-      is_highlighted <- datapoly[which(datapoly$depth == i), "Cell.ID"] %in% 
-        highlight_cells
-      data_normal <- datapoly[which(datapoly$depth == i & !is_highlighted), ]
-      data_highlight <- datapoly[which(datapoly$depth == i & is_highlighted), ]
+      # Pre-compute highlighted status
+      is_highlighted <- datapoly[datapoly$depth == i, "Cell.ID"] %in% highlight_cells
       
-      # Plot non-highlighted cells
-      if(nrow(data_normal) > 0) {
-        domains_plot <- domains_plot + ggplot2::geom_polygon(
-          data = data_normal,
-          mapping = ggplot2::aes(
-            x = x,
-            y = y,
-            group = interaction(depth, cluster, child),
-            fill = column_color[which(datapoly$depth == i & !is_highlighted)],
-            text = hoverText
-          ),
-          colour = "black",
-          size = 0.5,
-          tooltip = "text",
-          show.legend = TRUE
-        )
-      }
+      # Split data
+      depth_data <- datapoly[datapoly$depth == i, ]
+      data_normal <- depth_data[!is_highlighted, ]
+      data_highlight <- depth_data[is_highlighted, ]
       
-      # Plot highlighted cells
-      if(nrow(data_highlight) > 0) {
-        domains_plot <- domains_plot + ggplot2::geom_polygon(
-          data = data_highlight,
-          mapping = ggplot2::aes(
-            x = x,
-            y = y,
-            group = interaction(depth, cluster, child),
-            fill = column_color[which(datapoly$depth == i & is_highlighted)],
-            text = hoverText
-          ),
-          colour = "white",
-          size = 1.5,
-          tooltip = "text",
-          show.legend = TRUE
-        )
-      }
+      # Get corresponding color subsets
+      colors_normal <- column_color[datapoly$depth == i][!is_highlighted]
+      colors_highlight <- column_color[datapoly$depth == i][is_highlighted]
+      
+      # Add polygon layers
+      domains_plot <- add_polygon_layer(
+        domains_plot, data_normal, colors_normal,
+        "black", LINE_SIZE_NORMAL, data_normal$hoverText
+      )
+      
+      domains_plot <- add_polygon_layer(
+        domains_plot, data_highlight, colors_highlight,
+        "white", LINE_SIZE_HIGHLIGHT, data_highlight$hoverText
+      )
     }
     
-    # Add hover text to centroidDataframe
-    if (nrow(centroidDataframe) != 0) {
-      centroidDataframe$hoverText <- apply(centroidDataframe, 1, function(row) {
-        cell_id <- row["Cell.ID"]
-        full_names <- row["names.column"]
-        formatted_names <- wrap_and_limit_text(full_names)
-        paste("Cell.ID:", cell_id, "\nObservations:", formatted_names)
-      })
-    } else {
-      centroidDataframe$hoverText <- NULL
-    }
-    
-    # Add centroids
-    for (depth in 1:maxDepth) {
+    # Add centroids for each depth
+    for (depth in seq_len(maxDepth)) {
       domains_plot <- domains_plot + ggplot2::geom_point(
         data = centroidDataframe[centroidDataframe["lev"] == depth, ],
-        ggplot2::aes(
-          x = x,
-          y = y,
-          text = hoverText
-        ),
-        size = (1.5 / (2^(depth - 1))),
+        ggplot2::aes(x = x, y = y, text = hoverText),
+        size = CENTROID_BASE_SIZE / (2^(depth - 1)),
         pch = 21,
         fill = "black",
         color = "black",
@@ -228,14 +310,14 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
       )
     }
     
-    # Get subset data for annotations
-    subset_data <- subset(centroidDataframe_2, lev == 1)
+    # ============================================================================
+    # STYLE PLOT
+    # ============================================================================
     
-    # Add plot styling
     domains_plot <- domains_plot +
       ggplot2::scale_fill_manual(
         name = "Domains",
-        values = domain.color[1:n_colors_needed],
+        values = domain_colors,
         breaks = levels(column_color)
       ) +
       ggplot2::theme_bw() + 
@@ -256,34 +338,26 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
       ggplot2::scale_x_continuous(expand = c(0, 0)) +
       ggplot2::scale_y_continuous(expand = c(0, 0))
     
-    # Convert to plotly
+    # ============================================================================
+    # CONVERT TO PLOTLY AND FINALIZE
+    # ============================================================================
+    
     domainsPlot <- plotly::ggplotly(domains_plot, tooltip = "text")
     
     # Add cell ID annotations
+    subset_data <- subset(centroidDataframe_2, lev == 1)
     domainsPlot <- domainsPlot %>%
       plotly::add_annotations(
         x = subset_data$x,
         y = subset_data$y,
         text = subset_data$Cell.ID,
         showarrow = FALSE,
-        font = list(size = 10),
-        yshift = -10
+        font = list(size = CELL_ID_LABEL_SIZE),
+        yshift = CELL_ID_LABEL_YSHIFT
       )
     
-    # Clean up legend labels
-    clean_label <- function(label) {
-      gsub("^\\(1,|\\)$", "", label)
-    }
-    
-    # Fix legend issues
-    for (i in seq_along(domainsPlot$x$data)) {
-      if (!is.null(domainsPlot$x$data[[i]]$name)) {
-        domainsPlot$x$data[[i]]$name <- clean_label(domainsPlot$x$data[[i]]$name)
-      }
-      if (!is.null(domainsPlot$x$data[[i]]$marker)) {
-        domainsPlot$x$data[[i]]$marker$line$width <- 0
-      }
-    }
+    # Modify all traces in a single loop
+    domainsPlot$x$data <- lapply(domainsPlot$x$data, modify_plotly_trace)
     
     # Add final layout modifications
     domainsPlot <- domainsPlot %>%
@@ -297,17 +371,7 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
           traceorder = "reversed"
         )
       ) %>%
-      plotly::config(displayModeBar = T)
-    
-    # Final marker adjustments
-    for (i in seq_along(domainsPlot$x$data)) {
-      if (!is.null(domainsPlot$x$data[[i]]$marker) && 
-          !is.null(domainsPlot$x$data[[i]]$showlegend) &&
-          domainsPlot$x$data[[i]]$showlegend) {
-        domainsPlot$x$data[[i]]$marker$line$width <- 0
-        domainsPlot$x$data[[i]]$marker$line$color <- "rgba(0,0,0,0)"
-      }
-    }
+      plotly::config(displayModeBar = TRUE)
     
     return(domainsPlot)
   })

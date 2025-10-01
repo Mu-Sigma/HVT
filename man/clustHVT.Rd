@@ -9,10 +9,12 @@ clustHVT(
   trainHVT_results,
   scoreHVT_results,
   clustering_method = "ward.D2",
-  indices,
+  indices = c("kl", "ch", "hartigan", "cindex", "db", "silhouette", "ratkowsky", "ball",
+    "hubert", "dindex", "ptbiserial", "gap", "frey", "mcclain", "gamma", "gplus", "tau",
+    "dunn", "sdindex", "sdbw"),
   clusters_k = "champion",
   type = "default",
-  domains.column
+  domains.column = NULL
 )
 }
 \arguments{

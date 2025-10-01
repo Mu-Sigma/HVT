@@ -51,7 +51,11 @@
 
 
 clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method = 'ward.D2',
-                     indices, clusters_k = "champion", type = "default",domains.column) {
+                     indices = c("kl", "ch", "hartigan", "cindex", "db", "silhouette", 
+                                 "ratkowsky", "ball", "hubert", "dindex", "ptbiserial", 
+                                 "gap", "frey", "mcclain", "gamma", "gplus", "tau", 
+                                 "dunn", "sdindex", "sdbw"), 
+                     clusters_k = "champion", type = "default", domains.column = NULL) {
   requireNamespace('NbClust')
   
   if (type == "plot"){
@@ -115,28 +119,45 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   }
   
   
-  # Run NbClust
-  indices <- c("kl", "ch", "hartigan", "cindex", "db", "silhouette", "ratkowsky", "ball","hubert","dindex",
-               "ptbiserial", "gap", "frey", "mcclain", "gamma", "gplus", "tau", "dunn", "sdindex", "sdbw")
-  print_nbclust_results(hclust_data, indices)
-  
-  #to fetch champion and challenger
-  cluster_summary <- table(results_df$Number_clusters)
-  
-  # Determine the number of clusters based on user input
-  if (clusters_k == "champion") {
-    no_of_clusters <- as.numeric(names(cluster_summary)[which.max(cluster_summary)])
-  } else if (clusters_k == "challenger") {
-    sorted_summary <- sort(cluster_summary, decreasing = TRUE)
-    no_of_clusters <- as.numeric(names(sorted_summary)[2])
-  } else if (is.numeric(clusters_k) && clusters_k >= 1 && clusters_k <= 20) {
-    no_of_clusters <- clusters_k
+  # Decide whether to run NbClust
+  use_nbclust <- !is.null(indices) && length(indices) > 0 && clusters_k %in% c("champion","challenger")
+  if (use_nbclust) {
+    # If caller passed indices, use them; otherwise default set
+    if (identical(indices, TRUE)) {
+      indices <- c("kl", "ch", "hartigan", "cindex", "db", "silhouette", "ratkowsky", "ball","hubert","dindex",
+                   "ptbiserial", "gap", "frey", "mcclain", "gamma", "gplus", "tau", "dunn", "sdindex", "sdbw")
+    }
+    print_nbclust_results(hclust_data, indices)
+    cluster_summary <- table(results_df$Number_clusters)
+    if (clusters_k == "champion") {
+      no_of_clusters <- as.numeric(names(cluster_summary)[which.max(cluster_summary)])
+    } else { # challenger
+      sorted_summary <- sort(cluster_summary, decreasing = TRUE)
+      no_of_clusters <- as.numeric(names(sorted_summary)[2])
+    }
   } else {
-    stop("Invalid input for clusters_k. Use 'champion', 'challenger', or a numeric value between 1 and 20.")
+    # Bypass NbClust and honor explicit numeric clusters_k
+    if (is.numeric(clusters_k) && clusters_k >= 1 && clusters_k <= 20) {
+      no_of_clusters <- as.integer(clusters_k)
+    } else if (clusters_k %in% c("champion","challenger")) {
+      stop("indices must be supplied to use 'champion' or 'challenger'")
+    } else {
+      stop("Invalid input for clusters_k. Use numeric 1..20, or provide indices with 'champion'/'challenger'.")
+    }
   }
-  #browser()  
+  # Ensure k is a single integer and within allowable range for this data
+  no_of_clusters <- as.integer(no_of_clusters[1])
+  n_items <- nrow(hclust_data)
+  if (is.na(no_of_clusters) || n_items < 2) {
+    stop("Clustering error: insufficient data for clustering")
+  }
+  # cutree requires 1 < k <= n_items; in practice k must be in [1, n_items]
+  if (no_of_clusters < 1 || no_of_clusters > n_items) {
+    stop(sprintf("Clustering error: k=%d out of range [1..%d]", no_of_clusters, n_items))
+  }
+  
   # Perform hierarchical clustering
-  hc <- stats::hclust(dist(hclust_data), clustering_method)
+  hc <- stats::hclust(stats::dist(as.matrix(hclust_data)), method = clustering_method)
   clusters <- stats::cutree(hc, k = no_of_clusters)
   
 #browser()  

@@ -360,8 +360,8 @@ preserving maps</h1>
 <div id="created-date-2018-11-15" class="section level5">
 <h5>Created Date: 2018-11-15</h5>
 </div>
-<div id="modified-date-2025-07-03" class="section level5">
-<h5>Modified Date: 2025-07-03</h5>
+<div id="modified-date-2025-10-02" class="section level5">
+<h5>Modified Date: 2025-10-02</h5>
 <div id="TOC">
 <ul>
 <li><a href="#abstract"><span class="toc-section-number">1.</span>
@@ -370,8 +370,12 @@ Abstract</a></li>
 Vignettes</a></li>
 <li><a href="#version-history"><span class="toc-section-number">3.</span> Version History</a>
 <ul>
-<li><a href="#hvt-(v25.2.4)-whats-new"><span class="toc-section-number">3.5</span> HVT (v25.2.4) | What’s
-New?</a></li>
+<li><a href="#hvt-(v25.2.6)-whats-new"><span class="toc-section-number">3.7</span> HVT (v25.2.6) | What’s
+New</a></li>
+<li><a href="#hvt-(v25.2.5)"><span class="toc-section-number">3.6</span>
+HVT (v25.2.5)</a></li>
+<li><a href="#hvt-(v25.2.4)"><span class="toc-section-number">3.5</span>
+HVT (v25.2.4)</a></li>
 <li><a href="#hvt-(v24.9.1)"><span class="toc-section-number">3.4</span>
 HVT (v24.9.1)</a></li>
 <li><a href="#hvt-(v24.5.2)"><span class="toc-section-number">3.3</span>
@@ -379,8 +383,8 @@ HVT (v24.5.2)</a></li>
 <li><a href="#hvt-(v23.11.02)"><span class="toc-section-number">3.2</span> HVT (v23.11.02)</a></li>
 <li><a href="#hvt-(v22.12.06)"><span class="toc-section-number">3.1</span> HVT (v22.12.06)</a></li>
 </ul></li>
-<li><a href="#installation-of-hvt-(v25.2.4)"><span class="toc-section-number">4.</span> Installation of HVT
-(v25.2.4)</a></li>
+<li><a href="#installation-of-hvt-(v25.2.6)"><span class="toc-section-number">4.</span> Installation of HVT
+(v25.2.6)</a></li>
 </ul>
 </div>
 </div>
@@ -509,13 +513,59 @@ Forecasting of Macroeconomic Time Series Dataset using HVT</a></td>
 using Monte Carlo Simulations of Markov Chain (MSM) on macroeconomic
 time series dataset.</td>
 </tr>
+<tr class="even">
+<td>v25.08.25</td>
+<td><a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html">Experimentation
+of Hyperparameters to find best model in msm Dynamic
+Forecasting</a></td>
+<td>Includes enhancements to the HVT package for selecting the best
+model (based on lowest MAE) in MSM ex-post forecasting.</td>
+</tr>
 </tbody>
 </table>
 </div>
 <div id="version-history" class="section level1" number="3">
 <div id="version-history" class="section level1">
 <h1><span class="header-section-number">3.</span> Version History</h1>
-<div id="hvt-(v25.2.4)-whats-new" class="section level2" number="3.1">
+<div id="hvt-(v25.2.6)-whats-new" class="section level2" number="3.1">
+<div id="hvt-v25.2.6---whats-new" class="section level2">
+<h2>3.7 HVT (v25.2.6) - What’s New</h2>
+<p>02nd October, 2025</p>
+<p>In this version of the HVT package, the following new feature and
+vignette have been introduced:</p>
+<p><strong>Features</strong></p>
+<ol style="list-style-type: decimal">
+<li><strong>Hyperparameter Tuning for best model selection</strong>:
+This update introduces a new function called
+<code>HVTMSMoptimization</code> that runs grid search experiments across
+different hyperparameters (number of cells, k clusters, nearest
+neighbors) by training HVT models and running MSM simulations for each
+combination. Returns the best-performing parameter combination (lowest
+MAE) for ex-post forecasting, helping to find optimal settings without
+manual training, scoring and executing <code>msm</code>.</li>
+</ol>
+<p><strong>Vignette</strong></p>
+<ol style="list-style-type: decimal">
+<li><strong>Experimentation of hyperparameters in
+<code>msm</code></strong>: This vignette demonstrates how to use
+<code>HVTMSMoptimization</code> to systematically test different
+combinations of hyperparameters (n_cells, k, nn) and find the optimal
+configuration that minimizes forecasting error (MAE).</li>
+</ol>
+<p><em>The issue with time-series animation plots from previous release
+has now been resolved with the latest gganimate update.</em></p>
+</div>
+</div>
+<div id="hvt-(v25.2.5)" class="section level2" number="3.2">
+<div id="hvt-v25.2.5" class="section level2">
+<h2>3.6 HVT (v25.2.5)</h2>
+<p>04th July, 2025</p>
+<p><em>Dropping the time-series animation plots from the package since
+the latest version of gganimate doesn’t support them — a patched release
+will follow once the issue is resolved.</em></p>
+</div>
+</div>
+<div id="hvt-(v25.2.4)" class="section level2" number="3.3">
 <div id="hvt-v25.2.4" class="section level2">
 <h2>3.5 HVT (v25.2.4)</h2>
 <p>04th June, 2025</p>
@@ -547,7 +597,7 @@ and evaluating performance using Mean Absolute Error (MAE).</li>
 </ol>
 </div>
 </div>
-<div id="hvt-(v24.9.1)" class="section level2" number="3.2">
+<div id="hvt-(v24.9.1)" class="section level2" number="3.4">
 <div id="hvt-v24.9.1" class="section level2">
 <h2>3.4 HVT (v24.9.1)</h2>
 <p>4th September, 2024</p>
@@ -607,7 +657,7 @@ added <code>clustHVT</code> function and its parameters.</p></li>
 </ol>
 </div>
 </div>
-<div id="hvt-(v24.5.2)" class="section level2" number="3.3">
+<div id="hvt-(v24.5.2)" class="section level2" number="3.5">
 <div id="hvt-v24.5.2" class="section level2">
 <h2>3.3 HVT (v24.5.2)</h2>
 <p>2nd May, 2024</p>
@@ -671,7 +721,7 @@ for both self state and without self state scenarios.</li>
 </ul>
 </div>
 </div>
-<div id="hvt-(v23.11.02)" class="section level2" number="3.4">
+<div id="hvt-(v23.11.02)" class="section level2" number="3.6">
 <div id="hvt-v23.11.02" class="section level2">
 <h2>3.2 HVT (v23.11.02)</h2>
 <p>17th November, 2023</p>
@@ -702,7 +752,7 @@ using scoreLayeredHVT()</em>
 </p>
 </div>
 </div>
-<div id="hvt-(v22.12.06)" class="section level2" number="3.5">
+<div id="hvt-(v22.12.06)" class="section level2" number="3.7">
 <div id="hvt-v22.12.06" class="section level2">
 <h2>3.1 HVT (v22.12.06)</h2>
 <p>06th December, 2022</p>
@@ -724,9 +774,9 @@ containing ‘data without novelty’.</p></li>
 </div>
 </div>
 <div id="installation-of-hvt-(v25.2.4)" class="section level2" number="4">
-<div id="installation-of-hvt-v25.2.4" class="section level1">
+<div id="installation-of-hvt-v25.2.6" class="section level1">
 <h1><span class="header-section-number">4.</span> Installation of HVT
-(v25.2.4)</h1>
+(v25.2.6)</h1>
 <div id="cb1" class="sourceCode">
 <p><strong>CRAN Installation</strong></p>
 <p><code>install.packages(&quot;HVT&quot;)</code></p>
