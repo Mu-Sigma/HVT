@@ -507,7 +507,7 @@ where,
 
 
 ```{r,warning=FALSE, message=FALSE, results='hide'}
-max_cells <- (nrow(train_dataset)/2)
+max_cells <- round((nrow(train_dataset)/2))
 
 msm_model <- HVTMSMoptimization(
   entire_dataset = train_dataset,
@@ -813,7 +813,7 @@ ex_post[["plots"]][[1]][[17]]$centroids_plot
 ```
 
 
-## MAE Table
+## 8.5 MAE Table
 
 Below are the MAE (Mean Absolute Deviation) values for each feature and state.The Mean MAE is calculated from only the variables not the states.
 
@@ -835,7 +835,7 @@ table_mae <- tail(data_1$MAE,1)
 
 **Observation:**
 
-From the results, the Mean of Variables MAE is `r table_mae`, while the MAE for the same combination from HVTMSMoptimization is `r best_mae`, and the two values are quite close. Since the `msm` process involves random number generation for simulation to select the next state, an **error range of 0.02 to 0.1** occurs.
+From the results, the Mean of Variables MAE is **`r table_mae`**, while the MAE for the same combination from HVTMSMoptimization is **`r best_mae`**, and the two values are quite close. Since the `msm` process involves random number generation for simulation to select the next state, an **error range of 0.01 to 0.1** occurs.
 
 
 # 9. Summary 
