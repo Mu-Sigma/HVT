@@ -246,7 +246,7 @@ This version of HVT package offers features for both training an HVT model and e
 </div>
 
 
-<div id="installation-of-hvt-(v25.2.4)" class="section level2" number="4">
+<div id="installation-of-hvt-(v25.2.6)" class="section level2" number="4">
 
 # <span class="header-section-number">4.</span> Installation of HVT (v25.2.6)
 
