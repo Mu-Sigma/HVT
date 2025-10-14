@@ -61,7 +61,7 @@ dataset <- data.frame(date = as.numeric(time(EuStockMarkets)),
                       SMI = EuStockMarkets[, "SMI"],
                       CAC = EuStockMarkets[, "CAC"],
                       FTSE = EuStockMarkets[, "FTSE"])
-hvt.results<- trainHVT(dataset,n_cells = 60, depth = 1, quant.err = 0.1,
+hvt.results<- trainHVT(dataset,n_cells = 10, depth = 1, quant.err = 0.1,
                        distance_metric = "L1_Norm", error_metric = "max",
                        normalize = TRUE,quant_method = "kmeans")
 scoring <- scoreHVT(dataset, hvt.results)
@@ -70,8 +70,8 @@ time_stamp <- dataset$date
 dataset <- data.frame(cell_id, time_stamp)
 table <- getTransitionProbability(dataset, cellid_column = "cell_id",time_column = "time_stamp")
 plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results, transition_probability_df = table,
-df = dataset, animation = 'All', flow_map = 'All',fps_time = 1,fps_state =  1,time_duration = 3,
-state_duration = 3,cellid_column = "cell_id", time_column = "time_stamp")
+df = dataset, animation = 'All', flow_map = 'All',fps_time = 1,fps_state =  1,time_duration = 2,
+state_duration = 2,cellid_column = "cell_id", time_column = "time_stamp")
 }
 \seealso{
 \code{\link{trainHVT}} \cr \code{\link{scoreHVT}} \cr \code{\link{getTransitionProbability}}

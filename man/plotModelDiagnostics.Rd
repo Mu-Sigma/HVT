@@ -22,7 +22,7 @@ hierarchical voronoi tessellations models and scoring.
 }
 \examples{
 data("EuStockMarkets")
-hvt.results <- trainHVT(EuStockMarkets, n_cells = 60, depth = 1, quant.err = 0.1, 
+hvt.results <- trainHVT(EuStockMarkets, n_cells = 10, depth = 1, quant.err = 0.1, 
                        distance_metric = "L1_Norm", error_metric = "max",
                        normalize = TRUE, quant_method="kmeans", diagnose = TRUE, 
                        hvt_validation = TRUE)
