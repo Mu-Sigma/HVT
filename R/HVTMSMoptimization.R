@@ -76,6 +76,31 @@ HVTMSMoptimization <- function(entire_dataset,
     stop("mae_metric must be one or more of: 'mean', 'median', 'mode', or 'all'")
   }
   
+  # Validate k_range and nn_range against ncell_range
+  min_ncell <- min(ncell_range)
+  max_k <- max(k_range)
+  max_nn <- max(nn_range)
+  
+  # Check if k_range is compatible with ncell_range
+  if (max_k >= min_ncell) {
+    stop("Invalid parameter ranges: max(k_range) = ", max_k, 
+         " must be less than min(ncell_range) = ", min_ncell, 
+         ".\nk represents number of clusters and must always be less than the number of cells available.",
+         "\nSuggestion: Set k_range with max value < ", min_ncell, 
+         " or increase min(ncell_range) to > ", max_k)
+  }
+  
+  # Check if nn_range is compatible with ncell_range and k_range
+  min_k <- min(k_range)
+  max_possible_nn <- min_ncell - min_k
+  if (max_nn > max_possible_nn) {
+    stop("Invalid parameter ranges: max(nn_range) = ", max_nn,
+         " exceeds maximum possible neighbors = ", max_possible_nn,
+         " (calculated as min(ncell_range) - min(k_range) = ", min_ncell, " - ", min_k, ").",
+         "\nSuggestion: Set nn_range with max value <= ", max_possible_nn,
+         " or increase min(ncell_range) or reduce min(k_range)")
+  }
+  
   # Setup parallel processing
   if (parallel) {
     if (!requireNamespace("furrr", quietly = TRUE) || !requireNamespace("future", quietly = TRUE)) {

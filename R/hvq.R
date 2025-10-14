@@ -28,7 +28,6 @@ hvq <-
       ztab3upc<-matrix(0, nrow = ncol(x), n_cells)
       std<-matrix(0, nrow = ncol(x), n_cells)
     }
-    set.seed(seed)
     # Ensure consistent seeding for kmeans calls
     set.seed(279)
   

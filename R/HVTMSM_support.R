@@ -118,9 +118,9 @@ process_single_nclust_with_precomputed_model <- function(nclust, hvt_model, nume
       # Store baseline results
       for (metric in mae_metric) {
         status_msg <- if (is.na(baseline_mae[[metric]]) || is.null(baseline_mae[[metric]])) {
-          "Baseline simulation failed"
+          "ERROR: Data structure error in MSM baseline"
         } else {
-          "Baseline simulation: No problematic states found"
+          "Successful Iteration without Problematic state"
         }
         
         all_attempts_by_metric[[metric]][[1]] <- data.frame(
@@ -192,7 +192,7 @@ process_single_nclust_with_precomputed_model <- function(nclust, hvt_model, nume
     for (metric in mae_metric) {
       all_config_failure[[metric]] <- data.frame(
         `Number of Cells` = nclust, k = "-", `Number of nearest neighbors` = "-",
-        mae = NA, status = paste0("High-level error: ", e$message),
+        mae = NA, status = paste0("ERROR: High-level error: ", e$message),
         stringsAsFactors = FALSE, check.names = FALSE
       )
     }
@@ -269,7 +269,7 @@ collect_final_results <- function(optimization_results, mae_metric, verbose) {
             }
             
             if (is.data.frame(attempts_df) && "status" %in% colnames(attempts_df)) {
-              success_rows <- attempts_df[attempts_df$status == "Success", ]
+              success_rows <- attempts_df[grepl("^Successful Iteration", attempts_df$status), ]
               if (nrow(success_rows) > 0) {
                 success_rows$k <- as.character(success_rows$k)
                 success_rows$`Number of nearest neighbors` <- as.character(success_rows$`Number of nearest neighbors`)
@@ -328,7 +328,27 @@ collect_final_results <- function(optimization_results, mae_metric, verbose) {
           .keep_all = FALSE
         )
         combined
-      })         
+      })
+      
+      # Sort all_successful_metric by Number of Cells, k, and nn
+      if (nrow(all_successful_metric) > 0) {
+        # Convert to numeric for proper sorting, handling special cases
+        all_successful_metric$k_sort <- suppressWarnings({
+          ifelse(is.na(all_successful_metric$k) | all_successful_metric$k == "-", 999, as.numeric(all_successful_metric$k))
+        })
+        all_successful_metric$nn_sort <- suppressWarnings({
+          ifelse(is.na(all_successful_metric$`Number of nearest neighbors`) | 
+                 all_successful_metric$`Number of nearest neighbors` == "-", 999, 
+                 as.numeric(all_successful_metric$`Number of nearest neighbors`))
+        })
+        # Replace any NAs from conversion with 999
+        all_successful_metric$k_sort[is.na(all_successful_metric$k_sort)] <- 999
+        all_successful_metric$nn_sort[is.na(all_successful_metric$nn_sort)] <- 999
+        
+        all_successful_metric <- all_successful_metric %>%
+          dplyr::arrange(.data$`Number of Cells`, .data$k_sort, .data$nn_sort) %>%
+          dplyr::select(-.data$k_sort, -.data$nn_sort)
+      }
       
       # Collect best results per nclust
       best_results_metric <- purrr::map_dfr(successful_results, function(x) {
@@ -376,18 +396,38 @@ collect_final_results <- function(optimization_results, mae_metric, verbose) {
       
       # Sort all results tables by Number of Cells, k, and nn
       if (nrow(all_attempts_metric) > 0) {
-        all_attempts_metric$k_sort <- ifelse(all_attempts_metric$k == "-", 999, as.numeric(all_attempts_metric$k))
-        all_attempts_metric$nn_sort <- ifelse(all_attempts_metric$`Number of nearest neighbors` == "-", 999, 
-                                              as.numeric(all_attempts_metric$`Number of nearest neighbors`))
+        # Convert to numeric for proper sorting, handling special cases
+        all_attempts_metric$k_sort <- suppressWarnings({
+          ifelse(is.na(all_attempts_metric$k) | all_attempts_metric$k == "-", 999, as.numeric(all_attempts_metric$k))
+        })
+        all_attempts_metric$nn_sort <- suppressWarnings({
+          ifelse(is.na(all_attempts_metric$`Number of nearest neighbors`) | 
+                 all_attempts_metric$`Number of nearest neighbors` == "-", 999, 
+                 as.numeric(all_attempts_metric$`Number of nearest neighbors`))
+        })
+        # Replace any NAs from conversion with 999
+        all_attempts_metric$k_sort[is.na(all_attempts_metric$k_sort)] <- 999
+        all_attempts_metric$nn_sort[is.na(all_attempts_metric$nn_sort)] <- 999
+        
         all_attempts_metric <- all_attempts_metric %>%
           dplyr::arrange(.data$`Number of Cells`, .data$k_sort, .data$nn_sort) %>%
           dplyr::select(-.data$k_sort, -.data$nn_sort)
       }
       
       if (nrow(best_results_metric) > 0) {
-        best_results_metric$k_sort <- ifelse(best_results_metric$k == "-", 999, as.numeric(best_results_metric$k))
-        best_results_metric$nn_sort <- ifelse(best_results_metric$`Number of nearest neighbors` == "-", 999, 
-                                            as.numeric(best_results_metric$`Number of nearest neighbors`))
+        # Convert to numeric for proper sorting, handling special cases
+        best_results_metric$k_sort <- suppressWarnings({
+          ifelse(is.na(best_results_metric$k) | best_results_metric$k == "-", 999, as.numeric(best_results_metric$k))
+        })
+        best_results_metric$nn_sort <- suppressWarnings({
+          ifelse(is.na(best_results_metric$`Number of nearest neighbors`) | 
+                 best_results_metric$`Number of nearest neighbors` == "-", 999, 
+                 as.numeric(best_results_metric$`Number of nearest neighbors`))
+        })
+        # Replace any NAs from conversion with 999
+        best_results_metric$k_sort[is.na(best_results_metric$k_sort)] <- 999
+        best_results_metric$nn_sort[is.na(best_results_metric$nn_sort)] <- 999
+        
         best_results_metric <- best_results_metric %>%
           dplyr::arrange(.data$`Number of Cells`, .data$k_sort, .data$nn_sort) %>%
           dplyr::select(-.data$k_sort, -.data$nn_sort)
@@ -439,7 +479,7 @@ collect_final_results <- function(optimization_results, mae_metric, verbose) {
       metric_key <- paste0(metric, "_mae")
       all_results <- final_output[[metric_key]]$all_results
       if (nrow(all_results) > 0) {
-        successful_count <- sum(all_results$status == "Success", na.rm = TRUE)
+        successful_count <- sum(grepl("^Successful Iteration", all_results$status), na.rm = TRUE)
         total_count <- nrow(all_results)
         success_rate <- round(100 * successful_count / total_count, 1)
         cat("  ", metric, "success rate:", success_rate, "% (", successful_count, "/", total_count, ")\n")
@@ -734,7 +774,7 @@ run_baseline_simulation <- function(transition_matrix, temporal_data_train, scor
   })
 }
 
-# Process all k-nn combinations by testing ALL - no pre-filtering or validation
+# Process all k-nn combinations with pre-filtering checkpoint for invalid combinations
 process_all_k_nn_combinations <- function(k_local_range, nn_range, problematic_states,
                                           centroid_2d_points, clustering_data, hvt_results,
                                           scoring, nclust, mae_metric, all_attempts_by_metric,
@@ -744,30 +784,79 @@ process_all_k_nn_combinations <- function(k_local_range, nn_range, problematic_s
                                           time_values, n_ahead, parallel,
                                           verbose = FALSE) {
   
+  # Generate ALL possible k-nn combinations
+  all_combinations <- expand.grid(k = k_local_range, nn = nn_range)
+  
   if (verbose) {
-    total_combinations <- length(k_local_range) * length(nn_range)
-    cat("  Testing", total_combinations, "k-nn combinations\n")
+    cat("  Total k-nn combinations:", nrow(all_combinations), "\n")
   }
   
-  # Generate ALL possible k-nn combinations - no filtering
-  all_combinations <- expand.grid(k = k_local_range, nn = nn_range)
+  # CHECKPOINT: Pre-filter mathematically invalid combinations
   valid_combinations <- list()
+  invalid_combinations <- list()
   
-  # Convert all combinations to expected format
   for (i in seq_len(nrow(all_combinations))) {
-    valid_combinations[[i]] <- list(
-      k = all_combinations$k[i],
-      nn = all_combinations$nn[i],
+    k_val <- all_combinations$k[i]
+    nn_val <- all_combinations$nn[i]
+    
+    # Check 1: k must be less than or equal to number of cells
+    if (k_val > nclust) {
+      invalid_combinations[[length(invalid_combinations) + 1]] <- list(
+        k = k_val,
+        nn = nn_val,
+        status = paste0("Mathematical bound reached - Invalid k (", k_val, ") for given n_cells (", nclust, ")")
+      )
+      next
+    }
+    
+    # Check 2: nn must be <= (cells - k) [mathematical upper bound]
+    max_possible_nn <- nclust - k_val
+    if (nn_val > max_possible_nn) {
+      invalid_combinations[[length(invalid_combinations) + 1]] <- list(
+        k = k_val,
+        nn = nn_val,
+        status = paste0("Mathematical bound reached - Invalid nn (", nn_val, ") for given n_cells (", nclust, ") and k (", k_val, ")")
+      )
+      next
+    }
+    
+    # Passed both checks - valid combination
+    valid_combinations[[length(valid_combinations) + 1]] <- list(
+      k = k_val,
+      nn = nn_val,
       status = "ready_for_msm",
       valid = TRUE
     )
   }
   
-  # Run MSM simulations for ALL combinations
+  # Store invalid combinations in all_attempts_by_metric
+  if (length(invalid_combinations) > 0) {
+    for (combo in invalid_combinations) {
+      for (metric in mae_metric) {
+        idx <- length(all_attempts_by_metric[[metric]]) + 1
+        all_attempts_by_metric[[metric]][[idx]] <- data.frame(
+          `Number of Cells` = nclust,
+          k = as.character(combo$k),
+          `Number of nearest neighbors` = as.character(combo$nn),
+          mae = NA,
+          status = combo$status,  # Already contains "ERROR: " prefix
+          stringsAsFactors = FALSE,
+          check.names = FALSE
+        )
+      }
+    }
+  }
+  
+  if (verbose) {
+    cat("  Valid combinations:", length(valid_combinations), "\n")
+    cat("  Pre-filtered (invalid):", length(invalid_combinations), "\n")
+  }
+  
+  # Run MSM simulations for VALID combinations only (invalid ones already filtered)
   simulation_results <- list()
   
   if (length(valid_combinations) > 0) {
-    # Simple simulation function - just call MSM, let it handle everything
+    # Simulation function for valid combinations
     simulation_function <- function(combo) {
       # Call run_single_simulation which calls MSM
       result <- run_single_simulation(
@@ -842,7 +931,7 @@ process_simulation_results <- function(simulation_results, mae_metric, nclust, a
           k = as.character(result$k), 
           `Number of nearest neighbors` = as.character(result$nn), 
           mae = round(result$mae_results[[metric]], 4), 
-          status = "Success", 
+          status = "Successful Iteration by Handling Problematic state", 
           stringsAsFactors = FALSE, 
           check.names = FALSE
         )
@@ -854,7 +943,7 @@ process_simulation_results <- function(simulation_results, mae_metric, nclust, a
           k = as.character(result$k), 
           `Number of nearest neighbors` = as.character(result$nn), 
           mae = round(result$mae_results[[metric]], 4),
-          status = "Success",
+          status = "Successful Iteration by Handling Problematic state",
           stringsAsFactors = FALSE,
           check.names = FALSE
         )
@@ -863,17 +952,17 @@ process_simulation_results <- function(simulation_results, mae_metric, nclust, a
       # Process failed results
       for (metric in mae_metric) {
         idx <- length(all_attempts_by_metric[[metric]]) + 1
-        error_msg <- if (!is.null(result$error)) {
-          paste0("MSM failed: ", result$error)
+        status_msg <- if (!is.null(result$error)) {
+          result$error  # Message comes as-is from MSM (already formatted)
         } else {
-          "MSM failed"
+          "ERROR: MSM failed"
         }
         all_attempts_by_metric[[metric]][[idx]] <- data.frame(
           `Number of Cells` = nclust, 
           k = as.character(result$k), 
           `Number of nearest neighbors` = as.character(result$nn), 
           mae = NA, 
-          status = error_msg, 
+          status = status_msg, 
           stringsAsFactors = FALSE, 
           check.names = FALSE
         )

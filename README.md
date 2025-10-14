@@ -3,7 +3,7 @@
 #### Zubin Dowlaty
 
 ##### Created Date: 2018-11-15
-##### Modified Date: 2025-10-02
+##### Modified Date: 2025-10-14
 
 
 <div id="TOC">
@@ -27,27 +27,27 @@
 
 # <span class="header-section-number">1.</span> Abstract
 
-The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 2D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
+The HVT package offers a suite of R functions designed to construct <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for in-depth analysis of multivariate data. It is particularly well-suited for datasets with numerous records. The package organizes the typical workflow into several key stages:
 
-1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
+1.  **Data Compression**: Long datasets are compressed using Hierarchical Vector Quantization (HVQ) to achieve the desired level of data reduction.
 
-2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
+2.  **Data Projection**:  Compressed cells are projected into one and two dimensions using dimensionality reduction algorithms, producing <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a> that preserve the original topology. This allows for intuitive visualization of complex data structures.
 
-3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
+3.  **Tessellation**: Voronoi tessellation partitions the projected space into distinct cells, supporting hierarchical visualizations. Heatmaps and interactive plots facilitate exploration and insights into the underlying data patterns.
 
-4.  **Scoring**: Scoring new data sets and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
+4.  **Scoring**: Test dataset is evaluated against previously generated maps, enabling their placement within the existing structure. Sequential application across multiple maps is supported if required.
 
-5. **Temporal Analysis and Visualization**: A Collection of new functions that leverages the capacity of the HVT package by analyzing time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
+5. **Temporal Analysis and Visualization**: Functions in this stage examine time-series data to identify patterns, estimate transition probabilities, and visualize data flow over time.
 
-6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling ex-ante predictions for time-series data.
+6. **Dynamic Forecasting**:  Monte Carlo simulations of Markov chain provides forecasting capabilities for both ex-post and ex-ante scenarios with meticulously handling problematic states when found.
 
 The HVT package allows creation of visually stunning tessellations, showcasing the power of topology preserving maps. Below is an image depicting a captivating tessellation of a torus, see
-<a href="https://nbviewer.org/github/Mu-Sigma/HVT/blob/master/vignettes/HVT_vignette.html" target="_blank">**vignette:**</a> for more details.
+<a href="https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_vignette.html" target="_blank">**vignette**</a> for more details.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/Mu-Sigma/HVT/master/vignettes/pngs/torus2.png" width="642px" height="440px" />
 </p>
-<p align="center"><em>Figure 1: The Voronoi tessellation for layer 1 and number of cells 500 with the heat map overlaid for variable z.</em></p>
+<p align="center"><em>Figure 1: The Voronoi tessellation for layer 1 and number of cells 500 with the heat map overlaid for variable 'z'.</em></p>
 
 
 
@@ -61,14 +61,14 @@ Following are the links to the vignettes for the HVT package:
 
 | Version | Vignette Title | Description |
 |----|----------|----------------|
-| v18.05.17 | [HVT Vignette](https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_vignette.html) | Contains descriptions of the functions used for vector quantization and construction of Hierarchical Voronoi Tessellations for data analysis. |
-| v18.05.17 | [HVT Model Diagnostics Vignette](https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_model_diagnostics_vignette.html) | Contains descriptions of functions used to perform model diagnostics and validation for the HVT model. |
-| v23.05.16 | [HVT Scoring Cells with Layers using scoreLayeredHVT](https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html) | Contains descriptions of the functions used for scoring cells with layers based on a sequence of maps using scoreLayeredHVT. |
-| v23.10.26 | [Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT](https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_Temporal_Analysis.html) | Contains descriptions of the functions used for analyzing time series data and its flow maps. |
-| v24.05.16 | [Visualizing LLM Embeddings using HVT](https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/LLM_Embeddings_in_HVT.html) | Contains the implementation and analysis of hierarchical clustering using the `clustHVT` function to evaluate and visualize token embeddings generated by OpenAI. |
-| v24.08.14 | [Implementation of t-SNE and UMAP in trainHVT function](https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html) | Contains enhancements to the `trainHVT` function with advanced dimensionality reduction techniques such as t-SNE and UMAP, and includes a table of evaluation metrics to improve analysis, visualization, and interpretability. |
-| v25.03.01 | [Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT](https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html) | Contains enhancements to the HVT package for dynamic forecasting using Monte Carlo Simulations of Markov Chain (MSM) on macroeconomic time series dataset. |
-| v25.08.25 | [Experimentation of Hyperparameters to find best model in msm Dynamic Forecasting](https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Experimentation_of_hyperparameters_in_msm.html) | Includes enhancements to the HVT package for selecting the best model (based on lowest MAE) in MSM ex-post forecasting. |
+| v18.05.17 | <a href="https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_vignette.html" target="_blank" rel="noopener noreferrer">HVT Vignette</a> | Contains the workflow of the functions used for vector quantization and construction of Hierarchical Voronoi Tessellations for data analysis. |
+| v18.05.17 | <a href="https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_model_diagnostics_vignette.html" target="_blank" rel="noopener noreferrer">HVT Model Diagnostics Vignette</a> | Contains demonstrations of functions used to perform model diagnostics and validation for the trained HVT model. |
+| v23.05.16 | <a href="https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html" target="_blank" rel="noopener noreferrer">HVT Scoring Cells with Layers using scoreLayeredHVT</a> | Contains explanations of the functions used for scoring cells with layers based on a sequence of maps using scoreLayeredHVT. |
+| v23.10.26 | <a href="https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_Temporal_Analysis.html" target="_blank" rel="noopener noreferrer">Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT</a> | Contains implementations of the functions used for analyzing time series data and creating its state transition flow maps. |
+| v24.05.16 | <a href="https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/LLM_Embeddings_in_HVT.html" target="_blank" rel="noopener noreferrer">Visualizing LLM Embeddings using HVT</a> | Contains implementation and analysis of hierarchical clustering using functions to evaluate and visualize token embeddings generated by OpenAI in 2D Space. |
+| v24.08.14 | <a href="https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html" target="_blank" rel="noopener noreferrer">Implementation of t-SNE and UMAP in trainHVT function</a> | Contains enhancements to the `trainHVT` function with advanced dimensionality reduction techniques such as t-SNE and UMAP, and includes a table of evaluation metrics to improve interpretability. |
+| v25.03.01 | <a href="https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html" target="_blank" rel="noopener noreferrer">Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT</a> | Contains enhancements to the HVT package for dynamic forecasting using Monte Carlo Simulations of Markov Chain (MSM) on macroeconomic time series dataset. |
+| v25.08.25 | <a href="https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Experimentation_of_hyperparameters_in_msm.html" target="_blank" rel="noopener noreferrer">Hyperparameter Experimentation for Champion Model Selection in MSM Dynamic Forecasting</a> | Contains enhancements to enable strategic selection of the champion model based on the lowest Mean Absolute Error by hyperparameter tuning in msm - dynamic forecasting. |
 
 <div id="version-history" class="section level1" number="3">
 
@@ -78,18 +78,18 @@ Following are the links to the vignettes for the HVT package:
 
 ## 3.7 HVT (v25.2.6) - What's New
 
-02nd October, 2025
+14th October, 2025
 
 In this version of the HVT package, the following new feature and vignette have been introduced:
 
-**Features**
+**Feature**
 
-1. **Hyperparameter Tuning for best model selection**: This update introduces a new function called `HVTMSMoptimization` that runs grid search experiments across different hyperparameters (number of cells, k clusters, nearest neighbors) by training HVT models and running MSM simulations for each combination. 
-Returns the best-performing parameter combination (lowest MAE) for ex-post forecasting, helping to find optimal settings without manual training, scoring and executing `msm`.
+1. **Experimentation of hyperparameters in `msm`**: This update introduces a new function called `HVTMSMoptimization` that runs grid search experiments across different hyperparameters (number of cells, clusters(k), nearest neighbors(nn)) by training and scoring HVT models, running MSM simulations for each combination. 
+Returns the tabulated results and plotly object visualizations that highlight the champion model (i.e., the combination with lowest MAE).
 
 **Vignette** 
 
-1. **Experimentation of hyperparameters in `msm`**: This vignette demonstrates how to use `HVTMSMoptimization` to systematically test different combinations of hyperparameters (n_cells, k, nn) and find the optimal configuration that minimizes forecasting error (MAE).
+1. **Hyperparameter Experimentation for Champion Model Selection in MSM Dynamic Forecasting**: This vignette provides a comprehensive demonstration of using `HVTMSMoptimization`, covering the complete workflow from initial dataset handling, selection for train & test, executing hyperparameter tuning and identifying the champion model, implementing the champion model, and comparing MAE results.
 
 *The issue with time-series animation plots from previous release has now been resolved with the latest gganimate update.*
 
@@ -259,11 +259,6 @@ This version of HVT package offers features for both training an HVT model and e
 **Git Hub Installation**
 
 `library(devtools)`
-
-##Increase the timeout duration for the initial installation process.
-
-`options(timeout = 1200)`
-
 `devtools::install_github(repo = "Mu-Sigma/HVT")`
 
 </div>

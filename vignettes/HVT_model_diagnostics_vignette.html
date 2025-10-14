@@ -1371,7 +1371,7 @@ HTMLWidgets.widget({
     };
   },
   renderValue: function(el, data, instance) {
-    if (el.offsetWidth === 0 || el.offsetHeight === 0) {
+    if ((el.offsetWidth === 0 || el.offsetHeight === 0) && data.lazyRender !== false) {
       instance.data = data;
       return;
     }
@@ -3068,7 +3068,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h4 class="author">Zubin Dowlaty, Shubhra Prakash, Sunuganty Achyut Raj,
 Praditi Shah, Somya Shambhawi,Vishwavani</h4>
 <h4 class="date">Created Date: 2018-05-17 <br> Modified Date:
-2025-10-02</h4>
+2025-10-14</h4>
 
 
 <div id="TOC">
@@ -3198,39 +3198,29 @@ width: 100%
 </style>
 <div id="abstract" class="section level1">
 <h1>1. Abstract</h1>
-<p>The HVT package is a collection of R functions to facilitate building
+<p>The HVT package offers a suite of R functions designed to construct
 <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology
-preserving maps</a> for rich multivariate data analysis, see
-<code>Figure 1</code> as an example of a 3D torus map generated from the
-package. Tending towards a big data preponderance, a large number of
-rows. A collection of R functions for this typical workflow is organized
-below:</p>
+preserving maps</a> for in-depth analysis of multivariate data. It is
+particularly well-suited for datasets with numerous records. The package
+organizes the typical workflow into several key stages:</p>
 <ol style="list-style-type: decimal">
-<li><p><strong>Data Compression</strong>: Vector quantization (VQ), HVQ
-(hierarchical vector quantization) using means or medians. This step
-compresses the rows (long data frame) using a compression
-objective.</p></li>
-<li><p><strong>Data Projection</strong>: Dimension projection of the
-compressed cells to 1D,2D or Interactive surface plot with the Sammons
-Non-linear Algorithm. This step creates topology preserving map (also
-called
-<a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>)
-coordinates into the desired output dimension.</p></li>
-<li><p><strong>Tessellation</strong>: Create cells required for object
-visualization using the Voronoi Tessellation method, package includes
-heatmap plots for hierarchical Voronoi tessellations (HVT). This step
-enables data insights, visualization, and interaction with the topology
-preserving map useful for semi-supervised tasks.</p></li>
-<li><p><strong>Scoring</strong>: Scoring new data sets or test data and
-recording their assignment using the map objects from the above steps,
-in a sequence of maps if required.</p></li>
-<li><p><strong>Temporal Analysis and Visualization</strong>: Collection
-of functions that analyzes time series data for its underlying patterns,
-calculation of transitioning probabilities and the visualizations for
-the flow of data over time.</p></li>
-<li><p><strong>Dynamic Forecasting</strong>: Simulate future states of
-dynamic systems using Monte Carlo simulations of Markov Chain (MSM),
-enabling ex-ante predictions for time-series data.</p></li>
+<li><p><strong>Data Compression</strong>: Long datasets are compressed
+using Hierarchical Vector Quantization (HVQ) to achieve the desired
+level of data reduction.</p></li>
+<li><p><strong>Data Projection</strong>: Compressed cells are projected
+into one and two dimensions using dimensionality reduction algorithms,
+producing
+<a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>
+that preserve the original topology. This allows for intuitive
+visualization of complex data structures.</p></li>
+<li><p><strong>Tessellation</strong>: Voronoi tessellation partitions
+the projected space into distinct cells, supporting hierarchical
+visualizations. Heatmaps and interactive plots facilitate exploration
+and insights into the underlying data patterns.</p></li>
+<li><p><strong>Scoring</strong>: Test dataset is evaluated against
+previously generated maps, enabling their placement within the existing
+structure. Sequential application across multiple maps is supported if
+required.</p></li>
 </ol>
 </div>
 <div id="data-compression" class="section level1">

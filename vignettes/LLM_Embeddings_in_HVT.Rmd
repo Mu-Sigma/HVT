@@ -105,19 +105,17 @@ ul {
 
 # 1. Background
 
-The HVT package is a collection of R functions to facilitate building <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for rich multivariate data analysis, see `Figure 1` as an example of a 3D torus map generated from the package. Tending towards a big data preponderance, a large number of rows. A collection of R functions for this typical workflow is organized below:
+The HVT package offers a suite of R functions designed to construct <a href="https://link.springer.com/chapter/10.1007/1-84628-118-0_7" target="_blank">topology preserving maps</a> for in-depth analysis of multivariate data. It is particularly well-suited for datasets with numerous records. The package organizes the typical workflow into several key stages:
 
-1.  **Data Compression**: Vector quantization (VQ), HVQ (hierarchical vector quantization) using means or medians. This step compresses the rows (long data frame) using a compression objective.
+1.  **Data Compression**: Long datasets are compressed using Hierarchical Vector Quantization (HVQ) to achieve the desired level of data reduction.
 
-2.  **Data Projection**: Dimension projection of the compressed cells to 1D,2D or Interactive surface plot with the Sammons Non-linear Algorithm. This step creates topology preserving map (also called <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a>) coordinates into the desired output dimension. 
+2.  **Data Projection**:  Compressed cells are projected into one and two dimensions using dimensionality reduction algorithms, producing <a href="https://en.wikipedia.org/wiki/Embedding" target="_blank">embeddings</a> that preserve the original topology. This allows for intuitive visualization of complex data structures.
 
-3.  **Tessellation**: Create cells required for object visualization using the Voronoi Tessellation method, package includes heatmap plots for hierarchical Voronoi tessellations (HVT). This step enables data insights, visualization, and interaction with the topology preserving map useful for semi-supervised tasks.
+3.  **Tessellation**: Voronoi tessellation partitions the projected space into distinct cells, supporting hierarchical visualizations. Heatmaps and interactive plots facilitate exploration and insights into the underlying data patterns.
 
-4.  **Scoring**: Scoring new data sets or test data and recording their assignment using the map objects from the above steps, in a sequence of maps if required.
+4.  **Scoring**: Test dataset is evaluated against previously generated maps, enabling their placement within the existing structure. Sequential application across multiple maps is supported if required.
 
-5. **Temporal Analysis and Visualization**: Collection of functions that analyzes time series data for its underlying patterns, calculation of transitioning probabilities and the visualizations for the flow of data over time.
-
-6. **Dynamic Forecasting**: Simulate future states of dynamic systems using Monte Carlo simulations of Markov Chain (MSM), enabling ex-ante predictions for time-series data.
+5. **Temporal Analysis and Visualization**: Functions in this stage examine time-series data to identify patterns, estimate transition probabilities, and visualize data flow over time.
 
 
 <span style="font-size: 22px;">**What's New?**</span>
@@ -1431,20 +1429,6 @@ From the above results, we can clearly see that highest recommendation is *4* as
 clust.results$dendogram()
 ```
 
-Though the highest recommendation is 4, the corresponding dendogram results in large clusters. However, for our specific use case, we prefer to have smaller clusters. So we will select the next highest recommendation from the NbClust summary. With 3 indices supporting this choice, we will proceed with 'challenger' to achieve a more granular clustering solution.
-
-```{r, results='hide', message=FALSE, warning=FALSE,fig.show='hide'}
-clust.results <- clustHVT(data = hclust_data_2, 
-              trainHVT_results = hvt.results,
-              scoreHVT_results = scoring, 
-              clusters_k = 'challenger')
-```
-
-Let's look at the dendogram for challenger number of clusters.
-
-```{r, fig.width=13.5, fig.height = 6,fig.align = "center"}
-clust.results$dendogram()
-```
 
 Let's look at the Cluster HVT plot for the 15 clusters.
 
