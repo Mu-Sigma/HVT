@@ -1,12 +1,15 @@
 #' @keywords internal
 
 plotMsmKN <- function(optimization_results) {
-
+  
+  # Initialize NSE symbols to avoid R CMD check NOTES
+  nclust <- mae <- k <- nn <- is_overall_best <- is_overall_worst <- hover_text <- NULL
+  
   
   # Quick guard
   if (is.null(optimization_results)) {
     cat("No results provided.\n")
-    return(NULL)
+    return(list(plot = NULL, table = NULL))
   }
   
   # ---------- 1) Standardize a helper to pick columns safely ----------
@@ -26,7 +29,7 @@ plotMsmKN <- function(optimization_results) {
     src <- optimization_results$nclust_best_results
   } else {
     cat("No MSM optimization results to plot.\n")
-    return(NULL)
+    return(list(plot = NULL, table = NULL))
   }
   
   # Identify columns (support old/new schemas)
@@ -34,7 +37,7 @@ plotMsmKN <- function(optimization_results) {
   nn_col     <- pick_col(src, c("Number_of_nearest_neighbors","Number of nearest neighbors"))
   mae_col    <- pick_col(src, c("MAE","mae"))
   k_col      <- pick_col(src, c("k"))
-  metric_col <- pick_col(src, c("metric"))  # optional
+  #metric_col <- pick_col(src, c("metric"))  # optional
   
   if (is.null(nclust_col) || is.null(nn_col) || is.null(mae_col) || is.null(k_col)) {
     stop("Required columns not found in results: need cells/k/nn/MAE.")
@@ -43,7 +46,7 @@ plotMsmKN <- function(optimization_results) {
   # ---------- 3) Build plot_data from ALL rows (ensures one point per tested cell) ----------
   # Coerce to numeric, drop problematic rows with NA in key fields
   src_clean <- src %>%
-    mutate(
+    dplyr::mutate(
       nclust = suppressWarnings(as.numeric(.data[[nclust_col]])),
       k      = suppressWarnings(as.numeric(.data[[k_col]])),
       nn     = suppressWarnings(as.numeric(.data[[nn_col]])),
@@ -53,16 +56,16 @@ plotMsmKN <- function(optimization_results) {
   
   if (nrow(src_clean) == 0) {
     cat("No plottable rows (all NA after coercion).\n")
-    return(NULL)
+    return(list(plot = NULL, table = NULL))
   }
   
   # Choose one row per cell: the true best (min MAE) for that cell
   # If multiple rows tie, slice_min keeps one (with_ties = FALSE).
   plot_data <- src_clean %>%
-    group_by(nclust) %>%
-    slice_min(mae, n = 1, with_ties = FALSE) %>%
-    ungroup() %>%
-    arrange(nclust)
+    dplyr::group_by(nclust) %>%
+    dplyr::slice_min(mae, n = 1, with_ties = FALSE) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(nclust)
   
   # ---------- 4) Determine highest and lowest MAE ----------
   min_idx <- which.min(plot_data$mae)
@@ -71,7 +74,7 @@ plotMsmKN <- function(optimization_results) {
   worst_nclust <- plot_data$nclust[max_idx]
   
   plot_data <- plot_data %>%
-    mutate(
+    dplyr::mutate(
       is_overall_best = (nclust == best_nclust),
       is_overall_worst = (nclust == worst_nclust),
       hover_text = paste0(
@@ -81,7 +84,18 @@ plotMsmKN <- function(optimization_results) {
         "MAE: ", sprintf("%.4f", mae)
       )
     )
-
+  
+  # ---------- 5) Build table ----------
+  results_table <- plot_data %>%
+    dplyr::transmute(
+      `Number of Cells`   = nclust,
+      k                   = k,
+      `Nearest Neighbors` = nn,
+      MAE                 = round(mae, 4),
+      `Best Result`       = ifelse(is_overall_best, "\u2605", "")
+    )
+  
+  # ---------- 6) Plot ----------
   n_points <- nrow(plot_data)
   point_size <- dplyr::case_when(
     n_points <= 20 ~ 3,
@@ -169,6 +183,14 @@ plotMsmKN <- function(optimization_results) {
       responsive = TRUE
     )
   
-  # Return only the interactive plot
-  interactive_plot
+  best_row <- plot_data[which.min(plot_data$mae), ]
+  
+  list(
+    plot = interactive_plot,
+    table = results_table,
+    best_nclust = best_row$nclust,
+    best_k = best_row$k,
+    best_nn = best_row$nn,
+    best_mae = round(best_row$mae, 4)
+  )
 }

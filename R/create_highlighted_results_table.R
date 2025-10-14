@@ -53,17 +53,20 @@ create_highlighted_results_table <- function(msm_results,
   if (!is.null(show_top_global)) {
     df <- df %>%
       arrange(mae) %>%
-      slice(1:min(show_top_global, n()))
+      slice(seq_len(min(show_top_global, n())))
   }
   
   # Create highlighting flags
   if (!is.null(show_top_global)) {
-    # When showing global Top-N, highlight all Top-N as green, and global min as red
+    # Rank top-N globally and color-code top 3 as Gold/Silver/Bronze
     df <- df %>%
       mutate(
+        .rank_global = dplyr::row_number(),
         flag = dplyr::case_when(
-          !is.na(global_min) & mae == global_min ~ "overall_min",
-          TRUE                                  ~ "top_n"
+          .rank_global == 1 ~ "rank_1",
+          .rank_global == 2 ~ "rank_2",
+          .rank_global == 3 ~ "rank_3",
+          TRUE              ~ "top_n"
         )
       )
   } else {
@@ -81,12 +84,14 @@ create_highlighted_results_table <- function(msm_results,
   if (!is.null(show_top_global)) {
     df <- df %>% arrange(mae, `Number of Cells`, k, `Number of nearest neighbors`)
   } else {
-    df <- df %>% arrange(`Number of Cells`, mae, k, `Number of nearest neighbors`)
+    df <- df %>% arrange(`Number of Cells`, k, `Number of nearest neighbors`, mae)
   }
   
   # Select final columns for display - ONLY status, not status_category and display_status
   final_df <- df %>%
     select(`Number of Cells`, k, `Number of nearest neighbors`, mae, status, flag)
+  # Round MAE values for display consistency
+  final_df$mae <- round(final_df$mae, 4)
   
   # Column indices for DT options (0-based)
   col_flag      <- which(names(final_df) == "flag") - 1
@@ -100,7 +105,7 @@ create_highlighted_results_table <- function(msm_results,
     max_option <- ceiling(total_entries / base_step) * base_step
     max_option <- max(max_option, 100)
     options <- seq(base_step, by = base_step, length.out = max_option / base_step)
-    options <- c(10, options)
+    options <- c(25, options)
     return(options)
   }
   
@@ -116,34 +121,60 @@ create_highlighted_results_table <- function(msm_results,
     final_df,
     colnames = display_names,
     options = list(
-      pageLength = if (!is.null(show_top_global)) min(show_top_global, 25) else 10,
+      pageLength = if (!is.null(show_top_global)) min(show_top_global, 25) else 25,
       scrollX = TRUE,
       lengthMenu = dynamic_length_menu,
       columnDefs = list(list(visible = FALSE, targets = col_flag)),
       order = if (!is.null(show_top_global)) {
         list(list(col_mae, "asc"), list(col_cells, "asc"), list(col_k, "asc"), list(col_neighbors, "asc"))
       } else {
-        list(list(col_cells, "asc"), list(col_mae, "asc"), list(col_k, "asc"), list(col_neighbors, "asc"))
+        list(list(col_cells, "asc"), list(col_k, "asc"), list(col_neighbors, "asc"), list(col_mae, "asc"))
       }
     ),
     class = "nowrap display",
     rownames = FALSE
   ) %>%
-    DT::formatStyle(
-      "flag", target = "row",
-      backgroundColor = DT::styleEqual(
-        c("cell_min", "overall_min", "top_n"),
-        c(color_cell_min, color_global_min, color_cell_min)
-      ),
-      fontWeight = DT::styleEqual(
-        c("cell_min", "overall_min", "top_n"),
-        c("bold", "bold", "bold")
-      ),
-      color = DT::styleEqual(
-        c("cell_min", "overall_min", "top_n"),
-        c("#2e7d32", "#c62828", "#2e7d32")
-      )
-    )
+    DT::formatRound(columns = "mae", digits = 4) %>%
+    {
+      # Choose styling depending on whether we are showing Top-N globally
+      if (!is.null(show_top_global)) {
+        # Gold / Silver / Bronze for ranks 1/2/3 respectively.
+        gold   <- "#d4f6d4"  # 1st
+        silver <- "#C0C0C0"  # 2nd
+        bronze <- "#E5E4E2"  # 3rd
+        DT::formatStyle(
+          ., "flag", target = "row",
+          backgroundColor = DT::styleEqual(
+            c("rank_1", "rank_2", "rank_3"),
+            c(gold, silver, bronze)
+          ),
+          fontWeight = DT::styleEqual(
+            c("rank_1", "rank_2", "rank_3"),
+            c("bold", "bold", "bold")
+          ),
+          color = DT::styleEqual(
+            c("rank_1", "rank_2", "rank_3"),
+            c("#2e7d32", "#434343","#656565")
+          )
+        )
+      } else {
+        DT::formatStyle(
+          ., "flag", target = "row",
+          backgroundColor = DT::styleEqual(
+            c("cell_min", "overall_min", "top_n"),
+            c(color_cell_min, color_cell_min, color_cell_min)
+          ),
+          fontWeight = DT::styleEqual(
+            c("cell_min", "overall_min", "top_n"),
+            c("bold", "bold", "bold")
+          ),
+          color = DT::styleEqual(
+            c("cell_min", "overall_min", "top_n"),
+            c("#2e7d32", "#2e7d32", "#2e7d32")
+          )
+        )
+      }
+    }
   
   # Additional emphasis on global minimum MAE
   if (!is.na(global_min)) {

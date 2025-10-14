@@ -29,4 +29,6 @@ NULL
 ^vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.Rmd
 ^vignettes/Dynamic_Forecasting_macroeconomic_data.html
 ^vignettes/Dynamic_Forecasting_macroeconomic_data.Rmd
+^vignettes/Experimentation_of_hyperparameters_in_msm.Rmd
+^vignettes/Experimentation_of_hyperparameters_in_msm.html
 ^doc$

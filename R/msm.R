@@ -62,12 +62,13 @@
 #'               forecast_type = "ex-post",
 #'               transition_probability_matrix = table,
 #'               initial_state = 2,
-#'               num_simulations = 100,
+#'               num_simulations = 10,
 #'               scoreHVT_results = scoring,
 #'               trainHVT_results = hvt.results,
 #'               actual_data = ex_post_forecasting,
 #'               raw_dataset = dataset,
 #'               mae_metric = "median",
+#'               handle_problematic_states = FALSE,
 #'              show_simulation = FALSE,
 #'              time_column = 't')
 #' @export msm
@@ -82,9 +83,9 @@ msm <- function(state_time_data,
                 scoreHVT_results,
                 actual_data = NULL,
                 raw_dataset,
-                k = 5,
-                handle_problematic_states = FALSE,
-                n_nearest_neighbor = 1,
+                k = NULL,
+                handle_problematic_states = TRUE,
+                n_nearest_neighbor = NULL,
                 show_simulation = TRUE,
                 mae_metric = "median",
                 time_column,
@@ -110,26 +111,28 @@ msm <- function(state_time_data,
     
     # Basic validation
     if(!"Cell.ID" %in% colnames(state_time_data)) 
-      errors <- c(errors, "Missing 'Cell.ID' column in state_time_data")
-    if(!"t" %in% colnames(state_time_data)) 
-      errors <- c(errors, "Missing 't' column in state_time_data")
+      errors <- c(errors, "ERROR: Missing 'Cell.ID' column in state_time_data")
+    if(!time_column %in% colnames(state_time_data)) 
+      errors <- c(errors, paste0("ERROR: Missing '", time_column, "' column in state_time_data"))
     if (is.null(transition_probability_matrix) || nrow(transition_probability_matrix) == 0)
-      errors <- c(errors, "transition_probability_matrix cannot be empty")
+      errors <- c(errors, "ERROR: transition_probability_matrix cannot be empty")
     if (!mae_metric %in% c("median", "mean", "mode"))
-      errors <- c(errors, "mae_metric must be 'mean', 'median', or 'mode'")
-    
+      errors <- c(errors, "ERROR: mae_metric must be 'mean', 'median', or 'mode'")
+
+#browser()
+
     # Ex-post validation
     can_plot_states_actual <- FALSE
     if (forecast_type == "ex-post") {
       if (is.null(actual_data)) {
         warnings <- c(warnings, "No actual_data provided for ex-post - centroids will be plotted without actual comparison")
       } else {
-        actual_times <- actual_data$t
-        available_times <- state_time_data$t
+        actual_times <- actual_data[[time_column]]
+        available_times <- state_time_data[[time_column]]
         if (length(intersect(actual_times, available_times)) > 0) {
           can_plot_states_actual <- TRUE
         } else {
-          stop("No temporal state data available for actual data period - states comparison will be skipped")
+          stop("ERROR: No temporal state data available for actual data period - states comparison will be skipped")
         }
       }
     }
@@ -162,7 +165,7 @@ msm <- function(state_time_data,
       message("Validation Warnings:")
       for(w in warnings) message("  - ", w)
     }
-    if(length(errors) > 0) stop(paste("Max Limit reached:\n", paste(errors, collapse = "\n")))
+    if(length(errors) > 0) stop(paste(paste(errors, collapse = "\n")))
     
     return(list(warnings = warnings, can_plot_states_actual = can_plot_states_actual))
   }
@@ -206,7 +209,7 @@ msm <- function(state_time_data,
       hc_fb <- stats::hclust(stats::dist(as.matrix(clustering_data)), method = "ward.D2")
       n_items <- nrow(clustering_data)
       if (k < 1 || k > n_items) {
-        stop(sprintf("Clustering error: k=%d out of range [1..%d]", k, n_items))
+        stop(sprintf("ERROR: Clustering error: k=%d out of range [1..%d]", k, n_items))
       }
       clusters_fb <- stats::cutree(hc_fb, k = k)
       
@@ -290,7 +293,7 @@ msm <- function(state_time_data,
       cluster_data <- clustering_result$cluster_data
       clust.results <- clustering_result$clust.results
       
-      # Post-clustering validation
+      # Post-clustering validation: Check neighbor availability for problematic states
       if (!is.null(cluster_data) && length(problematic_states) > 0) {
         per_state_available <- sapply(problematic_states, function(ps) {
           cl_id <- cluster_data$cluster[cluster_data$Cell.ID == ps]
@@ -299,27 +302,28 @@ msm <- function(state_time_data,
           length(valid_neighbors)
         })
         min_available <- if (length(per_state_available)) min(per_state_available) else 0
+        
+        # Category 1: Isolated problematic states (zero neighbors)
+        if (min_available == 0) {
+          stop(paste0("Isolated problematic states - At least one problematic state has no valid neighbors in its cluster",
+                      "\nSuggestions:\n",
+                      "1. Try a different k value (current: ", k, ")\n",
+                      "2. Check if your data has sufficient non-problematic states"))
+        }
+        
+        # Category 2: Limited availability of neighbors
         if (n_nearest_neighbor > min_available) {
-          stop(paste0("NN not feasible (max ", min_available, ", nn ", n_nearest_neighbor, ")"))
+          stop(paste0("Limited Availability of neighbors (Req = ", n_nearest_neighbor, 
+                      ", Pre = ", min_available, ")",
+                      "\nSuggestions:\n",
+                      "1. Reduce n_nearest_neighbor to ", min_available, " or less (current: ", n_nearest_neighbor, ")\n",
+                      "2. Try a different k value (current: ", k, ") to create larger clusters"))
         }
       }
       
       # Add names.column if available
       if (length(scoreHVT_results$centroidData$names.column) == nrow(cluster_data)) {
         cluster_data$names.column <- scoreHVT_results$centroidData$names.column
-      }
-      
-      # Validate clustering
-      validation_result_clustering <- validate_msm_clustering(
-        cluster_data, problematic_states, n_nearest_neighbor,
-        centroid_2d_points, verbose = called_directly
-      )
-      if (!validation_result_clustering$is_valid) {
-        stop(paste0("MSM cannot proceed: ", validation_result_clustering$message,
-                    "\nSuggestions:\n",
-                    "1. Try a different k value (current: ", k, ")\n",
-                    "2. Reduce n_nearest_neighbor (current: ", n_nearest_neighbor, ")\n",
-                    "3. Check if your data has sufficient non-problematic states"))
       }
       
       # Check for singleton clusters
@@ -395,30 +399,8 @@ msm <- function(state_time_data,
   
   # Final validation for problematic states handling
   if (handle_problematic_states && length(problematic_states) > 0) {
-    if (is.null(cluster_data)) stop("Clustering failed but problematic states exist. Cannot proceed with MSM.")
-    
-    # Validate sufficient neighbors
-    max_available_neighbors <- min(sapply(problematic_states, function(ps) {
-      ps_cluster <- cluster_data$cluster[cluster_data$Cell.ID == ps]
-      cluster_members <- cluster_data$Cell.ID[cluster_data$cluster == ps_cluster]
-      valid_neighbors <- setdiff(cluster_members, c(ps, problematic_states))
-      length(valid_neighbors)
-    }))
-    
-    if (max_available_neighbors < n_nearest_neighbor) {
-      stop(paste0("Insufficient NN - requested nn=", n_nearest_neighbor,
-                  ", available nn=", max_available_neighbors))
-    }
-    
-    if (max_available_neighbors == 0) {
-      stop(paste0("Only Problematic states - All states are problematic in this cluster"))
-    }
-    
-    final_validation <- validate_msm_clustering(
-      cluster_data, problematic_states, n_nearest_neighbor,
-      centroid_2d_points, verbose = FALSE
-    )
-    if (!final_validation$is_valid) stop(final_validation$message)
+    if (is.null(cluster_data)) stop("ERROR: Clustering failed but problematic states exist. Cannot proceed with MSM.")
+    # Neighbor availability already validated post-clustering
   }
   
   # Run simulations
@@ -438,7 +420,7 @@ msm <- function(state_time_data,
   
   # Add time column
   time_values <- if(forecast_type == "ex-post") {
-    if(!is.null(actual_data)) actual_data$t else head(state_time_data$t, n_ahead)
+    if(!is.null(actual_data)) actual_data[[time_column]] else head(state_time_data[[time_column]], n_ahead)
   } else {
     n_ahead_ante[1:nrow(simulation_results)]
   }
@@ -463,7 +445,7 @@ msm <- function(state_time_data,
     if (forecast_type != "ex-post" || is.null(actual_data))
       stop("mae-only mode currently expects ex-post with actual_data.")
     
-    test_data_states <- state_time_data[state_time_data$t %in% simulation_results$time, ]
+    test_data_states <- state_time_data[state_time_data[[time_column]] %in% simulation_results$time, ]
     summary_data <- simulation_results[, c("time", "mean", "median", "mode")]
     
     # Calculate MAEs
@@ -475,7 +457,7 @@ msm <- function(state_time_data,
     centroid_map_df <- cbind(centroid_data, Cell.ID = centroid_2d_points$Cell.ID)
     
     actual_raw_dfs <- lapply(name_columns, function(col_name) {
-      df <- actual_data[, c("t", col_name)]
+      df <- actual_data[, c(time_column, col_name)]
       names(df) <- c("time", paste0("actual_", col_name))
       df
     })

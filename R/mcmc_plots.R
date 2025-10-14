@@ -368,15 +368,15 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
   }
   names(scaled_dfs) <- names(predicted_dfs)
   
-  if(is.numeric(state_time_data$t)){  
+  if(is.numeric(state_time_data[[time_column]])){  
     if (forecast_type == "ex-post") {
       
       test_dataset <- actual_data
-      test_data <- state_time_data[state_time_data$t %in% simulation_results$time, ]
+      test_data <- state_time_data[state_time_data[[time_column]] %in% simulation_results$time, ]
       
       # Prepare actual data
       actual_raw_dfs <- lapply(name_columns, function(col_name) {
-        df <- test_dataset[, c("t", col_name)]
+        df <- test_dataset[, c(time_column, col_name)]
         names(df) <- c("time", paste0("actual_", col_name))
         return(df)
       })
@@ -398,7 +398,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         
         # Calculate residuals
         residuals_df <- data.frame(
-          t = test_dataset$t[seq_along(predicted_metric)],
+          t = test_dataset[[time_column]][seq_along(predicted_metric)],
           x = actual_raw_dfs[[variable_name]][[actual_col_name]][seq_along(predicted_metric)],
           predicted_metric
         )
@@ -443,7 +443,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
                            size = 1.5) +
         ggplot2::scale_colour_manual(values = c("Simulations" = "darkgray", "Median" = "red",
                                                "Mean" = "darkgreen", "Actual States" = "black", "Mode" = "#0901FF")) +
-        ggplot2::scale_y_continuous(limits = c(0, NA), breaks = integer_breaks()) +
+        ggplot2::scale_y_continuous(limits = c(1, NA), breaks = integer_breaks()) +
         ggplot2::theme_minimal() +
         ggplot2::theme(legend.position = "right")
       
@@ -496,7 +496,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         dplyr::select(time, mean, median, mode)
       
       p2 <- create_base_plot(plot_data, summary_data, show_simulation, mae_metric, NULL, TRUE) +
-        ggplot2::scale_y_continuous(limits = c(0, NA), breaks = integer_breaks()) +
+        ggplot2::scale_y_continuous(limits = c(1, NA), breaks = integer_breaks()) +
         ggplot2::theme_minimal() +
         ggplot2::theme(legend.position = "right") +
         ggplot2::labs(x = "Timestamps", y = "States", title = paste0(type, ": Ex-Ante Predicted States"), color = " ")
@@ -530,17 +530,17 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
     }
   }
   
-  if(!is.numeric(state_time_data$t)){
+  if(!is.numeric(state_time_data[[time_column]])){
     if (forecast_type == "ex-post") {
       
       test_dataset <- actual_data
-      test_data <- state_time_data[state_time_data$t %in% simulation_results$time, ]
-      colnames(test_data)[colnames(test_data) == 't'] <- 'time'
+      test_data <- state_time_data[state_time_data[[time_column]] %in% simulation_results$time, ]
+      colnames(test_data)[colnames(test_data) == time_column] <- 'time'
       
       actual_raw_dfs <- lapply(name_columns, function(col_name) {
         test_dataset %>%
-          dplyr::select(t, all_of(col_name)) %>%
-          dplyr::rename(time = t, !!paste0("actual_", col_name) := all_of(col_name))
+          dplyr::select(all_of(time_column), all_of(col_name)) %>%
+          dplyr::rename(time = !!time_column, !!paste0("actual_", col_name) := all_of(col_name))
       })
       names(actual_raw_dfs) <- name_columns
       
@@ -558,7 +558,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         actual_col_name <- paste0("actual_", variable_name)
         
         residuals_df <- data.frame(
-          t = test_dataset$t[seq_along(predicted_metric)],
+          t = test_dataset[[time_column]][seq_along(predicted_metric)],
           x = actual_raw_dfs[[variable_name]][[actual_col_name]][seq_along(predicted_metric)],
           predicted_metric
         )
@@ -610,7 +610,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
                            size = 1.5, show.legend = TRUE) +
         ggplot2::scale_colour_manual(values = c("Simulations" = "darkgray", "Median" = "red",
                                                "Mean" = "darkgreen", "Actual States" = "black", "Mode" = "#0901FF")) +
-        ggplot2::scale_y_continuous(limits = c(0, NA), breaks = integer_breaks()) +
+        ggplot2::scale_y_continuous(limits = c(1, NA), breaks = integer_breaks()) +
         ggplot2::theme_minimal() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)) +
         theme_plot
@@ -681,7 +681,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
       }
       
       p2 <- create_base_plot(plot_data, summary_data, show_simulation, mae_metric, NULL, TRUE) +
-        ggplot2::scale_y_continuous(limits = c(0, NA), breaks = integer_breaks()) +
+        ggplot2::scale_y_continuous(limits = c(1, NA), breaks = integer_breaks()) +
         ggplot2::theme_minimal() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)) +
         ggplot2::labs(x = "Timestamps", y = "States", title = paste0(type, ": Ex-Ante Predicted States"), color = " ") +
