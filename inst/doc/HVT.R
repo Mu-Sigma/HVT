@@ -23,14 +23,14 @@ library(kableExtra)
 vignette_data <- data.frame(
   Version_Number = c("v18.05.17", "v18.05.17", "v23.05.16", "v23.10.26", "v24.05.16","v24.08.14", "v25.03.01","v25.08.25"),
   Vignette_Title = c(
-  "<a href='https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_vignette.html' target='_blank' rel='noopener noreferrer'>HVT Vignette</a>",
-  "<a href='https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_model_diagnostics_vignette.html' target='_blank' rel='noopener noreferrer'>HVT Model Diagnostics Vignette</a>",
-  "<a href='https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html' target='_blank' rel='noopener noreferrer'>HVT Scoring Cells with Layers using scoreLayeredHVT</a>",
-  "<a href='https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_Temporal_Analysis.html' target='_blank' rel='noopener noreferrer'>Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT",
-  "<a href='https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/LLM_Embeddings_in_HVT.html' target='_blank' rel='noopener noreferrer'>Visualizing LLM Embeddings using HVT</a>",
-  "<a href='https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html' target='_blank' rel='noopener noreferrer'>Implementation of t-SNE and UMAP in trainHVT function</a>",
-  "<a href='https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html' target='_blank' rel='noopener noreferrer'>Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT</a>",
-  "<a href='https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/Experimentation_of_hyperparameters_in_msm.html' target='_blank' rel='noopener noreferrer'>Hyperparameter Experimentation for Champion Model Selection in MSM Dynamic Forecasting</a>"
+  "<a href='https://raw.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_vignette.html' target='_blank' rel='noopener noreferrer'>HVT Vignette</a>",
+  "<a href='https://raw.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_model_diagnostics_vignette.html' target='_blank' rel='noopener noreferrer'>HVT Model Diagnostics Vignette</a>",
+  "<a href='https://raw.githack.com/Mu-Sigma/HVT/master/vignettes/Scoring_Cells_with_Layers_using_scoreLayeredHVT.html' target='_blank' rel='noopener noreferrer'>HVT Scoring Cells with Layers using scoreLayeredHVT</a>",
+  "<a href='https://raw.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_Temporal_Analysis.html' target='_blank' rel='noopener noreferrer'>Temporal Analysis and Visualization: Leveraging Time Series Capabilities in HVT",
+  "<a href='https://raw.githack.com/Mu-Sigma/HVT/master/vignettes/LLM_Embeddings_in_HVT.html' target='_blank' rel='noopener noreferrer'>Visualizing LLM Embeddings using HVT</a>",
+  "<a href='https://raw.githack.com/Mu-Sigma/HVT/master/vignettes/Implementation_of_tsne_umap_in_trainHVT.html' target='_blank' rel='noopener noreferrer'>Implementation of t-SNE and UMAP in trainHVT function</a>",
+  "<a href='https://raw.githack.com/Mu-Sigma/HVT/master/vignettes/Dynamic_Forecasting_macroeconomic_data.html' target='_blank' rel='noopener noreferrer'>Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT</a>",
+  "<a href='https://raw.githack.com/Mu-Sigma/HVT/master/vignettes/Experimentation_of_hyperparameters_in_msm.html' target='_blank' rel='noopener noreferrer'>Hyperparameter Experimentation for Champion Model Selection in MSM Dynamic Forecasting</a>"
 ),
   Description = c(
     "Contains the workflow of the functions used for vector quantization and construction of Hierarchical Voronoi Tessellations for data analysis.",

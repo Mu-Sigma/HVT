@@ -1,4 +1,4 @@
-# HVT 25.2.6
+# HVT 25.2.7
 
 - Introducing a new feature called `HVTMSMoptimization` for hyperparameter tuning in `msm` dynamic forecast along with a vignette to demonstrate the workflow.
 

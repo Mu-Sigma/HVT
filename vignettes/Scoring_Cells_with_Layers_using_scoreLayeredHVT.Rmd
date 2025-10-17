@@ -70,7 +70,7 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("plyr", "dplyr", "reactable", "kableExtra", "geozoo",
-                      "plotly", "purrr", "data.table", "gridExtra", "tidyr")
+                      "plotly", "purrr", "data.table", "gridExtra", "tidyr", "HVT")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
@@ -78,11 +78,7 @@ if (length(new.packages))
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = FALSE}
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
+
 # 3. Example : HVT with the Torus dataset
 
 **In this section, we will see how we can use the package to visualize multidimensional data by projecting them to two dimensions using Sammon's projection and further used for Scoring.**

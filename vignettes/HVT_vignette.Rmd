@@ -228,17 +228,11 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning = FALSE, message=FALSE}
 list.of.packages <- c("dplyr", "kableExtra", "geozoo", "plotly", "purrr",  
-                      "data.table", "gridExtra","plyr","DT")
+                      "data.table", "gridExtra","plyr","DT","HVT")
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
   install.packages(new.packages, dependencies = TRUE, repos='https://cloud.r-project.org/')
 invisible(lapply(list.of.packages, library, character.only = TRUE))
-```
-
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = FALSE}
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
 ```
 
 # 7. Example I: HVT with the Torus dataset

@@ -123,9 +123,15 @@ The HVT package offers a suite of R functions designed to construct <a href="htt
 
 # 2. Notebook Requirements
 
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-library(dplyr)
-library(xts)
+This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, the code will install those packages and attach to the session environment.
+
+```{r, warning=FALSE, message=FALSE}
+list.of.packages <- c("dplyr", "xts")
+
+new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+if (length(new.packages))
+  install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
+invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
 
@@ -286,10 +292,6 @@ hvt.results <- trainHVT(
   distance_metric = "L1_Norm",
   error_metric = "max",
   dim_reduction_method = "sammon")
-```
-
-```{r}
-summary(hvt.results)
 ```
 
 <br>
@@ -508,7 +510,7 @@ Legend for color strips in the table below:
 
 ```{r, warning=FALSE, message=FALSE}
 msm_model_median <- msm_model$median_mae$all_results
-create_highlighted_results_table(msm_model_median)
+OptimizationResults(msm_model_median)
 ```
 
 <br>
@@ -524,7 +526,7 @@ The color legend is as follows:
 - Challenger 2: <span style="color: #656565; background-color: #E5E4E2; padding: 2px 4px; border-radius: 3px; font-weight: bold;">PLATINUM</span>
 
 ```{r, warning=FALSE, message=FALSE}
-create_highlighted_results_table(msm_model$median_mae$all_results, show_top_global = 3)
+OptimizationResults(msm_model$median_mae$all_results, show_top_global = 3)
 ```
 <br>
 
