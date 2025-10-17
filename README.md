@@ -41,7 +41,7 @@ The HVT package offers a suite of R functions designed to construct <a href="htt
 6. **Dynamic Forecasting**:  Monte Carlo simulations of Markov chain provides forecasting capabilities for both ex-post and ex-ante scenarios with meticulously handling problematic states when found.
 
 The HVT package allows creation of visually stunning tessellations, showcasing the power of topology preserving maps. Below is an image depicting a captivating tessellation of a torus, see
-<a href="https://rawcdn.githack.com/Mu-Sigma/HVT/`r commit`/vignettes/HVT_vignette.html" target="_blank">**vignette**</a> for more details.
+<a href="https://raw.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_vignette.html" target="_blank">**vignette**</a> for more details.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/Mu-Sigma/HVT/master/vignettes/pngs/torus2.png" width="642px" height="440px" />
@@ -79,7 +79,7 @@ Following are the links to the vignettes for the HVT package:
 
 ## 3.7 HVT (v25.2.7) - What's New
 
-14th October, 2025
+16th October, 2025
 
 In this version of the HVT package, the following new feature and vignette have been introduced:
 

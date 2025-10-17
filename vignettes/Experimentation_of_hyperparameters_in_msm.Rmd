@@ -833,7 +833,7 @@ table_mae <- tail(data_1$MAE,1)
 
 **Result Analysis:**
 
-- The analysis indicates that the Mean of Variables MAE is **`r table_mae`**, closely aligning with the MAE obtained from the **HVTMSMoptimization** process - **`r best_mae`**. 
+- The analysis indicates that the Mean of Variables MAE is **`r table_mae`**, closely aligning with the MAE obtained from the **HVTMSMoptimization** process  **`r best_mae`**. 
 
 - This close correspondence validates the consistency of the modeling approach. The minor deviation, within an expected error range of **0.01 to 0.1**, can be attributed to the inherent stochasticity of the MSM simulation, which relies on random number generation for state transitions.
 

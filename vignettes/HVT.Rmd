@@ -86,7 +86,7 @@ The HVT package offers a suite of R functions designed to construct <a href="htt
 
 
 
-The HVT package allows creation of visually stunning tessellations, showcasing the power of topology preserving maps. Below is an image depicting a captivating tessellation of a torus, see <a href="https://rawcdn.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_vignette.html" target="_blank">**vignette**</a> for more details.
+The HVT package allows creation of visually stunning tessellations, showcasing the power of topology preserving maps. Below is an image depicting a captivating tessellation of a torus, see <a href="https://raw.githack.com/Mu-Sigma/HVT/master/vignettes/HVT_vignette.html" target="_blank">**vignette**</a> for more details.
 
 ```{r predictlayer_flow,echo=FALSE,warning=FALSE,fig.show='hold',message=FALSE,fig.cap='Figure 1: The Voronoi tessellation for layer 1 and number of cells 500 with the heat map overlaid for variable z.'}
 knitr::include_graphics('./pngs/torus2.png')
@@ -137,7 +137,7 @@ kable(vignette_data, format = "html",
 
 ## HVT (v25.2.7) - What's New
 
-14th October, 2025
+16th October, 2025
 
 In this version of the HVT package, the following new feature and vignette have been introduced:
 
