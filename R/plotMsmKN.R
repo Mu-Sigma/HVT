@@ -1,4 +1,18 @@
-#' @keywords internal
+#' @name plotMsmKN
+#' @title plotting MAE across Number of cells
+#' @description This function helps to visualize the `HVTMSMoptimization` function's
+#' output. It creates a plotly object where the lowest MAE combination achieved for each cell 
+#' will be plotted
+#' @param optimization_results List. The output of `HVTMSMoptimization` function 
+#' specific for a mae_metric
+#' @return List containing visualization results for the selected MAE metric:
+#' \item{[[plot]] }{A Plotly object of cell-level lowest MAE combination} 
+#' \item{[[table]] }{A table of plotted data}
+#' @author Vishwavani <vishwavani@@mu-sigma.com>, Nithya <nithya.sn@@mu-sigma.com>
+#' @keywords Hyperparameter_Tuning
+#' @include HVTMSMoptimization.R
+#' @importFrom magrittr %>%
+#' @export plotMsmKN
 
 plotMsmKN <- function(optimization_results) {
   
