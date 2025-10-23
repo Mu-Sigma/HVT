@@ -261,6 +261,9 @@ This version of HVT package offers features for both training an HVT model and e
 **Git Hub Installation**
 
 `library(devtools)`
+
+#increase the package download timelimit, if faced with error:  options(timeout = 1200) 
+
 `devtools::install_github(repo = "Mu-Sigma/HVT")`
 
 </div>

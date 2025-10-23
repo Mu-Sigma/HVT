@@ -126,24 +126,13 @@ The HVT package offers a suite of R functions designed to construct <a href="htt
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, the code will install those packages and attach to the session environment.
 
 ```{r, warning=FALSE, message=FALSE}
-list.of.packages <- c("dplyr", "xts")
+list.of.packages <- c("dplyr", "xts", "HVT")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
   install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
-
-
-Since all the new functions for hyperparameter tuning approach is not in CRAN yet, we are sourcing the scripts from local.
-
-
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
-
 
 
 Below is the function for more dynamic drop down display of data tables.
