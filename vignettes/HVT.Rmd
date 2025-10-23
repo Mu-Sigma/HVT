@@ -286,6 +286,7 @@ install.packages("HVT")
 
 ``` r
 library(devtools)
+#increase the package download timelimit, if faced with error:  options(timeout = 1200) 
 devtools::install_github(repo = "Mu-Sigma/HVT")
 ```
 
