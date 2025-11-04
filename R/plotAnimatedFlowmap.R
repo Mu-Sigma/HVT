@@ -570,12 +570,12 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
       segment_lengths <- sqrt((anime_df$x2 - anime_df$x1)^2 + (anime_df$y2 - anime_df$y1)^2)
       
       # Scale arrow head length based on segment length
-      arrow_head_length <- case_when(
+      arrow_head_length <- median(case_when(
         segment_lengths <= 5 ~ 1,
         segment_lengths <= 10 ~ 2,
         segment_lengths <= 20 ~ 3,
         TRUE ~ 4
-      )
+      ))
       
       arrow_anim <- ggplot2::ggplot(anime_df, aes(x = x1, y = y1)) +
         geom_segment(data = anime_df, mapping = aes(x = x1, y = y1, xend = x1 + (x2 - x1) * 0.5, yend = y1 + (y2 - y1) * 0.5, color = label),

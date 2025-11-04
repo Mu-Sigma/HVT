@@ -91,7 +91,8 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1,grey_
     p1<- ggplot2::ggplot(data, ggplot2::aes(x = data[[column]])) +
       ggplot2::geom_histogram(ggplot2::aes(y = ..count..), fill = "midnightblue", size = 0.2, alpha=0.7) +
       ggplot2::xlab(column) + ggplot2::ylab("Count") +
-      ggplot2::labs(column) +ggplot2::theme_bw() + 
+      #ggplot2::labs(column) +
+      ggplot2::theme_bw() + 
       ggplot2::theme(panel.border=ggplot2::element_rect(size=0.1),legend.position = c(0.8, 0.8))
     
     p2<-ggplot2::ggplot(data, ggplot2::aes(x = data[[column]])) +
