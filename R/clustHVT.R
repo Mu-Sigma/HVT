@@ -156,12 +156,24 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
     stop(sprintf("Clustering error: k=%d out of range [1..%d]", no_of_clusters, n_items))
   }
   
+  #########cell_id#####
+  hvt_list <- trainHVT_results
+  hvt_res1 <- hvt_list[[2]][[1]]$`1`
+  hvt_res2 <- hvt_list[[3]]$summary$Cell.ID
+  a <- seq_along(hvt_res1)
+  b <- a[hvt_res2]
+  b <- as.vector(b)
+  hvt_res2 <- stats::na.omit(b)
+  hclust_data_1 <- hclust_data
+  rownames(hclust_data_1)<- hvt_res2
+
+#browser()  
+  
   # Perform hierarchical clustering
-  hc <- stats::hclust(stats::dist(as.matrix(hclust_data)), method = clustering_method)
+  hc <- stats::hclust(stats::dist(as.matrix(hclust_data_1)), method = clustering_method)
   clusters <- stats::cutree(hc, k = no_of_clusters)
   
-#browser()  
-  # Replace the existing plot_dendrogram function with this:
+# Replace the existing plot_dendrogram function with this:
   plot_dendrogram <- function(hc_1, no_of_clusters_1) {
     function() {
       plot(hc_1, xlab = "Clusters", ylab = "Distance", sub ="")
@@ -172,15 +184,14 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   a <- plot_dendrogram(hc_1 = hc, no_of_clusters_1 = no_of_clusters)
 
     
-#browser()  
-  
+
   # Prepare data for clusterPlotly
   cluster_data <- scoreHVT_results$centroidData %>% 
     dplyr::select("Cell.ID", "names.column") %>%
     mutate(clusters =  clusters)
   
-  #cluster_data <- cluster_data[order(cluster_data$Cell.ID), ]
-  
+  cluster_data <- cluster_data[order(cluster_data$Cell.ID), ]
+#browser()  
   
   b <- clusterPlot(dataset= cluster_data, hvt.results  = trainHVT_results, domains.column = "clusters" )
   

@@ -117,7 +117,7 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr", "tidyr","patchwork", "feather","ggplot2","kableExtra", "htmltools",
-                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust","HVT")
+                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
@@ -125,6 +125,12 @@ if (length(new.packages))
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 
 Below is the function for more dynamic drop down display in the data tables.
 
@@ -270,6 +276,8 @@ edaPlots(entire_dataset)
 ```
 
 ### Histograms
+
+
 
 ```{r plot twohist,figures-side,  warning = FALSE, message=FALSE}
 edaPlots(entire_dataset, output_type = 'histogram')
@@ -932,7 +940,7 @@ ex_post[["plots"]][[1]][[10]]$centroids_plot
 
 Let's run the Ex-Post simulation with `show_simulation` set to `TRUE` to see the simulation lines in the plots.
 
-```{r, warning=FALSE, results='hide'}
+```{r, warning=FALSE,message = FALSE, results='hide'}
 ex_post <- msm(state_time_data = temporal_data,
                forecast_type = "ex-post",
                transition_probability_matrix = prob_trans_matx,
@@ -1148,7 +1156,7 @@ ex_ante$plots$centroids_plot[[10]]
 
 ### Observation
 
-The forecast seems unusual, showing some flat line and irregular pattern. We'll re-run it with the simulation lines visible to figure out what might be causing the issue.
+The forecast seems unusual, showing a flat line. We'll re-run it with the simulation lines visible to figure out what might be causing the issue.
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
 ex_ante <- msm(state_time_data = temporal_data,
@@ -1277,24 +1285,71 @@ To resolve the State Transition Problem, we will conduct a **clustering analysis
 
 Below is the approach used to address the state transition problem:
 
-- *Data and Clustering*
+#### Data and Clustering
 
-The clustering process uses the `clustHVT` function from the HVT package, which performs Agglomerative Nesting (AGNES) Hierarchical Clustering with the `ward.D2` method. This method groups the 2D coordinates of cell centroids from the HVT map into `k` clusters. This function offers visualizations such as a dendrogram and a Cluster Heatmap, to aid in the interpretation of the clustering results. For more information on `clustHVT` visit <a href="https://cran.r-project.org/web/packages/HVT/HVT.pdf
-" target="_blank">here</a>. 
-
-
-- *Handling Problematic States*
-
-When a problematic state is encountered, we look for alternative states within its cluster. Using `Euclidean distance`, we identify n closest states (n is user-defined, defaults to 1). These nearest neighbors serve as potential next states for the simulation, enabling it to progress naturally. 
+- The first step in resolving the state transition problem is to group states into spatially coherent clusters based on their 2D centroid coordinates.  
+- The `clustHVT` function from the HVT package is used for this purpose. It performs *Agglomerative Nesting (AGNES)* hierarchical clustering using the *Ward.D2* linkage method, which minimizes within-cluster variance and groups nearby states together.  
+- Each resulting cluster represents a neighborhood of spatially close states that can serve as potential alternatives during simulation when a problematic state is encountered.  
+- The function also provides useful visual outputs: dendrogram shows the hierarchical structure of the clustering and cluster heatmap visualizes inter-cluster relationships and proximities.  
+- For more details on how `clustHVT` works, refer to the [HVT package documentation](https://cran.r-project.org/web/packages/HVT/HVT.pdf){target="_blank"}.
 
 
-- *Probability-Based State Selection*
+#### Handling Problematic States
 
-The `n` nearest neighbors are ranked by their distance, and each neighbor's selection weight is calculated by taking the inverse of its distance (with closer states receiving higher probabilities). These weights are then normalized by dividing each by the sum of all inverse distances. Cumulative probabilities are then computed, and a random number generator is used to select the next state based on this weighted voting scheme, where the closer neighbors (with higher weights) have a greater influence on the selection.
+- When a problematic state `S_p` is encountered, the algorithm identifies alternative transition options within the same cluster to allow the simulation to progress naturally.  
+- Each state in the cluster, denoted as `S_k`, represents another possible state (neighbor) within the same spatial group as `S_p`. These neighboring states serve as potential candidates for transition when the simulation would otherwise get stuck.
+- **Steps:**
+  1. Identify the cluster `C_j` to which the problematic state `S_p` belongs.  
+  2. Within this cluster, compute the Euclidean distance between the problematic state `S_p` and every other neighboring state `S_k`:  
+     \[
+     d(S_p, S_k) = \sqrt{(x_p - x_k)^2 + (y_p - y_k)^2}
+     \]
+     where:  
+     - `S_p` = current problematic state  
+     - `S_k` = potential neighboring state within the same cluster  
+     - `(x_p, y_p)` and `(x_k, y_k)` = centroid coordinates of the problematic and neighboring states
+  3. Rank all neighboring states based on their distance from `S_p`.  
+  4. Select the *n_nearest_neighbors* (user-defined, defaults to `n = 1`). These states serve as potential next states for transition.  
+- This process ensures that the simulation can move from a problematic state to a nearby state within the same cluster, maintaining spatial continuity and allowing the simulation to evolve smoothly.
 
-*Outcome*
 
-This approach ensures the simulation can progress naturally. It prevents the system from getting stuck in problematic state patterns. The probability-weighted selection maintains realistic state transitions based on spatial proximity, enhancing the simulation's accuracy and reliability.
+#### Probability-Based State Selection
+
+- Once the `n` nearest neighboring states are identified to be more than 1, the next state is chosen using a probabilistic, proximity-driven approach.  
+- This ensures that states closer to the problematic state `S_p` have a higher likelihood of being selected, while still introducing randomness to maintain natural simulation flow.  
+- *Steps:*
+  1. *Compute inverse-distance weights:* Each neighboring state `S_k` is assigned a weight inversely proportional to its distance from the problematic state `S_p`:  
+     \[
+     w_k = \frac{1}{d(S_p, S_k)}
+     \]
+     where:  
+     - `w_k` = weight of neighbor `S_k`  
+     - `d(S_p, S_k)` = Euclidean distance between `S_p` and `S_k`  
+
+  2. *Normalize the weights:* Convert the weights into probabilities so that they sum to 1:  
+     \[
+     P_k = \frac{w_k}{\sum_{j=1}^{n} w_j}
+     \]
+     where `P_k` represents the probability of transitioning from `S_p` to neighbor `S_k`.  
+
+  3. *Compute cumulative probabilities:* Generate cumulative probabilities to create transition intervals:  
+     \[
+     Cum_k = \sum_{i=1}^{k} P_i
+     \]
+     forming ranges like [0, Cum₁), [Cum₁, Cum₂), …, [Cumₙ₋₁, 1].  
+
+  4. *Randomized state selection:* Draw a random number `r` from a *uniform distribution* of 0 to 1.
+     \[
+     r \sim U(0, 1)
+     \]
+     The next state `S_{next}` is chosen where:  
+     \[
+     Cum_{k-1} \le r < Cum_k
+     \]
+- This *inverse-distance weighted random selection* ensures that:  
+  - Closer states have higher transition probabilities.  
+  - The simulation transitions remain spatially coherent.  
+  - Randomness prevents repetitive or deterministic state transitions, maintaining a realistic stochastic flow.
 
 ### Demonstration
 
@@ -1328,7 +1383,7 @@ ex_ante <- msm(state_time_data = temporal_data,
                k=6, n_nearest_neighbor = 3,
                mae_metric = "median",
                show_simulation = FALSE,
-                time_column = "t")
+               time_column = "t")
 
 ```
 

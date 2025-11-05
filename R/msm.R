@@ -119,7 +119,6 @@ msm <- function(state_time_data,
     if (!mae_metric %in% c("median", "mean", "mode"))
       errors <- c(errors, "ERROR: mae_metric must be 'mean', 'median', or 'mode'")
 
-#browser()
 
     # Ex-post validation
     can_plot_states_actual <- FALSE
@@ -173,6 +172,7 @@ msm <- function(state_time_data,
   # ============================================================================
   # SIMPLIFIED CLUSTERING
   # ============================================================================
+#browser()
   
   perform_clustering <- function(clustering_data, k, centroid_2d_points) {
     tryCatch({
@@ -238,6 +238,19 @@ msm <- function(state_time_data,
   common_cols <- intersect(colnames(raw_dataset), colnames(centroid_data))
   clustering_data <- (scoreHVT_results$cellID_coordinates) %>% dplyr::select(-Cell.ID)
   centroid_data <- centroid_data[, common_cols]
+  
+  
+    
+  # clustering_data <- scoreHVT_results$cellID_coordinates
+  # # Order by Cell.ID and set as rownames before removing
+  # clustering_data <- clustering_data[order(clustering_data$Cell.ID), ]
+  # # Set Cell.ID as row names
+  # rownames(clustering_data) <- clustering_data$Cell.ID
+  # # Remove the Cell.ID column
+  # clustering_data <- dplyr::select(clustering_data, -Cell.ID)
+  # 
+  # 
+  # centroid_data <- centroid_data[, common_cols]
   
   scored_cells <- unique(scoreHVT_results$cellID_coordinates$Cell.ID)
   transition_cells <- unique(c(transition_probability_matrix$Current_State,
@@ -389,19 +402,23 @@ msm <- function(state_time_data,
   }
   
   # Adjust initial state
-  initial_state <- adjust_initial_state(initial_state,
-                                        transition_cells,
-                                        problematic_states,
-                                        scored_cells,
-                                        centroid_2d_points,
-                                        cluster_data,
-                                        n_nearest_neighbor)
+  # initial_state <- adjust_initial_state(initial_state,
+  #                                       transition_cells,
+  #                                       problematic_states,
+  #                                       scored_cells,
+  #                                       centroid_2d_points,
+  #                                       cluster_data,
+  #                                       n_nearest_neighbor)
+
   
+    
   # Final validation for problematic states handling
   if (handle_problematic_states && length(problematic_states) > 0) {
     if (is.null(cluster_data)) stop("ERROR: Clustering failed but problematic states exist. Cannot proceed with MSM.")
     # Neighbor availability already validated post-clustering
   }
+
+#browser()  
   
   # Run simulations
   simulation_results <- sapply(seq_len(num_simulations), function(sim_index) {
@@ -417,7 +434,10 @@ msm <- function(state_time_data,
   })
   simulation_results <- as.data.frame(simulation_results)
   colnames(simulation_results) <- paste0("Sim_", seq_len(num_simulations))
+
+
   
+    
   # Add time column
   time_values <- if(forecast_type == "ex-post") {
     if(!is.null(actual_data)) actual_data[[time_column]] else head(state_time_data[[time_column]], n_ahead)
@@ -439,7 +459,8 @@ msm <- function(state_time_data,
       }
     ) %>%
     dplyr::ungroup()
-  
+
+
   # Fast MAE-only return
   if (plot_mode == "mae-only") {
     if (forecast_type != "ex-post" || is.null(actual_data))

@@ -150,7 +150,10 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
     colnames(cellID_coordinates) <- c("x", "y")
     cellID_coordinates$Cell.ID <- hvt_res2
     cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
-    
+
+#browser()
+
+
     maxDepth <- 1
     
     # ============================================================================
@@ -249,7 +252,10 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
     centroidDataframe_2 <- centroidDataframe_2 %>% 
       cbind(centroidDataframe$names.column)
     colnames(centroidDataframe_2) <- c("x", "y", "Cell.ID", "lev", "names.column")
+
+#browser()    
     
+        
     # ============================================================================
     # ADD HOVER TEXT
     # ============================================================================

@@ -1193,7 +1193,10 @@ simulate_step_enhanced <- function(i, current_state, random_val,
                                    initial_state) {
   random_shock <- if (is.null(random_val)) round(runif(min=0, max=1, n=1), 4) else random_val
   if (i == 1) return(initial_state)
-  if (current_state %in% problematic_states) {
+  
+  # Handle problematic states only if handle_problematic_states = TRUE (indicated by cluster_data being non-NULL)
+  # If cluster_data is NULL, just follow the transition matrix normally, even for problematic states
+  if (!is.null(cluster_data) && current_state %in% problematic_states) {
     return(find_nearest_neighbor_enhanced(current_state, centroid_2d_points, cluster_data,
                                           problematic_states, n_nearest_neighbor, scored_cells, initial_state))
   }
@@ -1207,7 +1210,15 @@ simulate_step_enhanced <- function(i, current_state, random_val,
   transition$cumulative_prob <- cumsum(transition$Transition_Probability)
   next_state <- transition$Next_State[which.max(random_shock <= transition$cumulative_prob)]
   next_state <- as.numeric(next_state)
-  if (next_state %in% problematic_states || !next_state %in% scored_cells) {
+  
+  # Replace problematic states only if handle_problematic_states = TRUE (cluster_data is non-NULL)
+  # If handle_problematic_states = FALSE, follow transition matrix even if it leads to problematic states
+  if (!is.null(cluster_data) && next_state %in% problematic_states) {
+    return(find_nearest_neighbor_enhanced(next_state, centroid_2d_points, cluster_data,
+                                          problematic_states, n_nearest_neighbor, scored_cells, initial_state))
+  }
+  # Always replace invalid states (not in scored_cells)
+  if (!next_state %in% scored_cells) {
     return(find_nearest_neighbor_enhanced(next_state, centroid_2d_points, cluster_data,
                                           problematic_states, n_nearest_neighbor, scored_cells, initial_state))
   }
