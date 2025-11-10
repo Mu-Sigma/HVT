@@ -55,7 +55,7 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
                                  "ratkowsky", "ball", "hubert", "dindex", "ptbiserial", 
                                  "gap", "frey", "mcclain", "gamma", "gplus", "tau", 
                                  "dunn", "sdindex", "sdbw"), 
-                     clusters_k = "champion", type = "default", domains.column = NULL) {
+                     clusters_k = "champion", type = "default", domains.column = NULL, highlight_labels = NULL, only_dendo = FALSE) {
   requireNamespace('NbClust')
   
   if (type == "plot"){
@@ -174,35 +174,71 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   clusters <- stats::cutree(hc, k = no_of_clusters)
   
 # Replace the existing plot_dendrogram function with this:
-  plot_dendrogram <- function(hc_1, no_of_clusters_1) {
-    function() {
-      plot(hc_1, xlab = "Clusters", ylab = "Distance", sub ="")
-      stats::rect.hclust(hc_1, k = no_of_clusters_1, border = grDevices::rainbow(no_of_clusters_1))
+  # plot_dendrogram <- function(hc_1, no_of_clusters_1) {
+  #   function() {
+  #     plot(hc_1, xlab = "Clusters", ylab = "Distance", sub ="")
+  #     stats::rect.hclust(hc_1, k = no_of_clusters_1, border = grDevices::rainbow(no_of_clusters_1))
+  #   }
+  # }
+  
+  if(only_dendo){
+    plot_dendrogram <- function(hc_1, no_of_clusters_1, highlight_labels = NULL) {
+      
+      function() {
+        dend <- as.dendrogram(hc_1)
+        
+        if (!is.null(highlight_labels)) {
+          labels_colors <- ifelse(labels(dend) %in% highlight_labels, "red", "black")
+          dend <- dendextend::set(dend, "labels_col", labels_colors)
+        }
+        dend <- dendextend::set(dend, "labels_cex", 1)
+        plot(dend, ylab = "Distance", xlab = "Clusters", leaflab = "perpendicular")
+        dendextend::rect.dendrogram(dend, k = no_of_clusters_1, 
+                                    border = grDevices::rainbow(no_of_clusters_1))
+      }
     }
-  }
-  
-  a <- plot_dendrogram(hc_1 = hc, no_of_clusters_1 = no_of_clusters)
-
     
-
-  # Prepare data for clusterPlotly
-  cluster_data <- scoreHVT_results$centroidData %>% 
-    dplyr::select("Cell.ID", "names.column") %>%
-    mutate(clusters =  clusters)
-  
-  cluster_data <- cluster_data[order(cluster_data$Cell.ID), ]
-#browser()  
-  
-  b <- clusterPlot(dataset= cluster_data, hvt.results  = trainHVT_results, domains.column = "clusters" )
-  
-  output_list <- list(
-    hc = hc,
-    clusters = clusters,
-    cluster_data =cluster_data,
-    dendogram = a,
-    clusterplot = b
-  )
-  
-  return(output_list)
-}
+    
+    a <- plot_dendrogram(hc_1 = hc,no_of_clusters_1 = no_of_clusters,highlight_labels = highlight_labels)
+    
+    output_list <- list(dendogram = a)
+    return(output_list)
+  }else {
+    plot_dendrogram <- function(hc_1, no_of_clusters_1, highlight_labels = NULL) {
+      
+      function() {
+        dend <- as.dendrogram(hc_1)
+        dend <- dendextend::set(dend, "labels_cex", 1)
+        plot(dend, ylab = "Distance", xlab = "Clusters", leaflab = "perpendicular")
+        dendextend::rect.dendrogram(dend, k = no_of_clusters_1, 
+                                    border = grDevices::rainbow(no_of_clusters_1))
+      }
+    }
+    
+    
+    
+    a <- plot_dendrogram(hc_1 = hc,no_of_clusters_1 = no_of_clusters,highlight_labels = highlight_labels)
+    
+    
+    # Prepare data for clusterPlotly
+    cluster_data <- scoreHVT_results$centroidData %>% 
+      dplyr::select("Cell.ID", "names.column") %>%
+      mutate(clusters =  clusters)
+    
+    cluster_data <- cluster_data[order(cluster_data$Cell.ID), ]
+    #browser()  
+    
+    b <- clusterPlot(dataset= cluster_data, hvt.results  = trainHVT_results, domains.column = "clusters" )
+    
+    output_list <- list(
+      hc = hc,
+      clusters = clusters,
+      cluster_data =cluster_data,
+      dendogram = a,
+      clusterplot = b
+    )
+    
+    return(output_list)
+  }
+  }
 }

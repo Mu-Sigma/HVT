@@ -92,6 +92,7 @@ msm <- function(state_time_data,
                 precomputed_problematic_states = NULL,
                 plot_mode = c("all","mae-only")) {
 
+
   # Global variables for CRAN warnings
   time <- simulation <- median <- sd <- studentized_residuals <- value <- Cell.ID <- cluster <- nearest_neighbor <- NULL
 
@@ -191,8 +192,7 @@ msm <- function(state_time_data,
         indices = NULL,
         clusters_k = as.integer(k),
         type = "default",
-        domains.column = NULL
-      )
+        domains.column = NULL)
       
       clusters <- cutree(clust.results$hc, k = k)
       cluster_data <- data.frame(
@@ -533,11 +533,29 @@ msm <- function(state_time_data,
     plots <- list()
   }
   
+  if (handle_problematic_states && length(problematic_states) > 0) {
+    
+    clust.results.2 <- clustHVT(
+      data = clustering_data,
+      trainHVT_results = trainHVT_results,
+      scoreHVT_results = scoreHVT_results,
+      clustering_method = "ward.D2",
+      indices = NULL,
+      clusters_k = as.integer(k),
+      type = "default",
+      domains.column = NULL,
+      only_dendo = TRUE,
+      highlight_labels =c(problematic_states, all_nearest_neighbors))
+    
+  }
+    
+    
+    
   # Return results
   if(handle_problematic_states) {
     output_list <- list(
       plots = plots,
-      dendogram = clust.results$dendogram,
+      dendogram = clust.results.2$dendogram,
       problematic_states_list = stp_list,
       cluster_heatmap = cluster_heatmap,
       problematic_states = problematic_states,

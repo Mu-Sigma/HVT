@@ -186,7 +186,7 @@ This chunk verifies the installation of all the necessary packages to successful
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr","magrittr", "ggplot2", "kableExtra", "gridExtra","grid", "httr", "stats", 
                       "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly", "tidyr",
-                      "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable", "HVT")
+                      "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable")
 
 new.packages <-
   list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
@@ -194,6 +194,13 @@ if (length(new.packages))
   install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 
+```
+
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
 ```
 
 ## 3.1 User-defined Functions
