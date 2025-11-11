@@ -736,19 +736,19 @@ Flowmaps visualize the flow of data between states over time including and exclu
 - The State-based Animation, excluding self-transitions, shows an arrow moving between cells, with its length indicating transition probabilities. The animation highlights movement between states over time.
 
 ```{r, warning=FALSE,out.width = "672px", out.height = "480px", fig.width = 8.5, fig.height = 6.5,fig.align = "center"}
-# flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
-#                                      transition_probability_df =prob_trans_matx,
-#                                      df = temporal_data,
-#                                      animation = "All" , flow_map = "All",
-#                                      fps_time = 10,time_duration = 30,
-#                                      fps_state = 10,state_duration = 30,
-#                                      cellid_column = "Cell.ID", time_column = "t")
+flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
+                                     transition_probability_df =prob_trans_matx,
+                                     df = temporal_data,
+                                     animation = "All" , flow_map = "All",
+                                     fps_time = 10,time_duration = 30,
+                                     fps_state = 10,state_duration = 30,
+                                     cellid_column = "Cell.ID", time_column = "t")
 ```
 
 #### Self State Flowmap
 
 ```{r, warning=FALSE, fig.width=9,fig.height=5.5, fig.align='center'}
-#flowmap_plots$self_state
+flowmap_plots$self_state
 ```
 
 
@@ -756,21 +756,21 @@ Flowmaps visualize the flow of data between states over time including and exclu
 
 
 ```{r, fig.width=9, fig.height=5.5,fig.align='center', warning=FALSE}
-#flowmap_plots$without_self_state
+flowmap_plots$without_self_state
 ```
 
 #### Time-based Animation
 
 
 ```{r,  warning=FALSE, fig.align='center'}
-#flowmap_plots$time_based
+flowmap_plots$time_based
 ```
 
 #### State-based Animation
 
 
 ```{r,  warning=FALSE, fig.align='center'}
-#flowmap_plots$state_based
+flowmap_plots$state_based
 ```
 
 

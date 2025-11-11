@@ -445,7 +445,8 @@ msm <- function(state_time_data,
     n_ahead_ante[1:nrow(simulation_results)]
   }
   simulation_results$time <- time_values
-  
+
+
   # Calculate summary statistics
   simulation_results <- simulation_results %>%
     dplyr::select(time, dplyr::everything()) %>%
