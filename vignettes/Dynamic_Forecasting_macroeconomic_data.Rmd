@@ -105,11 +105,15 @@ The HVT package offers a suite of R functions designed to construct <a href="htt
 
 <span style="font-size: 20px;">**What's New?**</span>
 
-- This notebook introduces a new feature `msm` in HVT package, which stands for **Monte Carlo Simulations of Markov Chain**, a feature designed for **Dynamic Forecasting of time series data**. 
+This notebook introduces a new feature msm in the HVT package, which stands for Monte Carlo Simulations of Markov Chain — a feature designed for Dynamic Forecasting of time series data, along with Simulation Density Plot and Reconciliation Table for enhanced visualization and result validation.
 
-- This method relies on a transition probability matrix to forecast n states ahead in time series data. This notebook includes ex-post and ex-ante forecasting and provides a step-by-step walk through from data preparation to forecast generation.
+The method relies on a Transition Probability Matrix (TPM) to forecast n states ahead in time series data. It supports both ex-post (past-based validation) and ex-ante (future-based prediction) forecasting, and provides a step-by-step walkthrough from data preparation to forecast generation.
 
-- It also examines challenges encountered during forecasting due to transition probability issues in certain states, proposes solutions to address these challenges, and assesses prediction accuracy using relevant metrics.
+It also examines challenges encountered during forecasting due to transition probability issues in certain states, proposes solutions to handle such problematic states, and evaluates prediction accuracy using appropriate metrics.
+
+Additionally, a Simulation Density Plot is introduced to visually represent how simulation paths overlap over time. The color-coded density levels help identify regions of high or low simulation concentration, offering deeper insight into model behavior and uncertainty.
+
+A Reconciliation Table is also included to compare and align forecasted values with actual observations, helping to assess consistency and correctness across different forecast states.
 
 # 2. Notebook Requirements
 
