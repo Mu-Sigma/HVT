@@ -40,6 +40,7 @@
 #' @keywords Timeseries_Analysis
 #' @importFrom magrittr %>%
 #' @importFrom stats sd cutree
+#' @importFrom ggpointdensity stat_pointdensity
 #' @include HVTMSM_support.R
 #' @examples 
 #' dataset <- data.frame(t = as.numeric(time(EuStockMarkets)),
@@ -72,13 +73,13 @@
 #'              show_simulation = FALSE,
 #'              time_column = 't')
 #' @export msm
-
+library(ggpointdensity)
 msm <- function(state_time_data,
                 forecast_type = "ex-post",
                 initial_state,
                 n_ahead_ante = 10,
                 transition_probability_matrix,
-                num_simulations = 100,
+                num_simulations = 500,
                 trainHVT_results,
                 scoreHVT_results,
                 actual_data = NULL,
@@ -418,7 +419,7 @@ msm <- function(state_time_data,
     # Neighbor availability already validated post-clustering
   }
 
-#browser()  
+#
   
   # Run simulations
   simulation_results <- sapply(seq_len(num_simulations), function(sim_index) {
@@ -436,7 +437,6 @@ msm <- function(state_time_data,
   colnames(simulation_results) <- paste0("Sim_", seq_len(num_simulations))
 
 
-  
     
   # Add time column
   time_values <- if(forecast_type == "ex-post") {
@@ -445,6 +445,7 @@ msm <- function(state_time_data,
     n_ahead_ante[1:nrow(simulation_results)]
   }
   simulation_results$time <- time_values
+  
 
 
   # Calculate summary statistics
@@ -460,8 +461,188 @@ msm <- function(state_time_data,
       }
     ) %>%
     dplyr::ungroup()
+  
 
 
+  # ============================================================
+  # ---- LONG DATA PREPARATION ---------------------------------
+  # ============================================================
+  
+  long_data <- simulation_results %>%
+    pivot_longer(
+      cols = -time,
+      names_to = "simulation",
+      values_to = "value"
+    )
+  
+  long_data$time <- as.Date(long_data$time, tz = "UTC")
+  long_data$time <- long_data$time +1
+  
+  reconciliation_table <- long_data %>%
+    dplyr::group_by(time, value) %>%
+    dplyr::summarise(Count = n(), .groups = "drop") %>%
+    dplyr::mutate(
+      SI.No = dplyr::row_number(),
+      Timestamp = time,
+      State = value
+    ) %>%
+    dplyr::select(SI.No, Timestamp, State, Count)
+  
+  
+  # ============================================================
+  # ---- TRUE DENSITY (ACTUAL COUNT) CALCULATION ----------------
+  # ============================================================
+  
+  count_map <- long_data %>%
+    group_by(time, value) %>%
+    summarise(density = n(), .groups = "drop")
+  # density = actual number of simulations at each timestamp/state
+  
+  
+  # Join the density back to every simulation point
+  long_data2 <- long_data %>%
+    left_join(count_map, by = c("time", "value"))
+  
+  
+  # ============================================================
+  library(tidyverse)
+  library(plotly)
+  
+  # ============================================================
+  # ---- LONG DATA PREPARATION ---------------------------------
+  # ============================================================
+  
+  long_data <- simulation_results %>%
+    pivot_longer(
+      cols = -time,
+      names_to = "simulation",
+      values_to = "value"
+    )
+  
+  long_data$time <- as.Date(long_data$time, tz = "UTC")
+  long_data$time <- long_data$time + 1
+  
+  # ============================================================
+  # ---- TRUE DENSITY (ACTUAL COUNT) ----------------------------
+  # ============================================================
+  
+  count_map <- long_data %>%
+    group_by(time, value) %>%
+    summarise(density = n(), .groups = "drop")
+  
+  long_data2 <- long_data %>%
+    left_join(count_map, by = c("time", "value"))
+  
+  max_dens <- max(long_data2$density)
+  
+  # ============================================================
+  # ---- PRECOMPUTE GREYSCALE COLORS ----------------------------
+  # ============================================================
+  
+  grey_fun <- colorRamp(c("grey90", "grey70", "grey40", "black"))
+  
+  long_data2$grey_hex <- apply(
+    grey_fun(long_data2$density / max_dens),
+    1,
+    function(x) rgb(x[1], x[2], x[3], maxColorValue = 255)
+  )
+  
+  # ============================================================
+  # ---- PLOTLY SIMULATION LINES --------------------------------
+  # ============================================================
+  
+  fig <- plot_ly()
+  
+  all_sims <- unique(long_data2$simulation)
+  
+  for (sim in all_sims) {
+    
+    sim_data <- long_data2 %>% filter(simulation == sim)
+    
+    fig <- fig %>%
+      add_lines(
+        data = sim_data,
+        x = ~time,
+        y = ~value,
+        line = list(width = 0.4, color = sim_data$grey_hex[1]),
+        text = ~paste(
+          "Timestamp:", time,
+          "<br>State:", value,
+          "<br>Count:", density
+        ),
+        hoverinfo = "text",
+        showlegend = FALSE
+      )
+  }
+  
+  # ============================================================
+  # ---- ADD DUMMY TRACE FOR COLORBAR ---------------------------
+  # ============================================================
+  
+  # Dummy data spanning full density range
+  dummy_vals <- seq(0, max_dens, length.out = 100)
+  
+  # ============================================================
+  # ---- ADD CLEAN SIDEBAR COLORBAR -----------------------------
+  # ============================================================
+  
+  fig <- fig %>%
+    add_markers(
+      x = rep(min(long_data2$time), 200),
+      y = rep(min(long_data2$value), 200),
+      marker = list(
+        size = 0,
+        color = seq(0, max_dens, length.out = 200),   # smooth color scale
+        cmin = 0,
+        cmax = max_dens,
+        colorscale = list(
+          list(0, "rgb(230,230,230)"),   # grey90
+          list(0.33, "rgb(180,180,180)"),# grey70
+          list(0.66, "rgb(110,110,110)"),# grey40
+          list(1, "rgb(0,0,0)")          # black
+        ),
+        showscale = TRUE,
+        colorbar = list(
+          title = list(
+            text = "Simulation Count",
+            side = "top"                 # title above bar
+          ),
+          tickmode = "auto",
+          ticks = "outside",
+          tickfont = list(size = 12),
+          
+          # POSITION (top-right corner — clean)
+          x = 1.12,
+          y = 0.98,
+          xanchor = "left",
+          yanchor = "top",
+          
+          # SIZE
+          len = 0.55,         # taller bar
+          thickness = 15      # thin, clean bar
+        )
+      ),
+      hoverinfo = "none",
+      showlegend = FALSE
+    )
+  
+  # ============================================================
+  # ---- FINAL LAYOUT -------------------------------------------
+  # ============================================================
+  
+  density_plot <- fig %>%
+    layout(
+      title = "MSM : Simulation Density Plot",
+      xaxis = list(
+        title = "Timestamp",
+        tickvals = seq(min(long_data2$time), max(long_data2$time), by = "2 months"),
+        tickformat = "%Y-%m",
+        tickangle = -45
+      ),
+      yaxis = list(title = "State"),
+      plot_bgcolor = "white",
+      paper_bgcolor = "white"
+    )
   # Fast MAE-only return
   if (plot_mode == "mae-only") {
     if (forecast_type != "ex-post" || is.null(actual_data))
@@ -573,6 +754,8 @@ msm <- function(state_time_data,
     output_list <- list(
       plots = plots,
       simulation_results = simulation_results,
+      reconciliation_table = reconciliation_table,
+      density_plot = density_plot,
       data_coverage = list(
         scored_cells = scored_cells,
         transition_cells = transition_cells,
