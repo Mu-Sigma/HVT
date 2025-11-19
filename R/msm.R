@@ -591,6 +591,7 @@ msm <- function(state_time_data,
       x = rep(min(long_data2$time), 200),
       y = rep(min(long_data2$value), 200),
       marker = list(
+        opacity = 0,
         size = 0,
         color = seq(0, max_dens, length.out = 200),   # smooth color scale
         cmin = 0,

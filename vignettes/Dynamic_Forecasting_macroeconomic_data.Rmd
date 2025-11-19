@@ -741,12 +741,12 @@ Flowmaps visualize the flow of data between states over time including and exclu
 
 ```{r, warning=FALSE,out.width = "672px", out.height = "480px", fig.width = 8.5, fig.height = 6.5,fig.align = "center"}
 flowmap_plots <- plotAnimatedFlowmap(hvt_model_output = hvt.results,
-                                    transition_probability_df =prob_trans_matx,
-                                    df = temporal_data,
-                                     animation = "All" , flow_map = "All",
-                                     fps_time = 10,time_duration = 30,
-                                     fps_state = 10,state_duration = 30,
-                                     cellid_column = "Cell.ID", time_column = "t")
+                                transition_probability_df =prob_trans_matx,
+                                 df = temporal_data,
+                                 animation = "All" , flow_map = "All",
+                                fps_time = 10,time_duration = 30,
+                               fps_state = 10,state_duration = 30,
+                              cellid_column = "Cell.ID", time_column = "t")
 ```
 
 #### Self State Flowmap
@@ -857,7 +857,7 @@ ex_post <- msm(state_time_data = temporal_data,
                forecast_type = "ex-post",
                transition_probability_matrix = prob_trans_matx,
                initial_state = temporal_data$Cell.ID[temporal_data$t == "2022-12-01"],
-               num_simulations = 1000,
+               num_simulations = 500,
                scoreHVT_results = scoring,
                trainHVT_results = hvt.results,
                actual_data = expost_forecasting,
@@ -1032,13 +1032,12 @@ ex_post[["plots"]][[1]][[9]]$centroids_plot
 ex_post[["plots"]][[1]][[10]]$centroids_plot
 ```
 
-### Density Simulation Plot and Reconcilation Table 
+### Density Simulation Plot and Reconcilation Table {.tabset}
 
-Density Simulation Plot and Reconciliation Table
 A visual and tabular summary of simulated trajectories showing the distribution of simulations over time (density plot) and the exact counts of simulation paths per state at each timestamp (reconciliation table).
 
 ##### density plot
-```{r, fig.width=10.5,out.width='100%', fig.height=4.5, fig.align='center'}
+```{r, fig.width=10.5,out.width='100%', fig.height=6, fig.align='center'}
 ex_post[["density_plot"]]
 ```
 
@@ -1095,7 +1094,7 @@ ex_ante <- msm(state_time_data = temporal_data,
                transition_probability_matrix = prob_trans_matx,
                initial_state = tail(temporal_data$Cell.ID, 1),
                n_ahead_ante = ex_ante_period,  
-               num_simulations = 1000,
+               num_simulations = 500,
                scoreHVT_results = scoring,
                trainHVT_results = hvt.results,
                raw_dataset = entire_dataset,
@@ -1188,11 +1187,12 @@ ex_ante <- msm(state_time_data = temporal_data,
                transition_probability_matrix = prob_trans_matx,
                initial_state = tail(temporal_data$Cell.ID, 1),
                n_ahead_ante = ex_ante_period,  
-               num_simulations = 1000,
+               num_simulations = 500,
                scoreHVT_results = scoring,
                trainHVT_results = hvt.results,
                raw_dataset = entire_dataset,
-               handle_problematic_states = FALSE,
+               handle_problematic_states 
+               = FALSE,
                mae_metric = "median",
                show_simulation = TRUE,
                time_column = "t")
@@ -1269,20 +1269,19 @@ ex_ante$plots$centroids_plot[[9]]
 ex_ante$plots$centroids_plot[[10]]
 ```
 
-### Density Simulation Plot and Reconcilation Table 
+### Density Simulation Plot and Reconcilation Table {.tabset}
 
-Density Simulation Plot and Reconciliation Table
 A visual and tabular summary of simulated trajectories showing the distribution of simulations over time (density plot) and the exact counts of simulation paths per state at each timestamp (reconciliation table).
 
 ##### density plot
-```{r, fig.width=9.5,out.width='100%', fig.height=4.5, fig.align='center'}
-ex_post[["density_plot"]]
+```{r, fig.width=9.5,out.width='100%', fig.height=6, fig.align='center'}
+ex_ante[["density_plot"]]
 ```
 
 ##### reconcilation table
 
 ```{r, fig.width=8.5,out.width='100%', fig.height=4.5, fig.align='center'}
-recon_table <- ex_post[["reconciliation_table"]]
+recon_table <- ex_ante[["reconciliation_table"]]
 recon_table$Timestamp <- as.character(recon_table$Timestamp)
 dynamic_length_menu <- calculate_dynamic_length_menu(nrow(recon_table))
 datatable(recon_table, options = list(pageLength = 10,scrollX = TRUE,lengthMenu = dynamic_length_menu,columnDefs = list(list(width = '150px', targets = 1))),class = "nowrap display",rownames = FALSE)
