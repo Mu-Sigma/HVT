@@ -11,7 +11,7 @@ vignette: >
   %\VignetteIndexEntry{Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-<!-- --- -->
+---
 
 
 
