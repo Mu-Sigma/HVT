@@ -40,7 +40,6 @@
 #' @keywords Timeseries_Analysis
 #' @importFrom magrittr %>%
 #' @importFrom stats sd cutree
-#' @importFrom ggpointdensity stat_pointdensity
 #' @include HVTMSM_support.R
 #' @examples 
 #' dataset <- data.frame(t = as.numeric(time(EuStockMarkets)),
@@ -73,7 +72,8 @@
 #'              show_simulation = FALSE,
 #'              time_column = 't')
 #' @export msm
-library(ggpointdensity)
+
+
 msm <- function(state_time_data,
                 forecast_type = "ex-post",
                 initial_state,
@@ -545,7 +545,7 @@ msm <- function(state_time_data,
       clusters_k = as.integer(k),
       type = "default",
       domains.column = NULL,
-      only_dendo = TRUE,
+      only_dendro = TRUE,
       highlight_labels =c(problematic_states, all_nearest_neighbors))
     
   }

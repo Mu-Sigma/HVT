@@ -18,8 +18,6 @@
 #' @importFrom tidyr pivot_longer
 #' @importFrom ggplot2 ggplot geom_line geom_point geom_vline scale_colour_manual scale_x_datetime 
 #' @importFrom ggplot2 scale_x_continuous theme_minimal labs expansion element_text unit
-#' @importFrom plotly ggplotly layout
-#' @importFrom rlang sym
 #' @examples 
 #' \dontrun{
 #' # After running msm() for ex-ante forecasting

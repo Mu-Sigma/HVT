@@ -17,4 +17,4 @@ utils::globalVariables(c(".","k","Segment.Level","Segment.Child","Quant.Error",
                         "k_numeric","nn_numeric","mae_numeric","k_sort","nn_sort",
                         "Number of Cells","Number of nearest neighbors","mae","status",
                         "temp_cluster_data","hoverText","lev","nclust","nn",
-                        "is_overall_best","is_overall_worst","hover_text"))
+                        "is_overall_best","is_overall_worst","hover_text", "label"))

@@ -10,7 +10,7 @@ msm(
   initial_state,
   n_ahead_ante = 10,
   transition_probability_matrix,
-  num_simulations = 100,
+  num_simulations = 500,
   trainHVT_results,
   scoreHVT_results,
   actual_data = NULL,

@@ -18,6 +18,10 @@
 #'  will return only the clustered heatmap.
 #' @param domains.column Character. A vector of cluster names for the clustered heatmap.
 #' Used only when type is 'plot'.
+#' @param highlight_labels Vector. Numeric vector specifying problematic states and their neighboring states to be highlighted in the dendrogram. 
+#' This argument is intended for internal use only. The default value is NULL.
+#' @param only_dendro Logical. A logical string specifies whether to generate only the dendrogram or to include the results as well.
+#' This argument is intended for internal use only. The default value is FALSE.
 #' @return A list object that contains the hierarchical clustering results.
 #' \item{[[1]] }{Summary of k suggested by all indices with plots} 
 #' \item{[[2]] }{A dendogram plot with the selected number of clusters} 
@@ -27,6 +31,7 @@
 #' @keywords Clustering_Analysis
 #' @include clusterPlot.R
 #' @importFrom utils data head tail
+#' @importFrom stats as.dendrogram median 
 #' @examples 
 #'data("EuStockMarkets")
 #'dataset <- data.frame(t = as.numeric(time(EuStockMarkets)),
@@ -55,7 +60,7 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
                                  "ratkowsky", "ball", "hubert", "dindex", "ptbiserial", 
                                  "gap", "frey", "mcclain", "gamma", "gplus", "tau", 
                                  "dunn", "sdindex", "sdbw"), 
-                     clusters_k = "champion", type = "default", domains.column = NULL, highlight_labels = NULL, only_dendo = FALSE) {
+                     clusters_k = "champion", type = "default", domains.column = NULL, highlight_labels = NULL, only_dendro = FALSE) {
   requireNamespace('NbClust')
   
   if (type == "plot"){
@@ -181,7 +186,7 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   #   }
   # }
   
-  if(only_dendo){
+  if(only_dendro){
     plot_dendrogram <- function(hc_1, no_of_clusters_1, highlight_labels = NULL) {
       
       function() {

@@ -116,9 +116,9 @@ The workflow supports both:
 
 The notebook provides a step-by-step walkthrough covering data preparation, model setup, and forecast generation. It also highlights challenges arising from transition probability issues in certain states, outlines mechanisms to handle such problematic states, and evaluates forecast performance using appropriate accuracy metrics.
 
-**HVT – Version 25.2.9**
+**HVT – Version 25.2.8**
 
-The latest version introduces an enhancement to dynamic forecasting with the release of **raw series ex-ante forecasting**. In this approach, a **simple 12-month direct lookback method** is used, where raw historical values combined with the forecasted **year-over-year (YoY)** changes are applied to generate raw-level forecasts for each feature over the ex-ante period.
+In this latest version of notebook, introducing an enhancement to dynamic forecasting with the release of **raw series ex-ante forecasting**. In this approach, a **simple 12-month direct lookback method** is used, where raw historical values combined with the forecasted **year-over-year (YoY)** changes are applied to generate raw-level forecasts for each feature over the ex-ante period.
 
 </br>
 

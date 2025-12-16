@@ -14,7 +14,9 @@ clustHVT(
     "dunn", "sdindex", "sdbw"),
   clusters_k = "champion",
   type = "default",
-  domains.column = NULL
+  domains.column = NULL,
+  highlight_labels = NULL,
+  only_dendro = FALSE
 )
 }
 \arguments{
@@ -40,6 +42,12 @@ will return only the clustered heatmap.}
 
 \item{domains.column}{Character. A vector of cluster names for the clustered heatmap.
 Used only when type is 'plot'.}
+
+\item{highlight_labels}{Vector. Numeric vector specifying problematic states and their neighboring states to be highlighted in the dendrogram. 
+This argument is intended for internal use only. The default value is NULL.}
+
+\item{only_dendro}{Logical. A logical string specifies whether to generate only the dendrogram or to include the results as well.
+This argument is intended for internal use only. The default value is FALSE.}
 }
 \value{
 A list object that contains the hierarchical clustering results.
