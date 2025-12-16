@@ -1,19 +1,16 @@
 #' @name plotExAnteRawSeries
-#' @title Revert Ex-ante Forecasts from Transformed Scale to Raw Scale
-#' @description Reverts ex-ante forecasts from log-difference-12 transformed scale back to the original raw scale. 
-#' This function is used when data has been transformed using log-diff-12 for modeling, but forecasts need to be 
-#' interpreted in the original units.
-#' @param ex_ante_results List. Output from `msm()` function with `forecast_type = "ex-ante"`. Must contain 
-#' forecasted states and variable forecasts.
-#' @param original_dataset Data.frame. Pre-transformation raw data with time column and all variables in original scale.
-#' @param transformed_dataset Data.frame. Post-transformation data (for reference/validation). Not strictly required 
-#' but useful for validation.
-#' @param time_column Character. Name of the time column in the datasets.
+#' @title Ex-ante raw series forecasting
+#' @description Transforms ex-ante forecasts generated on a log-difference-12 scale back to the original raw data scale
+#' @param ex_ante_results List. Output from `msm()` function with `forecast_type = "ex-ante"`
+#' @param original_dataset Dataframe. The dataset imported with all features in its original scale of measures 
+#' without normalization or log difference
+#' @param transformed_dataset Dataframe. The dataset that is transformed for analysis including scaling and log difference
+#' @param time_column Character. Name of the time column in the dataset.
 #' @param mae_metric Character. Metric to highlight in plots ("mean", "median", or "mode"). Default is "median".
 #' @return A list containing:
 #' \item{reverted_forecasts}{List of data frames, one per variable, with columns: time, mean, median, mode (reverted values)}
 #' \item{plots}{List of plotly objects, one per variable, showing historical data and reverted forecasts}
-#' @author Vishwavani <vishwavani@mu-sigma.com>
+#' @author Vishwavani <vishwavani@@mu-sigma.com>
 #' @keywords Timeseries_Analysis
 #' @importFrom magrittr %>%
 #' @importFrom stats na.omit
@@ -43,7 +40,7 @@
 #' raw_forecasts <- plotExAnteRawSeries(
 #'   ex_ante_results = ex_ante,
 #'   original_dataset = entire_dataset_original,  # Pre-transformation raw data
-#'   transformed_dataset = entire_dataset,        # Post-transformation data (optional)
+#'   transformed_dataset = entire_dataset,        # Post-transformation data 
 #'   time_column = "t",
 #'   mae_metric = "median"
 #' )

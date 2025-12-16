@@ -134,10 +134,15 @@ kable(vignette_data, format = "html",
 
 # 3. Version History
 
+## HVT (v25.2.8) - What's new?
 
-## HVT (v25.2.7) - What's New
+16th December, 2025
 
-16th October, 2025
+1. **Ex-ante raw series forecasting**: A new feature enabling ex-ante raw series forecasting directly from transformed year-over-year (YoY) forecasts using a 12-month lookback approach. This allows the percentage changes from ex-ante transformed forecasts to be translated back into the raw series for each variable. This feature is introduced and explained in ‘Dynamic Forecasting of Macroeconomic Time Series Dataset using HVT’ vignette.
+
+## HVT (v25.2.7) 
+
+22nd October, 2025
 
 In this version of the HVT package, the following new feature and vignette have been introduced:
 
@@ -151,8 +156,12 @@ In this version of the HVT package, the following new feature and vignette have 
 
 1. **Hyperparameter Experimentation for Champion Model Selection in MSM Dynamic Forecasting**: This vignette provides a comprehensive demonstration of using `HVTMSMoptimization`, covering the complete workflow from initial dataset handling, selection for train & test, executing hyperparameter tuning and identifying the champion model, implementing the champion model, and comparing MAE results.
 
-*The issue with time-series animation plots from previous release has now been resolved with the latest gganimate update.*
 
+## HVT (v25.2.6)
+
+14th October, 2025
+
+*The issue with time-series animation plots from previous release has now been resolved with the latest gganimate update.*
 
 ## HVT (v25.2.5)
 
@@ -274,7 +283,7 @@ This version of the HVT package offers features for both training an HVT model a
 
 
 
-# 4. Installation of HVT (v25.2.7)
+# 4. Installation of HVT (v25.2.8)
 
 **CRAN Installation**
 
