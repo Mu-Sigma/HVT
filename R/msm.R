@@ -121,7 +121,7 @@ msm <- function(state_time_data,
     if (!mae_metric %in% c("median", "mean", "mode"))
       errors <- c(errors, "ERROR: mae_metric must be 'mean', 'median', or 'mode'")
 
-
+#browser()
     # Ex-post validation
     can_plot_states_actual <- FALSE
     if (forecast_type == "ex-post") {
