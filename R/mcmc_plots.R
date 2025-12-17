@@ -295,7 +295,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
   create_html_layout <- function(plot1, plot2, type, variable_name, mae_metric, mae) {
     htmltools::tagList(
       htmltools::div(
-        style = "display: grid; grid-template-columns: 1fr; max-width: 100%; font-family: Arial, sans-serif;",
+        style = "display: grid; grid-template-columns: 1fr; max-width: 100%; font-family: Arial, sans-serif; margin-bottom: 0;",
         htmltools::div(
           style = "grid-column: 1; width: 100%; text-align: left; font-weight: bold; font-size: 18px; padding-left: 60px; font-family: Arial, sans-serif;",
           paste0(ifelse(is.null(type), "DefaultType", type), 
@@ -315,7 +315,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
           style = "grid-column: 1; width: 100%; text-align: left; font-size: 14px; padding-left: 60px; font-style: italic;",
           paste("MAE:", ifelse(is.null(mae), "N/A", mae))
         ),
-        htmltools::div(style = "grid-column: 1; width: 100%;", plot2)
+        htmltools::div(style = "grid-column: 1; width: 100%; margin-bottom: 0;", plot2)
       )
     )
   }

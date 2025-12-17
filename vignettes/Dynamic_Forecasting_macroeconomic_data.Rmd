@@ -128,7 +128,7 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr", "tidyr","patchwork", "feather","ggplot2","kableExtra", "htmltools",
-                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust","HVT")
+                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust")
 
 new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 if (length(new.packages))
@@ -136,6 +136,14 @@ if (length(new.packages))
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 ```
 
+Sourcing all the R scripts, as the new function for ex-ante raw series forecasting is yet to be released in CRAN.
+ 
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 
 Below is the function for more dynamic drop down display in the data tables.
 
