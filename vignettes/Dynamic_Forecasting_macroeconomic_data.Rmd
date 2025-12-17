@@ -1790,7 +1790,7 @@ ex_ante_raw <- plotExAnteRawSeries(ex_ante_results = ex_ante,
 
 ####  CPI_Food
 
-```{r, fig.width=8.5, out.width='100%',fig.height = 6, fig.align='center'}
+```{r, fig.width=8.5, out.width='100%',fig.height = 4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$CPI_Food
 ```
 
@@ -2041,105 +2041,105 @@ ex_ante_raw <- plotExAnteRawSeries(ex_ante_results = ex_ante,
 
 ####  CPI_Food
 
-```{r, fig.width=10, out.width='100%',fig.height = 6, fig.align='center'}
+```{r, fig.width=10, out.width='100%',fig.height = 4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$CPI_Food
 ```
 
 
 ####  COIN
 
-```{r, fig.width=10, out.width='100%',fig.height=6, fig.align='center'}
+```{r, fig.width=10, out.width='100%',fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$COIN
 ```
 
 #### Copper_ETF
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$Copper_ETF
 ```
 
 ####  SnP500_ETF
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$SnP500_ETF
 ```
 
 ####  Spot_Oil
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$Spot_Oil
 ```
 
 ####  USD_Index
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$USD_Index
 ```
 
 
 ####  Unemp_Rate
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$Unemp_Rate
 ```
 
 ####  Y10_Note
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$Y10_Note
 ```
 
 ####  Y2_Note
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$Y2_Note
 ```
 
 ####  Yield_Curve
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$Yield_Curve
 ```
 
 ####  XLY
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$XLY
 ```
 
 ####  XLP
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$XLP
 ```
 
 ####  XLE
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$XLE
 ```
 
 ####  XLF
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$XLF
 ```
 
 #### XLY
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$XLY
 ```
 
 ####  XLI
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$XLI
 ```
 
 ####  XLB
 
-```{r, fig.width=10,out.width='100%', fig.height=6, fig.align='center'}
+```{r, fig.width=10,out.width='100%', fig.height=4.2, fig.align='center'}
 ex_ante_raw[["plots"]]$XLB
 ```
 
