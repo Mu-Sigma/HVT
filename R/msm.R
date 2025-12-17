@@ -35,7 +35,7 @@
 #' "mae-only" values (used in HVTMSMoptimization) and "all" (used in direct call, include plots and mae)
 #' @return A list object that contains the forecasting plots and MAE values.
 #' \item{[[1]]}{Simulation plots and MAE values for state and centroids plot} 
-#' \item{[[2]]}{Summary Table, Dendogram plot and Clustered Heatmap when handle_problematic_states is TRUE} 
+#' \item{[[2]]}{Summary Table, Dendrogram plot and Clustered Heatmap when handle_problematic_states is TRUE} 
 #' @author Vishwavani <vishwavani@@mu-sigma.com>, Nithya <nithya.sn@@mu-sigma.com>
 #' @keywords Timeseries_Analysis
 #' @importFrom magrittr %>%
@@ -73,12 +73,13 @@
 #'              time_column = 't')
 #' @export msm
 
+
 msm <- function(state_time_data,
                 forecast_type = "ex-post",
                 initial_state,
                 n_ahead_ante = 10,
                 transition_probability_matrix,
-                num_simulations = 100,
+                num_simulations = 500,
                 trainHVT_results,
                 scoreHVT_results,
                 actual_data = NULL,
@@ -91,6 +92,7 @@ msm <- function(state_time_data,
                 time_column,
                 precomputed_problematic_states = NULL,
                 plot_mode = c("all","mae-only")) {
+
 
   # Global variables for CRAN warnings
   time <- simulation <- median <- sd <- studentized_residuals <- value <- Cell.ID <- cluster <- nearest_neighbor <- NULL
@@ -119,7 +121,7 @@ msm <- function(state_time_data,
     if (!mae_metric %in% c("median", "mean", "mode"))
       errors <- c(errors, "ERROR: mae_metric must be 'mean', 'median', or 'mode'")
 
-
+#browser()
     # Ex-post validation
     can_plot_states_actual <- FALSE
     if (forecast_type == "ex-post") {
@@ -191,8 +193,7 @@ msm <- function(state_time_data,
         indices = NULL,
         clusters_k = as.integer(k),
         type = "default",
-        domains.column = NULL
-      )
+        domains.column = NULL)
       
       clusters <- cutree(clust.results$hc, k = k)
       cluster_data <- data.frame(
@@ -287,7 +288,8 @@ msm <- function(state_time_data,
   } else {
     problematic_states <- intersect(detected_problematic, scored_cells)
   }
-  
+
+
   # if (called_directly) {
   #   if (length(problematic_states) >= 1) {
   #     message("Problematic states found: ", paste(problematic_states, collapse = ", "))
@@ -418,7 +420,7 @@ msm <- function(state_time_data,
     # Neighbor availability already validated post-clustering
   }
 
-#browser()  
+#
   
   # Run simulations
   simulation_results <- sapply(seq_len(num_simulations), function(sim_index) {
@@ -436,7 +438,6 @@ msm <- function(state_time_data,
   colnames(simulation_results) <- paste0("Sim_", seq_len(num_simulations))
 
 
-  
     
   # Add time column
   time_values <- if(forecast_type == "ex-post") {
@@ -446,6 +447,8 @@ msm <- function(state_time_data,
   }
   simulation_results$time <- time_values
   
+
+
   # Calculate summary statistics
   simulation_results <- simulation_results %>%
     dplyr::select(time, dplyr::everything()) %>%
@@ -459,8 +462,7 @@ msm <- function(state_time_data,
       }
     ) %>%
     dplyr::ungroup()
-
-
+  
   # Fast MAE-only return
   if (plot_mode == "mae-only") {
     if (forecast_type != "ex-post" || is.null(actual_data))
@@ -533,11 +535,29 @@ msm <- function(state_time_data,
     plots <- list()
   }
   
+  if (handle_problematic_states && length(problematic_states) > 0) {
+    
+    clust.results.2 <- clustHVT(
+      data = clustering_data,
+      trainHVT_results = trainHVT_results,
+      scoreHVT_results = scoreHVT_results,
+      clustering_method = "ward.D2",
+      indices = NULL,
+      clusters_k = as.integer(k),
+      type = "default",
+      domains.column = NULL,
+      only_dendro = TRUE,
+      highlight_labels =c(problematic_states, all_nearest_neighbors))
+    
+  }
+    
+    
+    
   # Return results
   if(handle_problematic_states) {
     output_list <- list(
       plots = plots,
-      dendogram = clust.results$dendogram,
+      dendrogram = clust.results.2$dendrogram,
       problematic_states_list = stp_list,
       cluster_heatmap = cluster_heatmap,
       problematic_states = problematic_states,

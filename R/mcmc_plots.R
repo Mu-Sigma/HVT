@@ -285,7 +285,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         margin = list(r = 150, b = 50, t = 50),
         height = height,
         yaxis = list(title = list(text = ifelse(is.null(variable_name), "States", 
-                                              paste0(variable_name, " (raw units)")))),
+                                              paste0(variable_name, " (transformed units)")))),
         xaxis = list(title = list(text = "Timestamps")),
         legend = list(title = list(text = ""))
       )
@@ -295,11 +295,11 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
   create_html_layout <- function(plot1, plot2, type, variable_name, mae_metric, mae) {
     htmltools::tagList(
       htmltools::div(
-        style = "display: grid; grid-template-columns: 1fr; max-width: 100%; font-family: Arial, sans-serif;",
+        style = "display: grid; grid-template-columns: 1fr; max-width: 100%; font-family: Arial, sans-serif; margin-bottom: 0;",
         htmltools::div(
           style = "grid-column: 1; width: 100%; text-align: left; font-weight: bold; font-size: 18px; padding-left: 60px; font-family: Arial, sans-serif;",
           paste0(ifelse(is.null(type), "DefaultType", type), 
-                 ": Ex-Post Actual ", 
+                 ": Ex-post Actual ", 
                  ifelse(is.null(variable_name), "Variable", variable_name), 
                  " vs Predicted ", 
                  ifelse(is.null(variable_name), "Variable", variable_name))
@@ -308,14 +308,14 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         htmltools::div(
           style = "grid-column: 1; width: 100%; text-align: left; font-weight: bold; font-size: 18px; padding-left: 60px; font-family: Arial, sans-serif;",
           paste0(ifelse(is.null(type), "DefaultType", type), 
-                 ": Ex-Post Studentized Residuals for the ", 
+                 ": Ex-post Studentized Residuals for the ", 
                  ifelse(is.null(mae_metric), "DefaultMetric", mae_metric), " forecast")
         ),
         htmltools::div(
           style = "grid-column: 1; width: 100%; text-align: left; font-size: 14px; padding-left: 60px; font-style: italic;",
           paste("MAE:", ifelse(is.null(mae), "N/A", mae))
         ),
-        htmltools::div(style = "grid-column: 1; width: 100%;", plot2)
+        htmltools::div(style = "grid-column: 1; width: 100%; margin-bottom: 0;", plot2)
       )
     )
   }
@@ -482,8 +482,8 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         
         p1 <- create_base_plot(plot_data, summary_data, show_simulation, mae_metric, variable_name)
         p1 <- apply_time_scaling(p1, summary_data)
-        p1 <- p1 + ggplot2::labs(x = "Timestamps", y = paste0(variable_name, " (raw units)"),
-                                 title = paste0(type, ": Ex-Ante Predicted ", variable_name), color = " ")
+        p1 <- p1 + ggplot2::labs(x = "Timestamps", y = paste0(variable_name, " (transformed units)"),
+                                 title = paste0(type, ": Ex-ante Predicted ", variable_name), color = " ")
         
         plotly::ggplotly(p1, tooltip = "text")
       })
@@ -499,7 +499,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         ggplot2::scale_y_continuous(limits = c(1, NA), breaks = integer_breaks()) +
         ggplot2::theme_minimal() +
         ggplot2::theme(legend.position = "right") +
-        ggplot2::labs(x = "Timestamps", y = "States", title = paste0(type, ": Ex-Ante Predicted States"), color = " ")
+        ggplot2::labs(x = "Timestamps", y = "States", title = paste0(type, ": Ex-ante Predicted States"), color = " ")
       
       p2 <- apply_time_scaling(p2, summary_data)
       p2 <- plotly::ggplotly(p2, tooltip = "text")
@@ -660,8 +660,8 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         
         p1 <- create_base_plot(plot_data, summary_data, show_simulation, mae_metric, variable_name)
         p1 <- apply_time_scaling(p1, summary_data)
-        p1 <- p1 + ggplot2::labs(x = "Timestamps", y = paste0(variable_name, " (raw units)"),
-                                 title = paste0(type, ": Ex-Ante Predicted ", variable_name), color = " ")
+        p1 <- p1 + ggplot2::labs(x = "Timestamps", y = paste0(variable_name, " (transformed units)"),
+                                 title = paste0(type, ": Ex-ante Predicted ", variable_name), color = " ")
         
         plotly::ggplotly(p1, tooltip = "text")
       })
@@ -684,7 +684,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         ggplot2::scale_y_continuous(limits = c(1, NA), breaks = integer_breaks()) +
         ggplot2::theme_minimal() +
         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)) +
-        ggplot2::labs(x = "Timestamps", y = "States", title = paste0(type, ": Ex-Ante Predicted States"), color = " ") +
+        ggplot2::labs(x = "Timestamps", y = "States", title = paste0(type, ": Ex-ante Predicted States"), color = " ") +
         theme_plot
       
       p2 <- apply_time_scaling(p2, summary_data)

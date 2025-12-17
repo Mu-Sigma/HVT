@@ -10,7 +10,7 @@ msm(
   initial_state,
   n_ahead_ante = 10,
   transition_probability_matrix,
-  num_simulations = 100,
+  num_simulations = 500,
   trainHVT_results,
   scoreHVT_results,
   actual_data = NULL,
@@ -75,7 +75,7 @@ to pass the problematic states detected}
 \value{
 A list object that contains the forecasting plots and MAE values.
 \item{[[1]]}{Simulation plots and MAE values for state and centroids plot} 
-\item{[[2]]}{Summary Table, Dendogram plot and Clustered Heatmap when handle_problematic_states is TRUE}
+\item{[[2]]}{Summary Table, Dendrogram plot and Clustered Heatmap when handle_problematic_states is TRUE}
 }
 \description{
 This is the main function to perform Monte Carlo simulations of Markov Chain on

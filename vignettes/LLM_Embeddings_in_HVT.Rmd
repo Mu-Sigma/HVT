@@ -185,8 +185,8 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr","magrittr", "ggplot2", "kableExtra", "gridExtra","grid", "httr", "stats", 
-                      "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly", "tidyr",
-                      "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable", "HVT")
+                      "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly", "tidyr","HVT",
+                      "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable")
 
 new.packages <-
   list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
@@ -195,6 +195,7 @@ if (length(new.packages))
 invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
+
 
 ## 3.1 User-defined Functions
 
@@ -1199,7 +1200,7 @@ Let's look at the output list from `clustHVT` function.
 
 1) **Optimal number of clusters summary:** The output of the NbClust function comprises four plots, two corresponding to the D index and Hubert index, respectively. It also includes an interpretation of these indices, a summary table displaying the number of clusters recommended by all indices, and a conclusion table providing a comprehensive breakdown of the cluster suggestions across each index.
 
-2) **Dendogram plot:** A dendrogram plot is a tree-like diagram that visually depicts the hierarchical relationships among clusters, with branch heights reflecting similarity or dissimilarity, and is used to determine the number of clusters through size-based visual comparison.
+2) **Dendrogram plot:** A dendrogram plot is a tree-like diagram that visually depicts the hierarchical relationships among clusters, with branch heights reflecting similarity or dissimilarity, and is used to determine the number of clusters through size-based visual comparison.
 
 3) **Cluster HVT plot:** A 2D HVT Plotly visualization that colors cells according to clusters derived from AGNES clustering results. It is interactive, allowing users to view cell contents by hovering over them.
 
@@ -1237,13 +1238,13 @@ clust.results <- clustHVT(data = hclust_data_1,
                           clusters_k = 'champion')
 ```
 
-From the above results, we can clearly see that highest recommendation is *3* as the optimal number of clusters. Let's look at the dendogram plot for the same.
+From the above results, we can clearly see that highest recommendation is *3* as the optimal number of clusters. Let's look at the dendrogram plot for the same.
 
 ```{r, fig.width=13.5, fig.height = 6,fig.align = "center"}
-clust.results$dendogram()
+clust.results$dendrogram()
 ```
 
-Though the highest recommendation is 3, the corresponding dendogram results in large clusters. However, for our specific use case, we prefer to have smaller clusters. So we will select the next highest recommendation from the NbClust summary. With 5 indices supporting this choice, we will proceed with 'challenger' to achieve a more granular clustering solution.
+Though the highest recommendation is 3, the corresponding dendrogram results in large clusters. However, for our specific use case, we prefer to have smaller clusters. So we will select the next highest recommendation from the NbClust summary. With 5 indices supporting this choice, we will proceed with 'challenger' to achieve a more granular clustering solution.
 
 ```{r, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 clust.results <- clustHVT(data = hclust_data_1, 
@@ -1251,10 +1252,10 @@ clust.results <- clustHVT(data = hclust_data_1,
               scoreHVT_results = scoring, 
               clusters_k = 'challenger')
 ```
-Let's look at the dendogram for challenger number of clusters.
+Let's look at the dendrogram for challenger number of clusters.
 
 ```{r, fig.width=13.5, fig.height = 6,fig.align = "center"}
-clust.results$dendogram()
+clust.results$dendrogram()
 ```
 
 Let's look at the Cluster HVT plot for the 15 clusters.
@@ -1423,10 +1424,10 @@ clust.results <- clustHVT(data = hclust_data_2,
               clusters_k = 'champion')
 ```
 
-From the above results, we can clearly see that highest recommendation is *4* as the optimal number of clusters. Let's look at the dendogram plot for the same.
+From the above results, we can clearly see that highest recommendation is *4* as the optimal number of clusters. Let's look at the dendrogram plot for the same.
 
 ```{r, fig.width=13.5, fig.height = 6,fig.align = "center"}
-clust.results$dendogram()
+clust.results$dendrogram()
 ```
 
 
@@ -1642,7 +1643,7 @@ plotly::layout(annotations = list(
 
 ## 8.5 Tanglegram Comparison of 2D and 1538D datasets
 
-A tanglegram is a visual comparison of two hierarchical structures or dendograms side by side, with lines connecting matching elements to highlight differences and similarities. This is useful for comparing different clustering results.
+A tanglegram is a visual comparison of two hierarchical structures or dendrograms side by side, with lines connecting matching elements to highlight differences and similarities. This is useful for comparing different clustering results.
 
 Let's look at the tanglegram of 
 
@@ -1662,7 +1663,7 @@ tanglegram(dend1, dend2,   main_left = "Sammon's coordinates(2D)", main_right = 
 
 <span style="font-size: 22px;">**Insights**</span>
 
-1. The colored lines connecting the two dendograms indicate relationship between clusters on both sides. Lines of the same color tend to stay together, indicating that clusters are largely preserved between the two dendograms. 
+1. The colored lines connecting the two dendrograms indicate relationship between clusters on both sides. Lines of the same color tend to stay together, indicating that clusters are largely preserved between the two dendrograms. 
 
 2. Points connected by shorter lines are more stable in their representation across both datasets, implying that their characteristics are consistently captured in both cases. The data points represented by shorter lines have undergone less dramatic shifts in their relative positions. 
 

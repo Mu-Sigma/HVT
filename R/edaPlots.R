@@ -27,7 +27,7 @@
 edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1,grey_bars = NULL) {
   
   ##for cran warnings:
-    start <- end <-  NULL
+  start <- end <-  NULL
   
   if(n_cols == -1){
     n_cols = ncol(df)
@@ -55,7 +55,7 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1,grey_
       mutate(n_row = format(nrow(df), scientific = FALSE), n_missing = missing_counts_vector) %>%
       dplyr::rename(min = p0, `1st Quartile` = p25, median = p50, `3rd Quartile` = p75, max = p100) %>%
       dplyr::select(variable, min, `1st Quartile`, median, mean, sd, `3rd Quartile`, max, hist,n_row, n_missing) 
-     
+    
     
     calculate_dynamic_length_menu <- function(total_entries, base_step = 100) {
       max_option <- ceiling(total_entries / base_step) * base_step
@@ -79,7 +79,7 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1,grey_
         columns = c('min', 'max', 'mean', 'sd', 'median', '1st Quartile', '3rd Quartile'),
         digits = 2
       )
-
+    
     
     return(eda_format)
   }
@@ -192,7 +192,7 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1,grey_
                        type = "lower",col = grDevices::colorRampPalette(c("maroon", "white", "#1D9CDB"))(200), mar=c(0,0,2,0))  
   }
   
-
+  
   #####################timeseries plots
   if (output_type == "timeseries" && (!is.null(time_column)) ){
     
@@ -268,41 +268,39 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1,grey_
     
   }
   
-
-    #output_list <- list()
-    
-    if (output_type == "summary")  {
-      eda_table <- summary_eda(df)
-      return( eda_table)
-    }
-    
-    if (output_type == "timeseries") {
-      time_series_plot <- generateTimeseriesPlot(df, time_column, grey_bars)
-       (time_series_plot)
-    }
-    
-    if (output_type == "histogram") {
-      eda_cols <- names(df)[sapply(df, is.numeric)]
-      dist_list <- lapply(eda_cols, function(column) {
-        histo <- generateDistributionPlot(df, column)
-        plot(histo)
-      }) 
-    }
-    
-    if (output_type == "boxplot") {
-      eda_cols <- names(df)[sapply(df, is.numeric)]
-      box_plots <- lapply(eda_cols, function(column) {
-        boxxo <- quantile_outlier_plots_fn(df, outlier_check_var = column)[[1]]
-        plot(boxxo)
-      })
-    }
-    
-    if (output_type == "correlation") {
-      correlation_plot(df,title = "Features Correlation Visualization")
-     
-    }
-    
+  
+  #output_list <- list()
+  
+  if (output_type == "summary")  {
+    eda_table <- summary_eda(df)
+    return( eda_table)
+  }
+  
+  if (output_type == "timeseries") {
+    time_series_plot <- generateTimeseriesPlot(df, time_column, grey_bars)
+    (time_series_plot)
+  }
+  
+  if (output_type == "histogram") {
+    eda_cols <- names(df)[sapply(df, is.numeric)]
+    dist_list <- lapply(eda_cols, function(column) {
+      histo <- generateDistributionPlot(df, column)
+      plot(histo)
+    }) 
+  }
+  
+  if (output_type == "boxplot") {
+    eda_cols <- names(df)[sapply(df, is.numeric)]
+    box_plots <- lapply(eda_cols, function(column) {
+      boxxo <- quantile_outlier_plots_fn(df, outlier_check_var = column)[[1]]
+      plot(boxxo)
+    })
+  }
+  
+  if (output_type == "correlation") {
+    correlation_plot(df,title = "Features Correlation Visualization")
     
   }
-
-
+  
+  
+}
