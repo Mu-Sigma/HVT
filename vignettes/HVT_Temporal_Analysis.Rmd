@@ -120,7 +120,7 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr", "kableExtra", "plotly", "purrr", "data.table", "gridExtra", "grid", "reactable",
-                    "reshape", "tidyr",  "stringr", "DT", "knitr", "feather","gganimate","gifski")
+                    "reshape", "tidyr",  "stringr", "DT", "knitr", "feather","gganimate","gifski","HVT")
 
 new.packages <-
   list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
@@ -130,12 +130,6 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
 
 # 4. Data Understanding
 

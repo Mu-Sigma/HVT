@@ -35,7 +35,7 @@
 #' "mae-only" values (used in HVTMSMoptimization) and "all" (used in direct call, include plots and mae)
 #' @return A list object that contains the forecasting plots and MAE values.
 #' \item{[[1]]}{Simulation plots and MAE values for state and centroids plot} 
-#' \item{[[2]]}{Summary Table, Dendogram plot and Clustered Heatmap when handle_problematic_states is TRUE} 
+#' \item{[[2]]}{Summary Table, Dendrogram plot and Clustered Heatmap when handle_problematic_states is TRUE} 
 #' @author Vishwavani <vishwavani@@mu-sigma.com>, Nithya <nithya.sn@@mu-sigma.com>
 #' @keywords Timeseries_Analysis
 #' @importFrom magrittr %>%
@@ -288,7 +288,8 @@ msm <- function(state_time_data,
   } else {
     problematic_states <- intersect(detected_problematic, scored_cells)
   }
-  
+
+
   # if (called_directly) {
   #   if (length(problematic_states) >= 1) {
   #     message("Problematic states found: ", paste(problematic_states, collapse = ", "))
@@ -556,7 +557,7 @@ msm <- function(state_time_data,
   if(handle_problematic_states) {
     output_list <- list(
       plots = plots,
-      dendogram = clust.results.2$dendogram,
+      dendrogram = clust.results.2$dendrogram,
       problematic_states_list = stp_list,
       cluster_heatmap = cluster_heatmap,
       problematic_states = problematic_states,

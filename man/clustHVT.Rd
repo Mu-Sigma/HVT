@@ -52,7 +52,7 @@ This argument is intended for internal use only. The default value is FALSE.}
 \value{
 A list object that contains the hierarchical clustering results.
 \item{[[1]] }{Summary of k suggested by all indices with plots} 
-\item{[[2]] }{A dendogram plot with the selected number of clusters} 
+\item{[[2]] }{A dendrogram plot with the selected number of clusters} 
 \item{[[3]] }{A 2D Cluster HVT Plotly visualization that colors cells according to clusters derived from AGNES clustering results. 
 It is interactive, allowing users to view cell contents by hovering over them}
 }

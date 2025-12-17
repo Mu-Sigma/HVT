@@ -24,7 +24,7 @@
 #' This argument is intended for internal use only. The default value is FALSE.
 #' @return A list object that contains the hierarchical clustering results.
 #' \item{[[1]] }{Summary of k suggested by all indices with plots} 
-#' \item{[[2]] }{A dendogram plot with the selected number of clusters} 
+#' \item{[[2]] }{A dendrogram plot with the selected number of clusters} 
 #' \item{[[3]] }{A 2D Cluster HVT Plotly visualization that colors cells according to clusters derived from AGNES clustering results. 
 #' It is interactive, allowing users to view cell contents by hovering over them}
 #' @author Vishwavani <vishwavani@@mu-sigma.com>
@@ -206,7 +206,7 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
     
     a <- plot_dendrogram(hc_1 = hc,no_of_clusters_1 = no_of_clusters,highlight_labels = highlight_labels)
     
-    output_list <- list(dendogram = a)
+    output_list <- list(dendrogram = a)
     return(output_list)
   }else {
     plot_dendrogram <- function(hc_1, no_of_clusters_1, highlight_labels = NULL) {
@@ -239,7 +239,7 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
       hc = hc,
       clusters = clusters,
       cluster_data =cluster_data,
-      dendogram = a,
+      dendrogram = a,
       clusterplot = b
     )
     
