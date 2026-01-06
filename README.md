@@ -9,7 +9,7 @@
 
 *   [<span class="toc-section-number">1.</span> Abstract](#abstract)
 *   [<span class="toc-section-number">2.</span> Vignettes](#vignettes)
-*   [<span class="toc-section-number">3.</span> Version History](#version-history)
+*   [<span class="toc-section-number">3.</span> Package Version History](#version-history)
     *   [<span class="toc-section-number">3.9</span> HVT (v25.2.8) | What’s New](#hvt-(v25.2.8)-whats-new)
     *   [<span class="toc-section-number">3.8</span> HVT (v25.2.7)](#hvt-(v25.2.7))
     *   [<span class="toc-section-number">3.7</span> HVT (v25.2.6)](#hvt-(v25.2.6))
@@ -75,7 +75,7 @@ Following are the links to the vignettes for the HVT package:
 
 <div id="version-history" class="section level1" number="3">
 
-# <span class="header-section-number">3.</span> Version History 
+# <span class="header-section-number">3.</span> Package Version History 
 
 
 <div id="hvt-(v25.2.8)-whats-new" class="section level2" number="3.1">

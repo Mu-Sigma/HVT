@@ -594,7 +594,7 @@ if(analysis.plots) {
     annotation_data <- boundaryCoords2_1 %>% 
       dplyr::distinct(Cell.ID, .keep_all = TRUE) %>%
       dplyr::select(Cell.ID, x, y)
-    
+   
     plotlyscored <- plotly::ggplotly(scoredPlot, tooltip = "text")
     
     # Add Cell.ID labels as Plotly annotations (similar to ex_post$cluster_heatmap)
@@ -606,7 +606,7 @@ if(analysis.plots) {
           y = annotation_data$y,
           text = as.character(annotation_data$Cell.ID),
           showarrow = FALSE,
-          font = list(size = 8, color = "black"),
+          font = list(size = 12, color = "black"),
           yshift = 10,
           xref = "x",
           yref = "y"
