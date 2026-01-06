@@ -633,7 +633,13 @@ initial_state <- dplyr::last(temporal_train$Cell.ID)
 
 ## Step - 4: Ex-Post Forecasting {.tabset}
 
+*The forecast evolves dynamically - each step is produced through Monte Carlo simulation, with the next state derived from the previous one using Markov state transition probabilities*
+
 **Ex-Post forecast time period:**
+
+- Train period: `r min(train_dataset$Date)` to `r max(train_dataset$Date)`
+
+- Test Period/Ex-Post forecasting: `r min(test_dataset$Date)` to `r max(test_dataset$Date)`
 
 - Transition Probability Matrix: `r format(min(temporal_train$Date), "%Y-%m-%d")` to `r format(max(temporal_train$Date), "%Y-%m-%d")`
 

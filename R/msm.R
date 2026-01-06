@@ -261,6 +261,17 @@ msm <- function(state_time_data,
   has_full_transition_coverage <- all(scored_cells %in% transition_cells)
   
   # Determine n_ahead
+  if (forecast_type == "ex-ante") {
+    time_vals <- state_time_data[[time_column]]
+    time_step <- diff(time_vals)[1]
+    horizon_len <- if (length(n_ahead_ante) == 1) n_ahead_ante else length(n_ahead_ante)
+    n_ahead_ante <- seq(
+      from = max(time_vals) + time_step,
+      length.out = horizon_len,
+      by = time_step
+    )
+  }
+
   if (forecast_type == "ex-post") {
     if(!is.null(actual_data)) {
       n_ahead <- nrow(actual_data)

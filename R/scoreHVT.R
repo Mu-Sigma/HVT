@@ -567,7 +567,7 @@ if(analysis.plots) {
       boundaryCoords2_1$hoverText <- NULL
     }
     
-    # Create the plot
+    # Create the plot (polygons + centroids; labels will be added as Plotly annotations)
     scoredPlot <- scoredPlot +
       ggplot2::geom_polygon(
         data = boundaryCoords2_1,
@@ -584,13 +584,36 @@ if(analysis.plots) {
       ggplot2::scale_fill_gradientn(colours = colour_scheme) +
       ggplot2::guides(colour = "none") +
       ggplot2::geom_point(
-        data = boundaryCoords2_1 %>% distinct(x, .keep_all = TRUE),
+        data = boundaryCoords2_1 %>% dplyr::distinct(Cell.ID, .keep_all = TRUE),
         ggplot2::aes(x = x, y = y, text = hoverText),
-        size = 1
+        size = 0.4
       )
     
    
+    # Prepare annotation data before creating plotly object
+    annotation_data <- boundaryCoords2_1 %>% 
+      dplyr::distinct(Cell.ID, .keep_all = TRUE) %>%
+      dplyr::select(Cell.ID, x, y)
+    
     plotlyscored <- plotly::ggplotly(scoredPlot, tooltip = "text")
+    
+    # Add Cell.ID labels as Plotly annotations (similar to ex_post$cluster_heatmap)
+    # Add annotations first, then layout modifications (matching clusterPlot pattern)
+    if (nrow(annotation_data) > 0) {
+      plotlyscored <- plotlyscored %>%
+        plotly::add_annotations(
+          x = annotation_data$x,
+          y = annotation_data$y,
+          text = as.character(annotation_data$Cell.ID),
+          showarrow = FALSE,
+          font = list(size = 8, color = "black"),
+          yshift = 10,
+          xref = "x",
+          yref = "y"
+        )
+    }
+    
+    # Add layout modifications after annotations
     plotlyscored <- plotlyscored %>%
       plotly::layout(
         title = list(
