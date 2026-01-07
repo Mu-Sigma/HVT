@@ -145,7 +145,7 @@ The HVT package offers a suite of R functions designed to construct <a href="htt
 
 - This notebook also includes two sections on Hierarchical Clustering. The former section analyze the Sammon's coordinates data (2D - x and y coordinates) of the centroids and the later section analyze Sammon's coordinates data (2D - x and y coordinates) with the embeddings (1536D) of the centroids.
 
-- The optimal number of clusters (k) is determined using dendrogram plots from the `clustHVT` function. The clustered data are then sent to **OpenAI's gpt-4o-mini** via API call to generate domain names for each cluster. This domain name allocation process is also done manually.
+- The optimal number of clusters (k) is determined using dendrogram plots from the `clustHVT` function. The clustered data are then sent to **OpenAI's gpt-4o** via API call to generate domain names for each cluster. This domain name allocation process is also done manually.
 
 - The 2D HVT plot is visualized with overlaid domain names of both OpenAI-generated and manually assigned for comparison. Conclusions are drawn regarding the HVT package's efficiency, the performance of Hierarchical Clustering method on two different datasets and insights are provided for domain names of both OpenAI generated and manually allotted.     
 
@@ -417,7 +417,7 @@ create_and_write_clusters <- function(cluster_numbers, cluster_method) {
 
 ### 6. Function for making OpenAI-API Call to generate domain names
 
-This is the function used in [section 8](#hierarchical-clustering) that runs the chat completions API to **OpenAI's gpt-4o-mini model** where the content of each cluster is provided in the prompt, and the model is requested to generate a domain name for each cluster. This API call runs 10 iterations per cluster, to generate the domain names and provide the highly repeated value/domain name for that cluster.
+This is the function used in [section 8](#hierarchical-clustering) that runs the chat completions API to **OpenAI's gpt-4o model** where the content of each cluster is provided in the prompt, and the model is requested to generate a domain name for each cluster. This API call runs 10 iterations per cluster, to generate the domain names and provide the highly repeated value/domain name for that cluster.
 
 ```{r, collapse=TRUE}
 get_mode <- function(v) {
@@ -435,7 +435,7 @@ get_cluster_domains <- function(k, iterations = 10) {
   cluster_names <- paste0("clust_", 1:k)
   content_list <- lapply(paste0(cluster_names, ".txt"), read_file_content)
   
-  prompt <- "You are a domain classification expert. Analyze the overall meaning, intent, and recurring themes across the entire text rather than isolated words or metaphors. Assign one single-word domain that best captures the dominant subject matter, such as emotions, public reactions, relationships, politics, health, media, or society. Do not base the domain on metaphorical language, stylistic expressions, or one-off mentions like cooking, food, or locations. Focus on what the text is mostly about and prefer abstract, high-level domains that are semantically aligned with the full context. Output exactly one word that is unique to cluster {cluster_number} and do not repeat any previously used domains from {used_domains}."
+  prompt <- "You are a domain classification expert. Analyze the overall meaning, intent, and recurring themes across the entire text rather than isolated words or metaphors. Focus on what the text is mostly about and prefer abstract, high-level domains that are semantically aligned with the full context. Output exactly one word that is unique to cluster {cluster_number} and most importantly do not repeat any previously used domains from {used_domains}."
   
   send_request <- function(content, cluster_number, used_domains) {
     full_prompt <- gsub("\\{cluster_number\\}", cluster_number, prompt)
@@ -1277,7 +1277,7 @@ clust.results$clusterplot
 
 ### 8.2.3 OpenAI API call for generating domain names
 
-- Now, we will pass all the data from each cluster to **OpenAI's gpt-4o-mini** model to generate a keyword/domain name of that particular cluster.
+- Now, we will pass all the data from each cluster to **OpenAI's gpt-4o** model to generate a keyword/domain name of that particular cluster.
 
 - Subsetting the data in each cluster by the below code and processing it without punctuation marks to be given as input to API call. Data from each cluster will be saved as a .txt file and the files will be read during the API call.
 
@@ -1287,7 +1287,7 @@ clust.results$clusterplot
 create_and_write_clusters(cluster_numbers = 1:15, cluster_method = clust.results$cluster_data)
 ```
 
-- The below chunk makes a call to **OpenAI's gpt-4o-mini** via chat completions API and print the responses for clusters below. 
+- The below chunk makes a call to **OpenAI's gpt-4o** via chat completions API and print the responses for clusters below. 
 
 - Let's call the [Function for making OpenAI-API Call to generate domain names](#function-for-making-openai-api-call-to-generate-domain-names) which is explained in section 3.1. This function makes 10 API calls for each cluster and prints all 10 responses. The domain name that appears most frequently is selected as the domain name for that cluster.
 
@@ -1302,8 +1302,12 @@ Let's replace the cluster numbers to above generated `domain names` in the datas
 
 ```{r}
 cluster_data <- clust.results$cluster_data
-invisible(lapply(1:15, function(i) {
-  cluster_data$cluster_name[cluster_data$clusters == i] <<- result$mode[[i]]}))
+# Initialize cluster_name column
+cluster_data$cluster_name <- NA_character_
+# Assign domain names to each cluster
+for (i in 1:15) {
+  cluster_data$cluster_name[cluster_data$clusters == i] <- result$mode[[i]]
+}
 ```
 
 
@@ -1313,7 +1317,7 @@ In this section, we will generate the Heatmaps of OpenAI and Manual Approach for
 
 **OpenAI Approach**
 
-- The `OpenAI Approach` is a 2D Heatmap where colors represent different domains assigned to the clusters. These domain names are generated using **OpenAI’s GPT-4o-mini via the chat completions API**. Tweets from each cluster are provided as input, along with a system prompt requesting domain names that accurately reflect the context of the data. To ensure consistent results, this process is repeated 10 times for each cluster, and the most frequently occurring name is selected as the domain name for that cluster.
+- The `OpenAI Approach` is a 2D Heatmap where colors represent different domains assigned to the clusters. These domain names are generated using **OpenAI’s gpt-4o via the chat completions API**. Tweets from each cluster are provided as input, along with a system prompt requesting domain names that accurately reflect the context of the data. To ensure consistent results, this process is repeated 10 times for each cluster, and the most frequently occurring name is selected as the domain name for that cluster.
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
@@ -1383,9 +1387,14 @@ print(ward_asw)
 
 
 ```{r, include=FALSE, warning=FALSE,message=FALSE}
-invisible(lapply(1:15, function(i) {
-  cluster_data$cluster_name[cluster_data$clusters == i] <<- paste0(result$mode[[i]], "_1538D")
-}))
+# Initialize cluster_name column if it doesn't exist
+if (!"cluster_name" %in% names(cluster_data)) {
+  cluster_data$cluster_name <- NA_character_
+}
+# Assign domain names to each cluster with _1538D suffix
+for (i in 1:15) {
+  cluster_data$cluster_name[cluster_data$clusters == i] <- paste0(result$mode[[i]], "_1538D")
+}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
 hclust_plot_2 <- clustHVT(data = centroid_cluster_data, trainHVT_results = hvt.results, domains.column = "cluster_name", type = "plot")
 
@@ -1449,7 +1458,7 @@ clust.results$clusterplot
 
 ### 8.3.3 OpenAI API call for generating domain names
 
-Now, we will pass all the data from each cluster to **OpenAI's gpt-4o-mini** model to generate a keyword/domain name of that particular cluster.
+Now, we will pass all the data from each cluster to **OpenAI's gpt-4o** model to generate a keyword/domain name of that particular cluster.
 
 Subsetting the data in each cluster by the below code and processing it without punctuation marks to be given as input in API call. Data from each cluster will be saved as a .txt file and the files will be read during the API call.
 
@@ -1460,7 +1469,7 @@ cluster_data <- clust.results$cluster_data
 create_and_write_clusters(cluster_numbers = 1:15, cluster_method = cluster_data)
 ```
 
-The below chunk makes a call to **OpenAI's gpt-4o-mini** via chat completions API and print the responses for clusters below. 
+The below chunk makes a call to **OpenAI's gpt-4o** via chat completions API and print the responses for clusters below. 
 
 - Let's call the [Function for making OpenAI-API Call to generate domain names](#function-for-making-openai-api-call-to-generate-domain-names) which is explained in section 3.1. This function makes 10 API calls for each cluster and prints all 10 responses. The domain name that appears most frequently is selected as the domain name for that cluster.
 
@@ -1474,8 +1483,14 @@ print(result$mode)
 Let's replace the cluster numbers to above generated `domain names` in the dataset.
 
 ```{r}
-invisible(lapply(1:15, function(i) {
-  cluster_data$cluster_name[cluster_data$clusters == i] <<- result$mode[[i]]}))
+# Initialize cluster_name column if it doesn't exist
+if (!"cluster_name" %in% names(cluster_data)) {
+  cluster_data$cluster_name <- NA_character_
+}
+# Assign domain names to each cluster
+for (i in 1:15) {
+  cluster_data$cluster_name[cluster_data$clusters == i] <- result$mode[[i]]
+}
 ```
 
 ### 8.3.4 Cluster Domain Naming: OpenAI vs Manual Approach
@@ -1485,7 +1500,7 @@ Sammon’s coordinates (2D - x and y coordinates) with the embeddings (1536D) of
 
 **OpenAI Approach**
 
-- The `OpenAI Approach` is a 2D Heatmap where colors represent different domains assigned to the clusters. These domain names are generated using **OpenAI’s GPT-4o-mini via the chat completions API**. Tweets from each cluster are provided as input, along with a system prompt requesting domain names that accurately reflect the context of the data. To ensure consistent results, this process is repeated 10 times for each cluster, and the most frequently occurring name is selected.
+- The `OpenAI Approach` is a 2D Heatmap where colors represent different domains assigned to the clusters. These domain names are generated using **OpenAI’s gpt-4o via the chat completions API**. Tweets from each cluster are provided as input, along with a system prompt requesting domain names that accurately reflect the context of the data. To ensure consistent results, this process is repeated 10 times for each cluster, and the most frequently occurring name is selected.
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
@@ -1560,9 +1575,14 @@ print(ward_asw_2)
  - **For Sammon's coordinates data (2D - x and y coordinates) with the embeddings (1536D) of the centroids of 110 cells, the ASW for ward is `r ward_asw_2` **.
 
 ```{r, include=FALSE, warning=FALSE,message=FALSE}
-invisible(lapply(1:15, function(i) {
-  cluster_data$cluster_name[cluster_data$clusters == i] <<- paste0(result$mode[[i]], "_1538D")
-}))
+# Initialize cluster_name column if it doesn't exist
+if (!"cluster_name" %in% names(cluster_data)) {
+  cluster_data$cluster_name <- NA_character_
+}
+# Assign domain names to each cluster with _1538D suffix
+for (i in 1:15) {
+  cluster_data$cluster_name[cluster_data$clusters == i] <- paste0(result$mode[[i]], "_1538D")
+}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
 hclust_plot_2 <- clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", type = "plot")
 
@@ -1721,7 +1741,7 @@ The Average Silhouette Width (ASW), a metric that quantifies clustering quality 
 
 <span style="font-size: 15px;">**3) Insights on OpenAI and Manual Approaches in generating domain names for clusters**</span>
 
-By evaluating the domain names produced by OpenAI's gpt-4o-mini against those assigned manually, the following conclusions can be drawn:
+By evaluating the domain names produced by OpenAI's gpt-4o against those assigned manually, the following conclusions can be drawn:
 
 - The domain names assigned by **Manual Approach are more effectively encapsulate the comprehensive context of each cluster**. 
 
@@ -1729,7 +1749,7 @@ By evaluating the domain names produced by OpenAI's gpt-4o-mini against those as
 
 - The manual approach takes into account the entire content within each cluster, leading to domain names that reflect the broader thematic and contextual information.
 
-- In contrast, the domain names generated by OpenAI’s gpt-4o-mini are based on a limited sample of one or two tweets per cluster. This narrow focus often fails to capture the full content and thematic richness of the clusters, leading to less representative domain names.
+- In contrast, the domain names generated by OpenAI’s gpt-4o are based on a limited sample of one or two tweets per cluster. This narrow focus often fails to capture the full content and thematic richness of the clusters, leading to less representative domain names.
 
 
 
