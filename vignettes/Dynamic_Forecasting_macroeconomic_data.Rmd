@@ -902,6 +902,10 @@ Let's proceed with the ex-post Dynamic Forecasting using the `msm` function.
 
 **Ex-post Period:**
 
+- Train period : from 1999-12-01 to 2024-09-01
+
+- Test Period : from 2024-10-01 to 2025-09-01
+
 - Transition Probability Matrix: 1999-12-01 to 2024-09-01
 
 - Initial timestamp: 2024-09-01
