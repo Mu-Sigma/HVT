@@ -127,13 +127,31 @@ In this latest version of notebook, introducing an enhancement to dynamic foreca
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, the code will install those packages and attach to the session environment.
 
 ```{r, warning=FALSE, message=FALSE}
+# Load required packages from local installation only
+# Note: All packages must be installed locally - no CRAN downloads
 list.of.packages <- c("dplyr", "tidyr","patchwork", "feather","ggplot2","kableExtra", "htmltools",
-                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust","HVT")
+                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust")
 
-new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
-if (length(new.packages))
-  install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
+# Load packages (assumes they are already installed locally)
 invisible(lapply(list.of.packages, library, character.only = TRUE))
+```
+
+```{r setup-working-directory, echo=FALSE, eval=TRUE}
+# Set working directory to vignettes folder if not already there
+# This ensures relative paths work correctly when knitting
+if (basename(getwd()) != "vignettes") {
+  vignettes_dir <- file.path(getwd(), "vignettes")
+  if (dir.exists(vignettes_dir)) {
+    setwd(vignettes_dir)
+  }
+}
+```
+
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
 ```
 
 Below is the function for more dynamic drop down display in the data tables.
@@ -155,8 +173,14 @@ calculate_dynamic_length_menu <- function(total_entries, base_step = 100) {
 
 Let's start with importing the dataset. The below code reads and displays the dataset.
 
-```{r,warning=FALSE,message=FALSE}
-entire_dataset_raw <- read.csv("./sample_dataset/macro_eco_data_2025.csv")
+```{r,warning=FALSE,message=FALSE, eval=TRUE}
+# Load dataset from local file
+csv_path <- "sample_dataset/macro_eco_data_2025.csv"
+# Fallback to absolute path if relative path doesn't work
+if (!file.exists(csv_path)) {
+  csv_path <- "/home/shailu/Desktop/HVT/vignettes/sample_dataset/macro_eco_data_2025.csv"
+}
+entire_dataset_raw <- read.csv(csv_path)
 entire_dataset_raw <-  entire_dataset_raw %>% mutate(across(where(is.numeric), ~ round(., 4)))
 dynamic_length_menu <- calculate_dynamic_length_menu(nrow(entire_dataset_raw))
 datatable(entire_dataset_raw,options = list(pageLength = 10,scrollX = TRUE, lengthMenu = dynamic_length_menu), rownames = FALSE)
@@ -825,7 +849,7 @@ This function uses a transition probability matrix with cumulative probabilities
 
 * __`initial_state`__   - Integer, indicating the state at t0.
 
-* __`n_ahead_ante`__   - Integer, indicating the number of ahead periods for ex-ante forecasting. Default value is 10.
+* __`n_ahead_ante`__   - Integer, indicating the number of ahead periods for ex-ante forecasting. Default value is 12.
 
 * __`num_simulations`__ - Integer indicating the number of simulations to be performed. Default value is 100.
 
@@ -878,13 +902,15 @@ Let's proceed with the ex-post Dynamic Forecasting using the `msm` function.
 
 **Ex-post Period:**
 
+- Train period: from 1999-12-01 to 2024-09-01
+
+- Test Period/Ex-Post forecasting: from 2024-10-01 to 2025-09-01
+
 - Transition Probability Matrix: 1999-12-01 to 2024-09-01
 
-- Initial timestamp: 2024-09-01
+- Initial timestamp (t0): 2024-09-01
 
 - Initial state: 16
-
-- Ex-post Forecast: 2024-10-01 to 2025-09-01
 
 - Residuals: Actual - Predicted Median.
 
@@ -1457,21 +1483,19 @@ Now that ex-post is done, we now proceed with ex-ante Forecasting. In this secti
 
 - Transition Probability Matrix: 1999-12-01 to 2024-09-01
 
-- Initial timestamp: 2025-09-01
+- Initial timestamp (t0): 2025-09-01
 
 - Initial state: 41
 
 - Ex-ante Forecast: t+12 (2025-10-01 to 2026-09-01)
 
 ```{r warning=FALSE, results='hide'}
-ex_ante_period <- seq.POSIXt(from = as.POSIXct("2025-10-01"),to = as.POSIXct("2026-09-01"),by = "1 month")
-ex_ante_period <- as.POSIXct(format(ex_ante_period, "%Y-%m-%d"), tz = "")
 
 ex_ante <- msm(state_time_data = temporal_data_entire,
                forecast_type = "ex-ante",
                transition_probability_matrix = prob_trans_matx,
                initial_state = tail(temporal_data_entire$Cell.ID, 1),
-               n_ahead_ante = ex_ante_period,  
+               n_ahead_ante = 12,  
                num_simulations = 500,
                scoreHVT_results = scoring,
                trainHVT_results = hvt.results,
@@ -1602,14 +1626,12 @@ ex_ante[["plots"]][["centroids_plot"]][[17]]
 ### Ex-ante plots with simulation lines {.tabset}
 
 ```{r warning=FALSE, results='hide'}
-ex_ante_period <- seq.POSIXt(from = as.POSIXct("2025-10-01"),to = as.POSIXct("2026-09-01"),by = "1 month")
-ex_ante_period <- as.POSIXct(format(ex_ante_period, "%Y-%m-%d"), tz = "")
 
 ex_ante <- msm(state_time_data = temporal_data_entire,
                forecast_type = "ex-ante",
                transition_probability_matrix = prob_trans_matx,
                initial_state = tail(temporal_data_entire$Cell.ID, 1),
-               n_ahead_ante = ex_ante_period,  
+               n_ahead_ante = 12,  
                num_simulations = 500,
                scoreHVT_results = scoring,
                trainHVT_results = hvt.results,
@@ -1899,14 +1921,11 @@ ex_ante_raw[["plots"]]$XLB
 Now let's re-run the ex-ante forecasting for n_ahead more than 12 timestamps, to see how the model performs by selecting the base value from the predicted ex-ante raw.
 
 ```{r warning=FALSE, results='hide'}
-ex_ante_period <- seq.POSIXt(from = as.POSIXct("2025-10-01"),to = as.POSIXct("2027-09-01"),by = "1 month")
-ex_ante_period <- as.POSIXct(format(ex_ante_period, "%Y-%m-%d"), tz = "")
-
 ex_ante <- msm(state_time_data = temporal_data_entire,
                forecast_type = "ex-ante",
                transition_probability_matrix = prob_trans_matx,
                initial_state = tail(temporal_data_entire$Cell.ID, 1),
-               n_ahead_ante = ex_ante_period,  
+               n_ahead_ante = 24,  
                num_simulations = 500,
                scoreHVT_results = scoring,
                trainHVT_results = hvt.results,

@@ -206,23 +206,24 @@ In this section, we are establishing all the functions that will be utilized in 
 This function combines multiple CSV files (tweet csvs of each celebrities or influencers) in a directory to a single data frame, and slice the first 3 tweets per celebrity or influencer. It's used in [section 4](#dataset-understanding) as a first part of data processing.
 
 ```{r}
-merge_and_slice_data <- function(directory,output_path, num_users = 915) {
+merge_and_slice_data <- function(directory, output_path) {
+  
   csv_files <- list.files(directory, pattern = "*.csv", full.names = TRUE)
-    read_csv_with_filename <- function(file_path) {
+  
+  read_and_slice <- function(file_path) {
     df <- read.csv(file_path)
-    filename <- file_path_sans_ext(basename(file_path))
-    df$source_file <- filename
+    df <- df %>% slice_head(n = 3)   # take first 3 rows
+    df$source_file <- tools::file_path_sans_ext(basename(file_path))
     return(df)
   }
-    combined_data <- csv_files %>% lapply(read_csv_with_filename) %>% bind_rows()
   
-    user_names <- unique(combined_data$source_file)
-    select_users <- sample(user_names, num_users)
-    sliced_data <- combined_data %>% filter(source_file %in% select_users) %>% group_by(source_file) %>%
-                   slice_head(n = 3) %>% ungroup()
+  sliced_merged_data <- csv_files %>%
+    lapply(read_and_slice) %>%
+    bind_rows()
   
-    write.csv(sliced_data, output_path, row.names = FALSE)
+  write.csv(sliced_merged_data, output_path, row.names = FALSE)
 }
+
 ```
 
 ### 2. Function to clean the twitter data
@@ -434,7 +435,7 @@ get_cluster_domains <- function(k, iterations = 10) {
   cluster_names <- paste0("clust_", 1:k)
   content_list <- lapply(paste0(cluster_names, ".txt"), read_file_content)
   
-  prompt <- "Suggest a single word/domain that best describes the topics in the following text. Your response should be just one word. This is for cluster {cluster_number}. Ensure that your suggestion is unique and not used for any other cluster. Previously used domains are: {used_domains}. Do not repeat any of these."
+  prompt <- "You are a domain classification expert. Analyze the overall meaning, intent, and recurring themes across the entire text rather than isolated words or metaphors. Assign one single-word domain that best captures the dominant subject matter, such as emotions, public reactions, relationships, politics, health, media, or society. Do not base the domain on metaphorical language, stylistic expressions, or one-off mentions like cooking, food, or locations. Focus on what the text is mostly about and prefer abstract, high-level domains that are semantically aligned with the full context. Output exactly one word that is unique to cluster {cluster_number} and do not repeat any previously used domains from {used_domains}."
   
   send_request <- function(content, cluster_number, used_domains) {
     full_prompt <- gsub("\\{cluster_number\\}", cluster_number, prompt)
@@ -442,7 +443,7 @@ get_cluster_domains <- function(k, iterations = 10) {
     full_content <- paste(full_prompt, content)
     
     request_body <- paste0('{
-      "model": "gpt-4o-mini",
+      "model": "gpt-4o",
       "temperature":0,
       "messages": [
         {
@@ -494,9 +495,9 @@ get_cluster_domains <- function(k, iterations = 10) {
 
 ## 4.1 Dataset Sourcing
 
-1) The textual corpus employed for generating the token embeddings in this notebook consists of tweets from top celebrities or Influencers on Twitter. This dataset is sourced from <a href="https://www.kaggle.com/datasets/ahmedshahriarsakib/top-1000-twitter-celebrity-tweets-embeddings" target="_blank">Kaggle</a>
+1) The textual corpus employed for generating the token embeddings in this notebook consists of tweets from top celebrities or influencers on Twitter. This dataset is sourced from <a href="https://www.kaggle.com/datasets/ahmedshahriarsakib/top-1000-twitter-celebrity-tweets-embeddings" target="_blank">Kaggle</a>
 
-2) The aforementioned link directs to Kaggle, where one can download a zip file containing individual CSV files of tweets from the top 915 celebrities. 
+2) The aforementioned link directs to Kaggle, where one can download a zip file containing individual CSV files of tweets from the celebrities either directly or running the python code in local.
 
 <span style="font-size: 15px;">**Why Twitter Dataset?**</span>
 
@@ -505,22 +506,30 @@ The Twitter dataset used in this notebook is accessible to public (open source) 
 
 ## 4.2 Dataset Cleaning
 
-3) Using the [Function to Merge and Slice the data](#function-to-merge-and-slice-the-data) from section 3.1, all the csvs are collated to a single csv and first 3 tweets of all the celebrities or influencers are extracted. This approach aims to diversify the dataset by including more celebrities or influencers, thus ensuring a broader range of content instead of repetitive contextual tweets.
+3) The downloaded ZIP file contains a folder named 'twitter-celebrity-tweets-data', which includes 916 CSV files, each corresponding to tweets from a specific celebrity. Since most of the file contains thousands of tweets and very few files have 1 or 2 tweets, processing the full dataset would be computationally intensive.
+
+4) To address this, we use the [Function to Merge and Slice the data](#function-to-merge-and-slice-the-data) from section 3.1 to extract the first three tweets from each CSV file and then merge all the sliced outputs into a single CSV file. This approach helps diversify the dataset by incorporating tweets from a larger number of celebrities or influencers, ensuring a broader range of content rather than repetitive contextual tweets from a few individuals.
+
 
 ```{r, eval=FALSE}
 merge_and_slice_data(directory = "./twitter_data/all_celebs_tweets_folder/" , output_path = "./twitter_data/sliced_data.csv")
 ```
 
+**This merged dataset has 2733 records**
 
-4) All the selected data from above step is given as an input to the [Function to clean the twitter data](#function-to-clean-the-twitter-data) from section 3.1 where the removal of encoded texts, tags and emoji to text conversion takes place. Returned will be the cleaned texts. The source of this function which is written in python traces back to the <a href="https://www.kaggle.com/code/ahmedshahriarsakib/twitter-celebrity-matcher-sbert-tweepy#4-Data-Preparation" target="_blank">kaggle</a> twitter data processing notebook.
+5) The merged data from above step is given as an input to the [Function to clean the twitter data](#function-to-clean-the-twitter-data) from section 3.1 where the removal of encoded texts, tags and emoji to text conversion takes place. Returned will be the cleaned texts. The source of this function which is written in python traces back to the <a href="https://www.kaggle.com/code/ahmedshahriarsakib/twitter-celebrity-matcher-sbert-tweepy#4-Data-Preparation" target="_blank">kaggle</a> twitter data processing notebook.
 
 
 ```{python}
 preprocessed_data = preprocess_twitter_data( input_path='./twitter_data/sliced_data.csv',output_path='./twitter_data/cleaned_data.csv')
 ```
 
+**The resulting dataset still contains 2733 records with missing (NA) tweet text. This occurs because tweets that consist solely of emojis or contain only links without accompanying text are removed during preprocessing, resulting in empty or invalid entries. These NA rows, along with any other meaningless or invalid records, and non-english tweets require manual inspection and removal to ensure data quality.**
 
-5) In the subsequent step, we **manually** removed rows/tweets that are not in English, contain only emojis, and are incomplete. Below is a table displaying the first 10 rows of the manually selected data which will be used to get the embeddings data.
+6) In the subsequent step, we **manually** removed rows/tweets that are not in English, contain only emojis, and are incomplete. Below is a table displaying the first 10 rows of the manually selected data which will be used to get the embeddings data.
+
+
+**The steps described above can be executed each time the document is knitted; however, since this step involves manual inspection, this process has already been completed and saved. Hence the cleaned CSV file is therefore directly loaded here and this dataset has 297 records.**
 
 ```{r}
 selected_csv <- read.csv("./twitter_data/selected_data.csv")
@@ -533,9 +542,9 @@ displayTable(selected_csv[1:10,])
 
 ## 4.3 Create Embeddings of the Dataset using OpenAI
 
-6) The cleaned data is then transformed into token embeddings using **OpenAI's text-embedding-ada-002** model, which generates **1536-dimensional data**. 
+7) The cleaned data is then transformed into token embeddings using **OpenAI's text-embedding-ada-002** model, which generates **1536-dimensional data**. 
 
-7) The [Function for generating embeddings from textual data](#function-for-generating-embeddings-from-textual-data-using-openai) mentioned in section 3.1 follows all the below given steps for the process of converting textual data to numerical embeddings.
+8) The [Function for generating embeddings from textual data](#function-for-generating-embeddings-from-textual-data-using-openai) mentioned in section 3.1 follows all the below given steps for the process of converting textual data to numerical embeddings.
 
 <span style="font-size: 15px;">**Steps of Embeddings Generation**</span>
 

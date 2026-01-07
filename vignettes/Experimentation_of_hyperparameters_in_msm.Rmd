@@ -633,11 +633,17 @@ initial_state <- dplyr::last(temporal_train$Cell.ID)
 
 ## Step - 4: Ex-Post Forecasting {.tabset}
 
+*The forecast evolves dynamically - each step is produced through Monte Carlo simulation, with the next state derived from the previous one using Markov state transition probabilities*
+
 **Ex-Post forecast time period:**
+
+- Train period: `r min(train_dataset$Date)` to `r max(train_dataset$Date)`
+
+- Test Period/Ex-Post forecasting: `r min(test_dataset$Date)` to `r max(test_dataset$Date)`
 
 - Transition Probability Matrix: `r format(min(temporal_train$Date), "%Y-%m-%d")` to `r format(max(temporal_train$Date), "%Y-%m-%d")`
 
-- Initial timestamp: `r format(max(temporal_train$Date), "%Y-%m-%d")`
+- Initial timestamp (t0): `r format(max(temporal_train$Date), "%Y-%m-%d")`
 
 - Initial state: `r initial_state`
 
@@ -676,9 +682,6 @@ ex_post <- msm(
 
 Let’s view the ex-post forecasting plots as interactive Plotly visuals with timestamps on the X-axis and states on the Y-axis, showing all variables with hover details for timestamp and value. The studentized residuals plot displays standardized prediction errors with blue dashed lines at ±1σ and a black dashed line at 0, highlighting significant deviations between predicted and actual values.
 
-The Ex-post forecasting will range from `r format(min(test_dataset$Date), "%Y-%m-%d")` to `r format(max(test_dataset$Date), "%Y-%m-%d")` as per the selected test period.
-
-
 <br>
 
 
@@ -691,106 +694,106 @@ ex_post[["plots"]][[2]][[1]]
 
 
 
-### centroid CPI_U_All_Items_Less_Food_Energy
+### CPI_U_All_Items_Less_Food_Energy
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[1]]$centroids_plot
 ```
 
-### centroid Coincident_Index
+### Coincident_Index
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[2]]$centroids_plot
 ```
 
 
-### centroid Copper_ETF
+### Copper_ETF
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[3]]$centroids_plot
 ```
 
 
-### centroid SnP500_ETF
+### SnP500_ETF
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[4]]$centroids_plot
 ```
 
-### centroid Spot_Oil_Price_West_Texas_Intermediate
+### Spot_Oil_Price_West_Texas_Intermediate
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[5]]$centroids_plot
 ```
 
-### centroid US_Dollar_Index
+### US_Dollar_Index
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[6]]$centroids_plot
 ```
 
-### centroid Unemployment_Rate
+### Unemployment_Rate
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[7]]$centroids_plot
 ```
 
 
-### centroid X10_Year_Treasury_Note_Yield
+### X10_Year_Treasury_Note_Yield
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[8]]$centroids_plot
 ```
 
-### centroid X2_Year_Treasury_Note_Yield
+### X2_Year_Treasury_Note_Yield
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[9]]$centroids_plot
 ```
 
-### centroid High_Yield_Effective_Yield
+### High_Yield_Effective_Yield
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[10]]$centroids_plot
 ```
 
-### centroid XLY
+### XLY
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[11]]$centroids_plot
 ```
 
-### centroid XLP
+### XLP
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[12]]$centroids_plot
 ```
 
-### centroid Risk XLE
+### XLE
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[13]]$centroids_plot
 ```
 
-### centroid Risk XLF
+### XLF
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[14]]$centroids_plot
 ```
 
-### centroid Risk XLV
+### XLV
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[15]]$centroids_plot
 ```
 
-### centroid Risk XLI
+### XLI
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[16]]$centroids_plot
 ```
 
-### centroid Risk XLB
+### XLB
 
 ```{r, fig.width=8.5, out.width='100%',out.height='10%', fig.align='center'}
 ex_post[["plots"]][[1]][[17]]$centroids_plot

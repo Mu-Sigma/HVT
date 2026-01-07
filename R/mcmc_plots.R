@@ -169,6 +169,17 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
     }
   }
   
+  # Format date to always show 1st of month for tooltips
+  format_date_first <- function(date_val) {
+    if(inherits(date_val, "POSIXct") || inherits(date_val, "Date")) {
+      date_str <- format(date_val, "%Y-%m-%d")
+      # Extract year-month and set day to 01
+      year_month <- substr(date_str, 1, 7)
+      return(paste0(year_month, "-01"))
+    }
+    return(as.character(date_val))
+  }
+  
   # Create base plot with common elements
   create_base_plot <- function(plot_data, summary_data, show_simulation, mae_metric, 
                               variable_name = NULL, is_states = FALSE) {
@@ -183,27 +194,27 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
       {if(show_simulation) ggplot2::geom_line(data = plot_data,
                                              ggplot2::aes(x = time, y = value, group = simulation, 
                                                          colour = "Simulations",
-                                                         text = paste("Time:", time, "<br>Value:", value, "<br>Simulation:", simulation)), 
+                                                         text = paste("Time:", format_date_first(time), "<br>Value:", value, "<br>Simulation:", simulation)), 
                                              alpha = 0.4, size = 0.4)} +
       # Mode line and points
       ggplot2::geom_line(data = summary_data, ggplot2::aes(x = time, y = mode, colour = "Mode"), 
                         size = ifelse(mae_metric == "mode", 1.0, 0.4)) +
       ggplot2::geom_point(data = summary_data, ggplot2::aes(x = time, y = mode, colour = "Mode",
-                                                          text = paste("Time:", time, "<br>Mode", 
+                                                          text = paste("Time:", format_date_first(time), "<br>Mode", 
                                                                       ifelse(is.null(variable_name), "", paste(variable_name, ":")), mode)), 
                          size = ifelse(mae_metric == "mode", 1.5, 1.0)) +
       # Mean line and points
       ggplot2::geom_line(data = summary_data, ggplot2::aes(x = time, y = mean, colour = "Mean"), 
                         size = ifelse(mae_metric == "mean", 1.0, 0.4)) +
       ggplot2::geom_point(data = summary_data, ggplot2::aes(x = time, y = mean, colour = "Mean",
-                                                           text = paste("Time:", time, "<br>Mean", 
+                                                           text = paste("Time:", format_date_first(time), "<br>Mean", 
                                                                        ifelse(is.null(variable_name), "", paste(variable_name, ":")), mean)), 
                          size = ifelse(mae_metric == "mean", 1.5, 1.0)) +
       # Median line and points
       ggplot2::geom_line(data = summary_data, ggplot2::aes(x = time, y = median, colour = "Median"), 
                         size = ifelse(mae_metric == "median", 1.0, 0.4)) +
       ggplot2::geom_point(data = summary_data, ggplot2::aes(x = time, y = median, colour = "Median",
-                                                           text = paste("Time:", time, "<br>Median", 
+                                                           text = paste("Time:", format_date_first(time), "<br>Median", 
                                                                        ifelse(is.null(variable_name), "", paste(variable_name, ":")), median)), 
                          size = ifelse(mae_metric == "median", 1.5, 1.0)) +
       ggplot2::scale_colour_manual(values = color_values) +
@@ -216,6 +227,8 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
   # Add actual data layer
   add_actual_layer <- function(plot, actual_data, variable_name, time_col = "time") {
     actual_col_name <- paste0("actual_", variable_name)
+    # Create formatted time column for tooltips
+    actual_data$formatted_time <- sapply(actual_data[[time_col]], format_date_first)
     plot + 
       ggplot2::geom_line(data = actual_data, 
                         ggplot2::aes(x = !!rlang::sym(time_col), y = !!rlang::sym(actual_col_name), 
@@ -223,7 +236,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
       ggplot2::geom_point(data = actual_data, 
                          ggplot2::aes(x = !!rlang::sym(time_col), y = !!rlang::sym(actual_col_name), 
                                      colour = "Actual",
-                                     text = paste("Time:", !!rlang::sym(time_col), "<br>Actual", variable_name, ":", 
+                                     text = paste("Time:", formatted_time, "<br>Actual", variable_name, ":", 
                                                  round(!!rlang::sym(actual_col_name), 4))), 
                          size = 1.5)
   }
@@ -236,6 +249,8 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
     
     # Determine the correct time column name
     time_col <- if("time" %in% names(residuals_df)) "time" else "t"
+    # Create formatted time column for tooltips
+    residuals_df$formatted_time <- sapply(residuals_df[[time_col]], format_date_first)
     
     ggplot2::ggplot() +
       ggplot2::geom_line(data = residuals_df, 
@@ -243,7 +258,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
                         size = 0.8) +
       ggplot2::geom_point(data = residuals_df, 
                          ggplot2::aes(x = !!rlang::sym(time_col), y = studentized_residuals, color = "Studentized\nResiduals",
-                                     text = paste("Time:", !!rlang::sym(time_col), "<br>Residuals", 
+                                     text = paste("Time:", formatted_time, "<br>Residuals", 
                                                  ifelse(is.null(variable_name), "", paste(variable_name, ":")), 
                                                  round(studentized_residuals, 4))), 
                          size = 1.0) +
@@ -436,10 +451,13 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
       summary_data <- simulation_results %>%
         dplyr::select(time, mean, median, mode)
       
+      # Format dates for tooltips
+      test_data$formatted_time <- sapply(test_data$t, format_date_first)
+      
       pa <- create_base_plot(plot_data, summary_data, show_simulation, mae_metric, NULL, TRUE) +
         ggplot2::geom_line(data = test_data, ggplot2::aes(x = t, y = Cell.ID, color = "Actual States"), size = 1) +
         ggplot2::geom_point(data = test_data, ggplot2::aes(x = t, y = Cell.ID, color = "Actual States", 
-                                                          text = paste("Time:", t, "<br>Actual States:", Cell.ID)), 
+                                                          text = paste("Time:", formatted_time, "<br>Actual States:", Cell.ID)), 
                            size = 1.5) +
         ggplot2::scale_colour_manual(values = c("Simulations" = "darkgray", "Median" = "red",
                                                "Mean" = "darkgreen", "Actual States" = "black", "Mode" = "#0901FF")) +
@@ -603,10 +621,13 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         plot_data <- standardize_timestamp(plot_data, "time")
       }
       
+      # Format dates for tooltips
+      test_data$formatted_time <- sapply(test_data$time, format_date_first)
+      
       pa <- create_base_plot(plot_data, summary_data, show_simulation, mae_metric, NULL, TRUE) +
         ggplot2::geom_line(data = test_data, ggplot2::aes(x = time, y = Cell.ID, color = "Actual States"), size = 1.0) +
         ggplot2::geom_point(data = test_data, ggplot2::aes(x = time, y = Cell.ID, color = "Actual States", 
-                                                          text = paste("Time:", time, "<br>Actual States:", Cell.ID)), 
+                                                          text = paste("Time:", formatted_time, "<br>Actual States:", Cell.ID)), 
                            size = 1.5, show.legend = TRUE) +
         ggplot2::scale_colour_manual(values = c("Simulations" = "darkgray", "Median" = "red",
                                                "Mean" = "darkgreen", "Actual States" = "black", "Mode" = "#0901FF")) +

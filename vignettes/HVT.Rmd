@@ -132,7 +132,7 @@ kable(vignette_data, format = "html",
   kable_styling(full_width = TRUE) %>% column_spec(1, width = "15%") 
 ```
 
-# 3. Version History
+# 3. Package Version History
 
 ## HVT (v25.2.8) - What's new?
 
