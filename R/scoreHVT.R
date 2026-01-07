@@ -607,8 +607,8 @@ if(analysis.plots) {
           text = as.character(annotation_data$Cell.ID),
           showarrow = FALSE,
           # Match clusterPlot CELL_ID_LABEL_SIZE
-          font = list(size = 10, color = "black"),
-          yshift = 10,
+          font = list(size = 8, color = "black"),
+          yshift = -7,
           xref = "x",
           yref = "y"
         )

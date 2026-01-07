@@ -643,7 +643,7 @@ initial_state <- dplyr::last(temporal_train$Cell.ID)
 
 - Transition Probability Matrix: `r format(min(temporal_train$Date), "%Y-%m-%d")` to `r format(max(temporal_train$Date), "%Y-%m-%d")`
 
-- Initial timestamp: `r format(max(temporal_train$Date), "%Y-%m-%d")`
+- Initial timestamp (t0): `r format(max(temporal_train$Date), "%Y-%m-%d")`
 
 - Initial state: `r initial_state`
 

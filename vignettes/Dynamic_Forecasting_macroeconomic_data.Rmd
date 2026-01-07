@@ -849,7 +849,7 @@ This function uses a transition probability matrix with cumulative probabilities
 
 * __`initial_state`__   - Integer, indicating the state at t0.
 
-* __`n_ahead_ante`__   - Integer, indicating the number of ahead periods for ex-ante forecasting. Default value is 10.
+* __`n_ahead_ante`__   - Integer, indicating the number of ahead periods for ex-ante forecasting. Default value is 12.
 
 * __`num_simulations`__ - Integer indicating the number of simulations to be performed. Default value is 100.
 
@@ -902,17 +902,15 @@ Let's proceed with the ex-post Dynamic Forecasting using the `msm` function.
 
 **Ex-post Period:**
 
-- Train period : from 1999-12-01 to 2024-09-01
+- Train period: from 1999-12-01 to 2024-09-01
 
-- Test Period : from 2024-10-01 to 2025-09-01
+- Test Period/Ex-Post forecasting: from 2024-10-01 to 2025-09-01
 
 - Transition Probability Matrix: 1999-12-01 to 2024-09-01
 
-- Initial timestamp: 2024-09-01
+- Initial timestamp (t0): 2024-09-01
 
 - Initial state: 16
-
-- Ex-post Forecast: 2024-10-01 to 2025-09-01
 
 - Residuals: Actual - Predicted Median.
 
@@ -1485,7 +1483,7 @@ Now that ex-post is done, we now proceed with ex-ante Forecasting. In this secti
 
 - Transition Probability Matrix: 1999-12-01 to 2024-09-01
 
-- Initial timestamp: 2025-09-01
+- Initial timestamp (t0): 2025-09-01
 
 - Initial state: 41
 

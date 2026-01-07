@@ -510,14 +510,14 @@ The Twitter dataset used in this notebook is accessible to public (open source) 
 
 4) To address this, we use the [Function to Merge and Slice the data](#function-to-merge-and-slice-the-data) from section 3.1 to extract the first three tweets from each CSV file and then merge all the sliced outputs into a single CSV file. This approach helps diversify the dataset by incorporating tweets from a larger number of celebrities or influencers, ensuring a broader range of content rather than repetitive contextual tweets from a few individuals.
 
-**This merged dataset has 2733 records**
 
 ```{r, eval=FALSE}
 merge_and_slice_data(directory = "./twitter_data/all_celebs_tweets_folder/" , output_path = "./twitter_data/sliced_data.csv")
 ```
 
+**This merged dataset has 2733 records**
 
-4) The merged data from above step is given as an input to the [Function to clean the twitter data](#function-to-clean-the-twitter-data) from section 3.1 where the removal of encoded texts, tags and emoji to text conversion takes place. Returned will be the cleaned texts. The source of this function which is written in python traces back to the <a href="https://www.kaggle.com/code/ahmedshahriarsakib/twitter-celebrity-matcher-sbert-tweepy#4-Data-Preparation" target="_blank">kaggle</a> twitter data processing notebook.
+5) The merged data from above step is given as an input to the [Function to clean the twitter data](#function-to-clean-the-twitter-data) from section 3.1 where the removal of encoded texts, tags and emoji to text conversion takes place. Returned will be the cleaned texts. The source of this function which is written in python traces back to the <a href="https://www.kaggle.com/code/ahmedshahriarsakib/twitter-celebrity-matcher-sbert-tweepy#4-Data-Preparation" target="_blank">kaggle</a> twitter data processing notebook.
 
 
 ```{python}
@@ -526,10 +526,10 @@ preprocessed_data = preprocess_twitter_data( input_path='./twitter_data/sliced_d
 
 **The resulting dataset still contains 2733 records with missing (NA) tweet text. This occurs because tweets that consist solely of emojis or contain only links without accompanying text are removed during preprocessing, resulting in empty or invalid entries. These NA rows, along with any other meaningless or invalid records, and non-english tweets require manual inspection and removal to ensure data quality.**
 
-5) In the subsequent step, we **manually** removed rows/tweets that are not in English, contain only emojis, and are incomplete. Below is a table displaying the first 10 rows of the manually selected data which will be used to get the embeddings data.
+6) In the subsequent step, we **manually** removed rows/tweets that are not in English, contain only emojis, and are incomplete. Below is a table displaying the first 10 rows of the manually selected data which will be used to get the embeddings data.
 
 
-**The steps described above can be executed each time the document is knitted; however, since this step involves manual inspection, this process has already been completed and saved. Hence the cleaned CSV file is therefore directly loaded here and this dataset has 297 records**
+**The steps described above can be executed each time the document is knitted; however, since this step involves manual inspection, this process has already been completed and saved. Hence the cleaned CSV file is therefore directly loaded here and this dataset has 297 records.**
 
 ```{r}
 selected_csv <- read.csv("./twitter_data/selected_data.csv")
@@ -542,9 +542,9 @@ displayTable(selected_csv[1:10,])
 
 ## 4.3 Create Embeddings of the Dataset using OpenAI
 
-6) The cleaned data is then transformed into token embeddings using **OpenAI's text-embedding-ada-002** model, which generates **1536-dimensional data**. 
+7) The cleaned data is then transformed into token embeddings using **OpenAI's text-embedding-ada-002** model, which generates **1536-dimensional data**. 
 
-7) The [Function for generating embeddings from textual data](#function-for-generating-embeddings-from-textual-data-using-openai) mentioned in section 3.1 follows all the below given steps for the process of converting textual data to numerical embeddings.
+8) The [Function for generating embeddings from textual data](#function-for-generating-embeddings-from-textual-data-using-openai) mentioned in section 3.1 follows all the below given steps for the process of converting textual data to numerical embeddings.
 
 <span style="font-size: 15px;">**Steps of Embeddings Generation**</span>
 
