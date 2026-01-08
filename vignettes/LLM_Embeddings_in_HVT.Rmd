@@ -185,7 +185,7 @@ This chunk verifies the installation of all the necessary packages to successful
 
 ```{r, warning=FALSE, message=FALSE}
 list.of.packages <- c("dplyr","magrittr", "ggplot2", "kableExtra", "gridExtra","grid", "httr", "stats", 
-                      "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly", "tidyr","HVT",
+                      "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly", "tidyr",
                       "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable")
 
 new.packages <-
@@ -196,6 +196,12 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 
 ## 3.1 User-defined Functions
 
@@ -435,7 +441,9 @@ get_cluster_domains <- function(k, iterations = 10) {
   cluster_names <- paste0("clust_", 1:k)
   content_list <- lapply(paste0(cluster_names, ".txt"), read_file_content)
   
-  prompt <- "You are a domain classification expert. Analyze the overall meaning, intent, and recurring themes across the entire text rather than isolated words or metaphors. Focus on what the text is mostly about and prefer abstract, high-level domains that are semantically aligned with the full context. Output exactly one word that is unique to cluster {cluster_number} and most importantly do not repeat any previously used domains from {used_domains}."
+  prompt <- "You are a deterministic domain classification engine. Read the entire text and assign exactly ONE broad, high-level domain that best represents the dominant theme based on overall meaning, not isolated words. Output must be EXACTLY one English word containing only letters A–Z or a–z. Do NOT include numbers, labels, prefixes, cluster identifiers, punctuation, quotes, formatting, explanations, or multiple words. Do NOT output anything except the domain word. The domain MUST NOT repeat, rephrase, or be semantically similar to any domain in this list: {used_domains}. If a candidate domain overlaps conceptually with any used domain, it is INVALID and must not be selected. Prefer the most general valid domain and prioritize stability over creativity. If multiple domains apply, choose the dominant one. Valid outputs are single words like: Environment, Culture, Politics, Sports, Religion, Technology. Return ONLY the domain word."
+  
+  
   
   send_request <- function(content, cluster_number, used_domains) {
     full_prompt <- gsub("\\{cluster_number\\}", cluster_number, prompt)
@@ -1136,7 +1144,7 @@ summary(scoring)
 
 ### 7.2.1 Scored Plot
 
-Let's look at the **'scoredPlotly' which visualizes the 2D Heatmap, hover on it will display the no. of observations and the tweets in a cell with its cell ID**.
+Let's look at the 'scoredPlotly' which visualizes the 2D Heatmap, hover on it will display the no. of observations and the tweets in a cell with its cell ID.
 
 
 ```{r, warning=FALSE,message=FALSE,out.width="720px",out.height = "480px",fig.align = "center"}
@@ -1247,13 +1255,14 @@ clust.results <- clustHVT(data = hclust_data_1,
                           clusters_k = 'champion')
 ```
 
-From the above results, we can clearly see that highest recommendation is *3* as the optimal number of clusters. Let's look at the dendrogram plot for the same.
+
+Based on the above results, four indices recommend both 3 and 15 clusters equally. However, according to the sorting order, the solution with 3 clusters is selected as the champion. Let us now examine these clusters.
 
 ```{r, fig.width=13.5, fig.height = 6,fig.align = "center"}
 clust.results$dendrogram()
 ```
 
-Though the highest recommendation is 3, the corresponding dendrogram results in large clusters. However, for our specific use case, we prefer to have smaller clusters. So we will select the next highest recommendation from the NbClust summary. With 5 indices supporting this choice, we will proceed with 'challenger' to achieve a more granular clustering solution.
+The 3-cluster solution results in a dendrogram with large holdings. However, for our specific use case, smaller clusters are preferred. Therefore, we switch to a 15-cluster solution by re-running the clustHVT function using the challenger model, allowing 15 clusters to be selected during sorting.
 
 ```{r, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 clust.results <- clustHVT(data = hclust_data_1, 
@@ -1365,7 +1374,7 @@ plotly::layout(annotations = list(
 
 - A visual comparison between the plots of *OpenAI Approach* and the *Manual Approach* indicates that the domain names assigned to clusters exhibit complete uniqueness across both methods. 
 
-- The labeling methodology utilized by OpenAI largely depends on the content of a restricted sample of tweets, generally one or two per cluster. For example, the 'sports' domain in the OpenAI plot is represented by only a single tweet pertaining to sports, whereas the majority of the remaining tweets discuss media shows. This distinction was more accurately captured by the Manual Approach, which categorized it as 'Television Media'.
+- The labeling methodology employed by OpenAI did not consistently suggest relevant domains. For instance, the 'Technology' domain in the OpenAI-generated plot contains no technology-related tweets; instead, it primarily reflects human emotions. In the manual approach, this cluster was labeled as 'Thoughts', which appears more contextually appropriate than 'Technology'.
 
 
 
@@ -1442,7 +1451,7 @@ clust.results <- clustHVT(data = hclust_data_2,
               clusters_k = 'champion')
 ```
 
-From the above results, we can clearly see that highest recommendation is *4* as the optimal number of clusters. Let's look at the dendrogram plot for the same.
+From the above results, we can clearly see that highest recommendation is *15* as the optimal number of clusters. Let's look at the dendrogram plot for the same.
 
 ```{r, fig.width=13.5, fig.height = 6,fig.align = "center"}
 clust.results$dendrogram()
@@ -1731,7 +1740,7 @@ The Average Silhouette Width (ASW), a metric that quantifies clustering quality 
 
 - For the 2D Sammon's coordinates, the ASW for Ward.D2 was **`r ward_asw`**, whereas for the 1536D embeddings, the ASW was **`r ward_asw_2`**.
 
-- Notably, the difference in ASW between the two datasets was approximately 0.03, a margin that is statistically minimal. This result suggests that despite the higher dimensionality of the dataset(1538D), the **clustering quality did not significantly improve** and, in fact, the lower-dimensional (2D) data provided slightly better results. 
+- Notably, the difference in ASW between the two datasets was approximately 0.01, a margin that is statistically minimal. This result suggests that despite the higher dimensionality of the dataset(1538D), the **clustering quality did not significantly improve** and, in fact, the lower-dimensional (2D) data provided slightly better results. 
 
 - Given the marginal difference in ASW and the increased complexity associated with higher-dimensional data, we conclude that the **low dimensional (2D) data is not only more computationally efficient but also more effective for this clustering task**.
 
@@ -1749,7 +1758,7 @@ By evaluating the domain names produced by OpenAI's gpt-4o against those assigne
 
 - The manual approach takes into account the entire content within each cluster, leading to domain names that reflect the broader thematic and contextual information.
 
-- In contrast, the domain names generated by OpenAI’s gpt-4o are based on a limited sample of one or two tweets per cluster. This narrow focus often fails to capture the full content and thematic richness of the clusters, leading to less representative domain names.
+- In contrast, the domain names generated by OpenAI’s GPT-4o are derived from a limited sample of one or two tweets per cluster, with the cluster name gets repeated across samples. This narrow context frequently fails to capture the full thematic breadth and content diversity of the clusters, resulting in less representative domain names and duplication - limitations that are not observed in the manual approach.
 
 
 

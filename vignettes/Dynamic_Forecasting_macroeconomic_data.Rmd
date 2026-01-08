@@ -902,9 +902,9 @@ Let's proceed with the ex-post Dynamic Forecasting using the `msm` function.
 
 **Ex-post Period:**
 
-- Train period: from 1999-12-01 to 2024-09-01
+- Train period: 1999-12-01 to 2024-09-01
 
-- Test Period/Ex-Post forecasting: from 2024-10-01 to 2025-09-01
+- Test Period/Ex-Post forecasting: 2024-10-01 to 2025-09-01
 
 - Transition Probability Matrix: 1999-12-01 to 2024-09-01
 
@@ -1481,13 +1481,16 @@ Now that ex-post is done, we now proceed with ex-ante Forecasting. In this secti
 
 **Ex-ante Period:**
 
+- Train period: 1999-12-01 to 2024-09-01
+
+- Ex-ante Forecast: t+12 (2025-10-01 to 2026-09-01)
+
 - Transition Probability Matrix: 1999-12-01 to 2024-09-01
 
 - Initial timestamp (t0): 2025-09-01
 
 - Initial state: 41
 
-- Ex-ante Forecast: t+12 (2025-10-01 to 2026-09-01)
 
 ```{r warning=FALSE, results='hide'}
 

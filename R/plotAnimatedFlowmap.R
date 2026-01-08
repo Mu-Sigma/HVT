@@ -387,7 +387,10 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
         merged_df3$Probability > 0.8 ~ "0.9 to 1"
       )
       
-      unique_ranges <- rev(unique(prob_ranges))
+      # Define proper order for ranges (ascending by lower bound)
+      range_order <- c("0 to 0.3", "0.4 to 0.6", "0.7 to 0.8", "0.9 to 1")
+      # Get unique ranges and sort them according to the defined order (ascending)
+      unique_ranges <- range_order[range_order %in% unique(prob_ranges)]
       
       create_legend <- function(x1_l, x2_l, x3_l, y1_l, y2_l) {
         labels <- unique_ranges  # Use actual ranges found in data
