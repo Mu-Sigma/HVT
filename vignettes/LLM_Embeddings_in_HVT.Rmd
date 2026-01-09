@@ -1374,7 +1374,7 @@ plotly::layout(annotations = list(
 
 - A visual comparison between the plots of *OpenAI Approach* and the *Manual Approach* indicates that the domain names assigned to clusters exhibit complete uniqueness across both methods. 
 
-- The labeling methodology employed by OpenAI did not consistently suggest relevant domains. For instance, the 'Technology' domain in the OpenAI-generated plot contains no technology-related tweets; instead, it primarily reflects human emotions. In the manual approach, this cluster was labeled as 'Thoughts', which appears more contextually appropriate than 'Technology'.
+- The labeling methodology employed by OpenAI has not suggested relevant domains. For instance, the 'Technology' domain in the OpenAI-generated plot contains no technology-related tweets; instead, it primarily reflects social media engagements. In the manual approach, this cluster was labeled as 'Engagement', which appears more contextually appropriate than 'Technology'.
 
 
 
@@ -1562,7 +1562,7 @@ plotly::layout(annotations = list(
 
 - A visual comparison between the plots of *OpenAI Approach* and the *Manual Approach* indicates that the labels assigned to clusters exhibit complete uniqueness across both methods. 
 
-- The labeling methodology utilized by OpenAI largely depends on the content of a restricted sample of tweets, generally one or two per cluster. For example, the 'safety' domain in the OpenAI plot is represented by only a single tweet pertaining to be precautious, whereas the majority of the remaining tweets discuss personal opinions. This distinction was more accurately captured by the Manual Approach, which categorized it as 'Thoughts'.
+- The labeling methodology utilized by OpenAI largely depends on the content of a restricted sample of tweets, generally one or two per cluster. For example, the 'Art' domain in the OpenAI plot is just the announcement posters in social media. Hence it is named as "Media posts" in manual approach which suits as better domain name to that cluster.
 
 
 
