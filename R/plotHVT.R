@@ -25,10 +25,11 @@
 #' @param separation_width (surface_plot) Numeric. An integer indicating the width between hierarchical levels in surface plot
 #' @param layer_opacity (surface_plot) Numeric. A vector indicating the opacity of each hierarchical levels in surface plot
 #' @param dim_size  (surface_plot) Numeric. An integer controls the resolution or granularity of the 3D surface grid
-#' @param cell_id (2Dhvt/2Dheatmap) Logical. A logical indicating whether the cell IDs should be displayed
+#' @param cell_id (2Dhvt/2Dheatmap) Logical. A logical indicating whether the cell IDs should be displayed. Default is FALSE
 #' @param cell_id_position (2Dhvt/2Dheatmap) Character. A character indicating the position of the cell IDs. Accepted entries are 'top' , 
-#' 'bottom', 'left' and 'right'.
-#' @param cell_id_size (2Dhvt/2Dheatmap) Numeric. A numeric vector indicating the size of the cell IDs for all levels.
+#' 'bottom', 'left', 'right', and 'center'. Default is 'bottom'
+#' @param cell_id_size (2Dhvt/2Dheatmap) Numeric. A numeric vector indicating the size of the cell IDs. Default is 2.6
+#' @param centroids (2Dhvt/2Dheatmap) Logical. A logical indicating whether the centroid points should be displayed. Default value is TRUE.
 #' @returns plot object containing the visualizations of reduced dimension(1D/2D) for the given dataset.
 #' @author Shubhra Prakash <shubhra.prakash@@mu-sigma.com>, Sangeet Moy Das <sangeet.das@@mu-sigma.com>, Vishwavani <vishwavani@@mu-sigma.com>
 #' @seealso \code{\link{trainHVT}} 
@@ -64,7 +65,48 @@ plotHVT <- function(hvt.results,
                     quant.error.hmap = NULL,
                     cell_id = FALSE,
                     cell_id_position="bottom", 
-                    cell_id_size = 2.6) {
+                    cell_id_size = 2.6,
+                    centroids = TRUE) {
+  
+  # Helper function to calculate geometric centroid of a polygon
+  calculate_polygon_centroid <- function(x_coords, y_coords) {
+    n <- length(x_coords)
+    if (n < 3) {
+      # If not enough points, return mean
+      return(list(x = mean(x_coords), y = mean(y_coords)))
+    }
+    
+    # Close the polygon if not already closed
+    if (x_coords[1] != x_coords[n] || y_coords[1] != y_coords[n]) {
+      x_coords <- c(x_coords, x_coords[1])
+      y_coords <- c(y_coords, y_coords[1])
+      n <- n + 1
+    }
+    
+    # Calculate signed area using shoelace formula
+    signed_area <- 0
+    cx <- 0
+    cy <- 0
+    
+    for (i in 1:(n - 1)) {
+      cross_product <- x_coords[i] * y_coords[i + 1] - x_coords[i + 1] * y_coords[i]
+      signed_area <- signed_area + cross_product
+      cx <- cx + (x_coords[i] + x_coords[i + 1]) * cross_product
+      cy <- cy + (y_coords[i] + y_coords[i + 1]) * cross_product
+    }
+    
+    signed_area <- signed_area / 2
+    
+    if (abs(signed_area) < 1e-10) {
+      # Degenerate polygon, return mean
+      return(list(x = mean(x_coords[1:(n-1)]), y = mean(y_coords[1:(n-1)])))
+    }
+    
+    centroid_x <- cx / (6 * signed_area)
+    centroid_y <- cy / (6 * signed_area)
+    
+    return(list(x = centroid_x, y = centroid_y))
+  }
   
   lev <- NULL
   n_cells <- max(stats::na.omit(hvt.results[[3]][["summary"]][["Cell.ID"]]))
@@ -236,7 +278,48 @@ plotHVT <- function(hvt.results,
       colnames(cellID_coordinates) <- c("x", "y")
       cellID_coordinates$Cell.ID <- hvt_res2
       centroidDataframe_2 <- merge(cellID_coordinates, centroidDataframe, by = c("x" ,"y"))
+    
+    # Calculate polygon geometric centroids for cell ID positioning
+    polygon_centroids_list <- list()
+    for (depth_val in 1:child.level) {
+      depth_data <- datapoly[datapoly$depth == depth_val, ]
+      if (nrow(depth_data) > 0) {
+        polygon_centroids <- depth_data %>%
+          dplyr::group_by(depth, cluster, child) %>%
+          dplyr::summarise(
+            x = calculate_polygon_centroid(x, y)$x,
+            y = calculate_polygon_centroid(x, y)$y,
+            .groups = 'drop'
+          )
+        polygon_centroids_list[[depth_val]] <- polygon_centroids
+      }
+    }
+    polygon_centroids_df <- do.call(rbind, polygon_centroids_list)
+    
+    # Match polygon centroids with Cell.IDs for level 1
+    if (child.level >= 1 && nrow(polygon_centroids_df) > 0) {
+      level1_poly_centroids <- polygon_centroids_df[polygon_centroids_df$depth == 1, ]
+      # Merge with Cell.IDs using cluster and child matching
+      cellID_mapping <- hvt_list[[3]][["summary"]] %>%
+        dplyr::filter(Segment.Level == 1) %>%
+        dplyr::select(Segment.Parent, Segment.Child, Cell.ID) %>%
+        dplyr::mutate(
+          Segment.Parent = as.character(Segment.Parent),
+          Segment.Child = as.numeric(Segment.Child)
+        )
       
+      cellID_polygon_centroids <- level1_poly_centroids %>%
+        dplyr::mutate(
+          cluster = as.character(cluster),
+          child = as.numeric(child)
+        ) %>%
+        dplyr::left_join(cellID_mapping, 
+                         by = c("cluster" = "Segment.Parent", "child" = "Segment.Child")) %>%
+        dplyr::filter(!is.na(Cell.ID))
+    } else {
+      cellID_polygon_centroids <- data.frame(x = numeric(0), y = numeric(0), Cell.ID = numeric(0))
+    }
+    
     p <- ggplot2::ggplot()  
     for (i in child.level:1) {
       p <-
@@ -258,56 +341,89 @@ plotHVT <- function(hvt.results,
     
     if (cell_id == TRUE) {
 
-    for (depth in 1:child.level) {
-      depth_size <- centroid.size[child.level - depth + 1]
-      centroid_color <- centroid.color[child.level - depth + 1]
-      
-      p <- p + ggplot2::geom_point(
-        data = centroidDataframe[centroidDataframe["lev"] == depth, ],
-        ggplot2::aes(x = x, y = y),
-        size = depth_size,
-        pch = pch1,
-        fill = centroid_color,
-        color = centroid_color
-      ) 
+    # Add centroid points if centroids = TRUE
+    if (centroids == TRUE) {
+      for (depth in 1:child.level) {
+        depth_size <- centroid.size[child.level - depth + 1]
+        centroid_color <- centroid.color[child.level - depth + 1]
+        
+        p <- p + ggplot2::geom_point(
+          data = centroidDataframe[centroidDataframe["lev"] == depth, ],
+          ggplot2::aes(x = x, y = y),
+          size = depth_size,
+          pch = pch1,
+          fill = centroid_color,
+          color = centroid_color
+        ) 
+      }
     }
 
-    subset_data <- subset(centroidDataframe_2, lev == 1)
-    
-    
-    alignments <- list(
-      right = list(hjust = -0.5, vjust = 0.5),
-      left = list(hjust = 1.5, vjust = 0.5),
-      bottom = list(hjust = 0.5, vjust = 1.5),
-      top = list(hjust = 0.5, vjust = -0.5) # Default case
-    )
-    
-    # Get alignment values for the current position
-    alignment <- rlang::`%||%`(alignments[[cell_id_position]], alignments$bottom)
+    # Use polygon centroids if cell_id_position is "center", otherwise use point centroids
+    if (cell_id_position == "center") {
+      if (nrow(cellID_polygon_centroids) > 0) {
+        subset_data <- cellID_polygon_centroids
+        # Center alignment for polygon centroids
+        hjust_val <- 0.5
+        vjust_val <- 0.5
+      } else {
+        # Fallback to original method if polygon centroids not available
+        subset_data <- subset(centroidDataframe_2, lev == 1)
+        hjust_val <- 0.5
+        vjust_val <- 0.5
+      }
+    } else {
+      # Use original point centroids for other positions
+      subset_data <- subset(centroidDataframe_2, lev == 1)
+      
+      alignments <- list(
+        right = list(hjust = -0.5, vjust = 0.5),
+        left = list(hjust = 1.5, vjust = 0.5),
+        bottom = list(hjust = 0.5, vjust = 1.5),
+        top = list(hjust = 0.5, vjust = -0.5)
+      )
+      
+      # Get alignment values for the current position
+      alignment <- rlang::`%||%`(alignments[[cell_id_position]], alignments$bottom)
+      hjust_val <- alignment$hjust
+      vjust_val <- alignment$vjust
+    }
     
     # Add geom_text to the plot
-    p <- p + ggplot2::geom_text(
-      data = subset_data,
-      ggplot2::aes(x = x, y = y, label = Cell.ID),
-      size = cell_id_size,
-      color = "black",
-      hjust = alignment$hjust,
-      vjust = alignment$vjust,
-      nudge_x = -0.02 * nchar(as.character(subset_data$Cell.ID)))
+    if (cell_id_position == "center") {
+      p <- p + ggplot2::geom_text(
+        data = subset_data,
+        ggplot2::aes(x = x, y = y, label = Cell.ID),
+        size = cell_id_size,
+        color = "black",
+        hjust = hjust_val,
+        vjust = vjust_val)
+    } else {
+      p <- p + ggplot2::geom_text(
+        data = subset_data,
+        ggplot2::aes(x = x, y = y, label = Cell.ID),
+        size = cell_id_size,
+        color = "black",
+        hjust = hjust_val,
+        vjust = vjust_val,
+        nudge_x = -0.02 * nchar(as.character(subset_data$Cell.ID)))
+    }
      
     }else {
-       for (depth in 1:child.level) {
-         depth_size <- centroid.size[child.level - depth + 1]
-         centroid_color <- centroid.color[child.level - depth + 1]
-         
-         p <- p + ggplot2::geom_point(
-           data = centroidDataframe[centroidDataframe["lev"] == depth, ],
-           ggplot2::aes(x = x, y = y),
-           size = depth_size,
-           pch = pch1,
-           fill = centroid_color,
-           color = centroid_color
-         ) 
+       # Add centroid points if centroids = TRUE
+       if (centroids == TRUE) {
+         for (depth in 1:child.level) {
+           depth_size <- centroid.size[child.level - depth + 1]
+           centroid_color <- centroid.color[child.level - depth + 1]
+           
+           p <- p + ggplot2::geom_point(
+             data = centroidDataframe[centroidDataframe["lev"] == depth, ],
+             ggplot2::aes(x = x, y = y),
+             size = depth_size,
+             pch = pch1,
+             fill = centroid_color,
+             color = centroid_color
+           ) 
+         }
        }
        
      }
@@ -515,6 +631,23 @@ plotHVT <- function(hvt.results,
             by = c("depth", "cluster", "child")
       )
 
+    # Calculate polygon geometric centroids for cell ID positioning
+    polygon_centroids_list_hmap <- list()
+    for (depth_val in 1:child.level) {
+      depth_data <- datapoly[datapoly$depth == depth_val, ]
+      if (nrow(depth_data) > 0) {
+        polygon_centroids_hmap <- depth_data %>%
+          dplyr::group_by(depth, cluster, child) %>%
+          dplyr::summarise(
+            x = calculate_polygon_centroid(x, y)$x,
+            y = calculate_polygon_centroid(x, y)$y,
+            .groups = 'drop'
+          )
+        polygon_centroids_list_hmap[[depth_val]] <- polygon_centroids_hmap
+      }
+    }
+    polygon_centroids_df_hmap <- do.call(rbind, polygon_centroids_list_hmap)
+
     p <- ggplot2::ggplot()
     colour_scheme <- c(
       "#6E40AA", "#6B44B2", "#6849BA", "#644FC1", "#6054C8", "#5C5ACE", "#5761D3", "#5268D8", "#4C6EDB", "#4776DE", "#417DE0", "#3C84E1", "#368CE1",
@@ -551,6 +684,30 @@ plotHVT <- function(hvt.results,
     colnames(cellID_coordinates) <- c("x", "y")
     cellID_coordinates$Cell.ID <- hvt_res2
     centroidDataframe_2 <- merge(cellID_coordinates, centroidDataframe, by = c("x" ,"y"))
+    
+    # Match polygon centroids with Cell.IDs for level 1 (for heatmap)
+    if (child.level >= 1 && nrow(polygon_centroids_df_hmap) > 0) {
+      level1_poly_centroids_hmap <- polygon_centroids_df_hmap[polygon_centroids_df_hmap$depth == 1, ]
+      # Merge with Cell.IDs using cluster and child matching
+      cellID_mapping_hmap <- hvt_list[[3]][["summary"]] %>%
+        dplyr::filter(Segment.Level == 1) %>%
+        dplyr::select(Segment.Parent, Segment.Child, Cell.ID) %>%
+        dplyr::mutate(
+          Segment.Parent = as.character(Segment.Parent),
+          Segment.Child = as.numeric(Segment.Child)
+        )
+      
+      cellID_polygon_centroids_hmap <- level1_poly_centroids_hmap %>%
+        dplyr::mutate(
+          cluster = as.character(cluster),
+          child = as.numeric(child)
+        ) %>%
+        dplyr::left_join(cellID_mapping_hmap, 
+                         by = c("cluster" = "Segment.Parent", "child" = "Segment.Child")) %>%
+        dplyr::filter(!is.na(Cell.ID))
+    } else {
+      cellID_polygon_centroids_hmap <- data.frame(x = numeric(0), y = numeric(0), Cell.ID = numeric(0))
+    }
     
     p <- ggplot2::ggplot()
  
@@ -612,50 +769,87 @@ plotHVT <- function(hvt.results,
     
     if (cell_id == TRUE) {
 
-      for (depth in 1:child.level) {
-        depth_size <- centroid.size[child.level - depth + 1]
-        centroid_color <- centroid.color[child.level - depth + 1]
-        
-        p <- p + ggplot2::geom_point(
-          data = centroidDataframe[centroidDataframe["lev"] == depth, ],
-          ggplot2::aes(x = x, y = y),
-          size = depth_size,
-          fill = centroid_color,
-          color = centroid_color
-        ) 
+      # Add centroid points if centroids = TRUE
+      if (centroids == TRUE) {
+        for (depth in 1:child.level) {
+          depth_size <- centroid.size[child.level - depth + 1]
+          centroid_color <- centroid.color[child.level - depth + 1]
+          
+          p <- p + ggplot2::geom_point(
+            data = centroidDataframe[centroidDataframe["lev"] == depth, ],
+            ggplot2::aes(x = x, y = y),
+            size = depth_size,
+            fill = centroid_color,
+            color = centroid_color
+          ) 
+        }
       }
       
-      subset_data <- subset(centroidDataframe_2, lev == 1)  
-      
-      alignments <- list(
-        right = list(hjust = -0.5, vjust = 0.5),
-        left = list(hjust = 1.5, vjust = 0.5),
-        bottom = list(hjust = 0.5, vjust = 1.5),
-        top = list(hjust = 0.5, vjust = -0.5) )
-      
-      alignment <- rlang::`%||%`(alignments[[cell_id_position]], alignments$bottom)
-      
-      p <- p + ggplot2::geom_text(
-        data = subset_data,
-        ggplot2::aes(x = x, y = y, label = Cell.ID),
-        size = cell_id_size,
-        color = "black",
-        hjust = alignment$hjust,
-        vjust = alignment$vjust,
-        nudge_x = -0.02 * nchar(as.character(subset_data$Cell.ID)))
-    }else {
-      for (depth in 1:child.level) {
-        depth_size <- centroid.size[child.level - depth + 1]
-        centroid_color <- centroid.color[child.level - depth + 1]
+      # Use polygon centroids if cell_id_position is "center", otherwise use point centroids
+      if (cell_id_position == "center") {
+        if (nrow(cellID_polygon_centroids_hmap) > 0) {
+          subset_data <- cellID_polygon_centroids_hmap
+          # Center alignment for polygon centroids
+          hjust_val <- 0.5
+          vjust_val <- 0.5
+        } else {
+          # Fallback to original method if polygon centroids not available
+          subset_data <- subset(centroidDataframe_2, lev == 1)
+          hjust_val <- 0.5
+          vjust_val <- 0.5
+        }
+      } else {
+        # Use original point centroids for other positions
+        subset_data <- subset(centroidDataframe_2, lev == 1)
         
-        p <- p + ggplot2::geom_point(
-          data = centroidDataframe[centroidDataframe["lev"] == depth, ],
-          ggplot2::aes(x = x, y = y),
-          size = depth_size,
-          pch = pch1,
-          fill = centroid_color,
-          color = centroid_color
-        ) 
+        alignments <- list(
+          right = list(hjust = -0.5, vjust = 0.5),
+          left = list(hjust = 1.5, vjust = 0.5),
+          bottom = list(hjust = 0.5, vjust = 1.5),
+          top = list(hjust = 0.5, vjust = -0.5)
+        )
+        
+        # Get alignment values for the current position
+        alignment <- rlang::`%||%`(alignments[[cell_id_position]], alignments$bottom)
+        hjust_val <- alignment$hjust
+        vjust_val <- alignment$vjust
+      }
+      
+      # Add geom_text to the plot
+      if (cell_id_position == "center") {
+        p <- p + ggplot2::geom_text(
+          data = subset_data,
+          ggplot2::aes(x = x, y = y, label = Cell.ID),
+          size = cell_id_size,
+          color = "black",
+          hjust = hjust_val,
+          vjust = vjust_val)
+      } else {
+        p <- p + ggplot2::geom_text(
+          data = subset_data,
+          ggplot2::aes(x = x, y = y, label = Cell.ID),
+          size = cell_id_size,
+          color = "black",
+          hjust = hjust_val,
+          vjust = vjust_val,
+          nudge_x = -0.02 * nchar(as.character(subset_data$Cell.ID)))
+      }
+    }else {
+      # Add centroid points if centroids = TRUE
+      if (centroids == TRUE) {
+        for (depth in 1:child.level) {
+          depth_size <- centroid.size[child.level - depth + 1]
+          centroid_color <- centroid.color[child.level - depth + 1]
+          
+          p <- p + ggplot2::geom_point(
+            data = centroidDataframe[centroidDataframe["lev"] == depth, ],
+            ggplot2::aes(x = x, y = y),
+            size = depth_size,
+            pch = pch1,
+            fill = centroid_color,
+            color = centroid_color
+          ) 
+        }
       }
       
     }

@@ -21,6 +21,12 @@
 #' the identifier column(character column) name should be supplied in `names.column` argument. The output will
 #' be a 2D heatmap plotly which gives info on the cell id and the observations of a cell.
 #' @param names.column Character. A character or a vector representing the name of the identifier column/character column.
+#' @param cell_id Logical. A logical indicating whether the cell IDs should be displayed. Default is TRUE.
+#' @param cell_id_position Character. A character indicating the position of the cell IDs. Accepted entries are 'top', 
+#' 'bottom', 'left', 'right', and 'center'. Default is 'center'.
+#' @param cell_id_size Numeric. A numeric value indicating the size of the cell IDs. Default is 4
+#' @param centroids Logical. A logical indicating whether the centroid points should be displayed. Default value is TRUE
+#' @param centroid.size  Numeric. A numeric value or vector indicating the size of centroids for each level. Default is 0.8
 #' @returns Dataframe containing scored data, plots and summary
 #' @author Shubhra Prakash <shubhra.prakash@@mu-sigma.com>, Sangeet Moy Das <sangeet.das@@mu-sigma.com> ,
 #' Vishwavani <vishwavani@@mu-sigma.com>
@@ -58,8 +64,12 @@ scoreHVT <- function(dataset,
                        error_metric = "max",
                        yVar = NULL,
                        analysis.plots = FALSE,
-                       names.column = NULL
-                       ) {
+                       names.column = NULL,
+                       cell_id = TRUE,
+                       cell_id_position = "bottom",
+                       centroids = TRUE,
+                       cell_id_size = 4,
+                       centroid.size = 0.8) {
   
   suppressWarnings({
   set.seed(300)
@@ -67,6 +77,11 @@ scoreHVT <- function(dataset,
   requireNamespace("dplyr")
   requireNamespace("purrr")
   requireNamespace("data.table")
+  
+  # Ensure centroid.size is a vector of appropriate length
+  if (length(centroid.size) == 1) {
+    centroid.size <- rep(centroid.size, child.level)
+  }
   
   if (any(is.na(dataset))) {
     stop("Input dataframe contains missing (NA) values. Please handle missing data before using this function (e.g., via na.omit(), na.fill(), or imputation).")
@@ -303,7 +318,12 @@ scoreHVT <- function(dataset,
   
   anomalyPlot <- plotHVT(
     hvt.results.model,
-    child.level = child.level
+    child.level = child.level,
+    cell_id = cell_id,
+    cell_id_position = cell_id_position,
+    centroids = centroids,
+    cell_id_size = cell_id_size,
+    centroid.size = centroid.size
   ) + ggplot2::ggtitle(paste(
     "Hierarchical Voronoi Tessellation for Level",
     child.level
@@ -501,9 +521,15 @@ if(analysis.plots) {
       select(-sum_n)
 
     
+    # Call plotHVT with cell_id = FALSE since we'll add annotations ourselves for better control
     scoredPlot <- plotHVT(
       hvt.results.model,
-      child.level = child.level
+      child.level = child.level,
+      cell_id = FALSE,  # We'll add cell IDs via plotly annotations for better positioning
+      cell_id_position = cell_id_position,
+      centroids = FALSE,  # We'll add centroids ourselves using polygon centroids when needed
+      cell_id_size = cell_id_size,
+      centroid.size = centroid.size
     ) +
       ggplot2::theme(
         plot.title = ggplot2::element_text(
@@ -567,6 +593,35 @@ if(analysis.plots) {
       boundaryCoords2_1$hoverText <- NULL
     }
     
+    # Helper function to calculate geometric centroid of a polygon
+    calculate_polygon_centroid <- function(x_coords, y_coords) {
+      n <- length(x_coords)
+      if (n < 3) {
+        return(list(x = mean(x_coords), y = mean(y_coords)))
+      }
+      if (x_coords[1] != x_coords[n] || y_coords[1] != y_coords[n]) {
+        x_coords <- c(x_coords, x_coords[1])
+        y_coords <- c(y_coords, y_coords[1])
+        n <- n + 1
+      }
+      signed_area <- 0
+      cx <- 0
+      cy <- 0
+      for (i in 1:(n - 1)) {
+        cross_product <- x_coords[i] * y_coords[i + 1] - x_coords[i + 1] * y_coords[i]
+        signed_area <- signed_area + cross_product
+        cx <- cx + (x_coords[i] + x_coords[i + 1]) * cross_product
+        cy <- cy + (y_coords[i] + y_coords[i + 1]) * cross_product
+      }
+      signed_area <- signed_area / 2
+      if (abs(signed_area) < 1e-10) {
+        return(list(x = mean(x_coords[1:(n-1)]), y = mean(y_coords[1:(n-1)])))
+      }
+      centroid_x <- cx / (6 * signed_area)
+      centroid_y <- cy / (6 * signed_area)
+      return(list(x = centroid_x, y = centroid_y))
+    }
+    
     # Create the plot (polygons + centroids; labels will be added as Plotly annotations)
     scoredPlot <- scoredPlot +
       ggplot2::geom_polygon(
@@ -582,33 +637,189 @@ if(analysis.plots) {
         size = 0.5
       ) +
       ggplot2::scale_fill_gradientn(colours = colour_scheme) +
-      ggplot2::guides(colour = "none") +
-      ggplot2::geom_point(
-        data = boundaryCoords2_1 %>% dplyr::distinct(Cell.ID, .keep_all = TRUE),
-        ggplot2::aes(x = x, y = y, text = hoverText),
-        size = 0.4
-      )
+      ggplot2::guides(colour = "none")
     
-   
-    # Prepare annotation data before creating plotly object
-    annotation_data <- boundaryCoords2_1 %>% 
-      dplyr::distinct(Cell.ID, .keep_all = TRUE) %>%
-      dplyr::select(Cell.ID, x, y)
+    # Calculate polygon centroids from the BASE tessellation (not scored polygons)
+    # This matches how plotHVT calculates polygon centroids for cell ID positioning
+    hvt_list <- hvt.results.model
+    
+    # Build positionsDataframe from base tessellation (same as plotHVT does)
+    depthPos <- c()
+    clusterPos <- c()
+    childPos <- c()
+    x_pos <- c()
+    y_pos <- c()
+    
+    for (depth in 1:child.level) {
+      for (clusterNo in 1:length(hvt_list[[2]][[depth]])) {
+        for (childNo in 1:length(hvt_list[[2]][[depth]][[clusterNo]])) {
+          current_cluster <- hvt_list[[2]][[depth]][[clusterNo]][[childNo]]
+          x <- as.numeric(current_cluster[["x"]])
+          y <- as.numeric(current_cluster[["y"]])
+          depthPos <- c(depthPos, rep(depth, length(x)))
+          clusterPos <- c(clusterPos, rep(clusterNo, length(x)))
+          childPos <- c(childPos, rep(childNo, length(x)))
+          x_pos <- c(x_pos, x)
+          y_pos <- c(y_pos, y)
+        }
+      }
+    }
+    
+    positionsDataframe <- data.frame(
+      depth = depthPos,
+      cluster = clusterPos,
+      child = childPos,
+      x = x_pos,
+      y = y_pos
+    )
+    
+    # Calculate polygon centroids grouped by depth, cluster, child (same as plotHVT)
+    polygon_centroids_list <- list()
+    for (depth_val in 1:child.level) {
+      depth_data <- positionsDataframe[positionsDataframe$depth == depth_val, ]
+      if (nrow(depth_data) > 0) {
+        polygon_centroids <- depth_data %>%
+          dplyr::group_by(depth, cluster, child) %>%
+          dplyr::summarise(
+            x = calculate_polygon_centroid(x, y)$x,
+            y = calculate_polygon_centroid(x, y)$y,
+            .groups = 'drop'
+          )
+        polygon_centroids_list[[depth_val]] <- polygon_centroids
+      }
+    }
+    polygon_centroids_df_base <- do.call(rbind, polygon_centroids_list)
+    
+    # Match polygon centroids with Cell.IDs for level 1 (same as plotHVT does)
+    if (child.level >= 1 && nrow(polygon_centroids_df_base) > 0) {
+      level1_poly_centroids <- polygon_centroids_df_base[polygon_centroids_df_base$depth == 1, ]
+      cellID_mapping <- hvt_list[[3]][["summary"]] %>%
+        dplyr::filter(Segment.Level == 1) %>%
+        dplyr::select(Segment.Parent, Segment.Child, Cell.ID) %>%
+        dplyr::mutate(
+          Segment.Parent = as.character(Segment.Parent),
+          Segment.Child = as.numeric(Segment.Child)
+        )
+      
+      polygon_centroids_df <- level1_poly_centroids %>%
+        dplyr::mutate(
+          cluster = as.character(cluster),
+          child = as.numeric(child)
+        ) %>%
+        dplyr::left_join(cellID_mapping, 
+                         by = c("cluster" = "Segment.Parent", "child" = "Segment.Child")) %>%
+        dplyr::filter(!is.na(Cell.ID)) %>%
+        dplyr::select(Cell.ID, x, y)
+    } else {
+      polygon_centroids_df <- data.frame(Cell.ID = numeric(0), x = numeric(0), y = numeric(0))
+    }
+    
+    # Add centroid points conditionally based on centroids parameter
+    # Centroids always use the original point centroids (x, y from boundaryCoords2_1) - no change from original behavior
+    # Store color for later use in plotly styling
+    centroid_fill_color <- NULL
+    centroid_stroke_color <- NULL
+    centroid.color = "black"
+    
+    if (centroids == TRUE) {
+      # Ensure centroid.color is a vector of appropriate length
+      if (length(centroid.color) == 1) {
+        centroid_color_vec <- rep(centroid.color, child.level)
+      } else {
+        centroid_color_vec <- centroid.color
+      }
+      
+      # Get the color value (not vector) - use same color for fill and stroke
+      centroid_fill_color <- centroid_color_vec[1]
+      centroid_stroke_color <- centroid_color_vec[1]
+      
+      scoredPlot <- scoredPlot +
+        ggplot2::geom_point(
+          data = boundaryCoords2_1 %>% dplyr::distinct(Cell.ID, .keep_all = TRUE),
+          ggplot2::aes(x = x, y = y, text = hoverText),
+          size = centroid.size[1],
+          pch = 21,  # Filled circle (matches plotHVT)
+          fill = centroid_fill_color,
+          color = centroid_stroke_color
+        )
+    }
+    
+    # Prepare annotation data for cell IDs
+    if (cell_id == TRUE && cell_id_position == "center") {
+      # Use polygon centroids for center positioning
+      annotation_data <- polygon_centroids_df
+    } else if (cell_id == TRUE) {
+      # Use point centroids for other positions
+      annotation_data <- boundaryCoords2_1 %>% 
+        dplyr::distinct(Cell.ID, .keep_all = TRUE) %>%
+        dplyr::select(Cell.ID, x, y)
+    } else {
+      annotation_data <- data.frame(Cell.ID = numeric(0), x = numeric(0), y = numeric(0))
+    }
    
     plotlyscored <- plotly::ggplotly(scoredPlot, tooltip = "text")
     
-    # Add Cell.ID labels as Plotly annotations (similar to ex_post$cluster_heatmap)
-    # Add annotations first, then layout modifications (matching clusterPlot pattern)
-    if (nrow(annotation_data) > 0) {
+    # Ensure centroids are filled circles in plotly
+    if (centroids == TRUE && !is.null(centroid_fill_color)) {
+      # Find the trace index for the centroid points (usually one of the last traces)
+      n_traces <- length(plotlyscored$x$data)
+      # Look for traces with markers (point traces) - centroids should be one of them
+      for (i in seq_len(n_traces)) {
+        trace <- plotlyscored$x$data[[i]]
+        # Check if this is a marker trace (centroid points)
+        if (!is.null(trace$mode) && grepl("markers", trace$mode)) {
+          # Directly modify the marker properties to ensure filled circle
+          if (is.null(plotlyscored$x$data[[i]]$marker)) {
+            plotlyscored$x$data[[i]]$marker <- list()
+          }
+          plotlyscored$x$data[[i]]$marker$fillcolor <- centroid_fill_color
+          if (is.null(plotlyscored$x$data[[i]]$marker$line)) {
+            plotlyscored$x$data[[i]]$marker$line <- list()
+          }
+          plotlyscored$x$data[[i]]$marker$line$color <- centroid_stroke_color
+          plotlyscored$x$data[[i]]$marker$line$width <- 0.5
+        }
+      }
+    }
+    
+    # Add Cell.ID labels as Plotly annotations based on cell_id parameter
+    if (cell_id == TRUE && nrow(annotation_data) > 0) {
+      # Calculate position offsets based on cell_id_position
+      if (cell_id_position == "center") {
+        xshift <- 0
+        yshift <- 0
+        xanchor <- "center"
+        yanchor <- "middle"
+      } else {
+        alignments <- list(
+          right = list(xshift = 5, yshift = 0, xanchor = "left", yanchor = "middle"),
+          left = list(xshift = -5, yshift = 0, xanchor = "right", yanchor = "middle"),
+          bottom = list(xshift = 0, yshift = -7, xanchor = "center", yanchor = "top"),
+          top = list(xshift = 0, yshift = 7, xanchor = "center", yanchor = "bottom")
+        )
+        alignment <- rlang::`%||%`(alignments[[cell_id_position]], alignments$bottom)
+        xshift <- alignment$xshift
+        yshift <- alignment$yshift
+        xanchor <- alignment$xanchor
+        yanchor <- alignment$yanchor
+      }
+      
+      # Convert cell_id_size from ggplot2 size to plotly font size (approximate conversion)
+      # ggplot2 size is in mm, plotly font size is in pixels
+      # Rough conversion: ggplot2 size * 2.845 = pixels (1mm ≈ 2.845px at 96dpi)
+      plotly_font_size <- max(8, cell_id_size * 2.845)
+      
       plotlyscored <- plotlyscored %>%
         plotly::add_annotations(
           x = annotation_data$x,
           y = annotation_data$y,
           text = as.character(annotation_data$Cell.ID),
           showarrow = FALSE,
-          # Match clusterPlot CELL_ID_LABEL_SIZE
-          font = list(size = 9, color = "black"),
-          yshift = -7,
+          font = list(size = plotly_font_size, color = "black"),
+          xshift = xshift,
+          yshift = yshift,
+          xanchor = xanchor,
+          yanchor = yanchor,
           xref = "x",
           yref = "y"
         )

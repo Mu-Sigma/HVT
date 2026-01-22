@@ -16,7 +16,12 @@ scoreHVT(
   error_metric = "max",
   yVar = NULL,
   analysis.plots = FALSE,
-  names.column = NULL
+  names.column = NULL,
+  cell_id = TRUE,
+  cell_id_position = "bottom",
+  centroids = TRUE,
+  cell_id_size = 4,
+  centroid.size = 0.8
 )
 }
 \arguments{
@@ -51,6 +56,17 @@ the identifier column(character column) name should be supplied in `names.column
 be a 2D heatmap plotly which gives info on the cell id and the observations of a cell.}
 
 \item{names.column}{Character. A character or a vector representing the name of the identifier column/character column.}
+
+\item{cell_id}{Logical. A logical indicating whether the cell IDs should be displayed. Default is TRUE.}
+
+\item{cell_id_position}{Character. A character indicating the position of the cell IDs. Accepted entries are 'top', 
+'bottom', 'left', 'right', and 'center'. Default is 'center'.}
+
+\item{centroids}{Logical. A logical indicating whether the centroid points should be displayed. Default value is TRUE}
+
+\item{cell_id_size}{Numeric. A numeric value indicating the size of the cell IDs. Default is 4}
+
+\item{centroid.size}{Numeric. A numeric value or vector indicating the size of centroids for each level. Default is 0.8}
 }
 \value{
 Dataframe containing scored data, plots and summary

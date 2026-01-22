@@ -1,6 +1,12 @@
 #' @keywords internal
 
-clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = NULL) {
+clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = NULL,
+                        cell_id = TRUE,
+                        cell_id_position = "center",
+                        centroids = TRUE,
+                        cell_id_size = 4,
+                        centroid.size = 1,
+                        centroid.color = "black") {
   suppressWarnings({
     
     # ============================================================================
@@ -252,9 +258,77 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
     centroidDataframe_2 <- centroidDataframe_2 %>% 
       cbind(centroidDataframe$names.column)
     colnames(centroidDataframe_2) <- c("x", "y", "Cell.ID", "lev", "names.column")
-
-#browser()    
     
+    # Helper function to calculate geometric centroid of a polygon
+    calculate_polygon_centroid <- function(x_coords, y_coords) {
+      n <- length(x_coords)
+      if (n < 3) {
+        return(list(x = mean(x_coords), y = mean(y_coords)))
+      }
+      if (x_coords[1] != x_coords[n] || y_coords[1] != y_coords[n]) {
+        x_coords <- c(x_coords, x_coords[1])
+        y_coords <- c(y_coords, y_coords[1])
+        n <- n + 1
+      }
+      signed_area <- 0
+      cx <- 0
+      cy <- 0
+      for (i in 1:(n - 1)) {
+        cross_product <- x_coords[i] * y_coords[i + 1] - x_coords[i + 1] * y_coords[i]
+        signed_area <- signed_area + cross_product
+        cx <- cx + (x_coords[i] + x_coords[i + 1]) * cross_product
+        cy <- cy + (y_coords[i] + y_coords[i + 1]) * cross_product
+      }
+      signed_area <- signed_area / 2
+      if (abs(signed_area) < 1e-10) {
+        return(list(x = mean(x_coords[1:(n-1)]), y = mean(y_coords[1:(n-1)])))
+      }
+      centroid_x <- cx / (6 * signed_area)
+      centroid_y <- cy / (6 * signed_area)
+      return(list(x = centroid_x, y = centroid_y))
+    }
+    
+    # Calculate polygon centroids for cell ID positioning (when cell_id_position == "center")
+    polygon_centroids_df <- data.frame(Cell.ID = numeric(0), x = numeric(0), y = numeric(0))
+    if (cell_id == TRUE && cell_id_position == "center") {
+      polygon_centroids_list <- list()
+      for (depth_val in 1:maxDepth) {
+        depth_data <- datapoly[datapoly$depth == depth_val, ]
+        if (nrow(depth_data) > 0) {
+          polygon_centroids <- depth_data %>%
+            dplyr::group_by(depth, cluster, child) %>%
+            dplyr::summarise(
+              x = calculate_polygon_centroid(x, y)$x,
+              y = calculate_polygon_centroid(x, y)$y,
+              .groups = 'drop'
+            )
+          polygon_centroids_list[[depth_val]] <- polygon_centroids
+        }
+      }
+      if (length(polygon_centroids_list) > 0) {
+        polygon_centroids_df_base <- do.call(rbind, polygon_centroids_list)
+        # Match with Cell.IDs for level 1
+        if (maxDepth >= 1 && nrow(polygon_centroids_df_base) > 0) {
+          level1_poly_centroids <- polygon_centroids_df_base[polygon_centroids_df_base$depth == 1, ]
+          cellID_mapping <- hvt_list[[3]][["summary"]] %>%
+            dplyr::filter(Segment.Level == 1) %>%
+            dplyr::select(Segment.Parent, Segment.Child, Cell.ID) %>%
+            dplyr::mutate(
+              Segment.Parent = as.character(Segment.Parent),
+              Segment.Child = as.numeric(Segment.Child)
+            )
+          polygon_centroids_df <- level1_poly_centroids %>%
+            dplyr::mutate(
+              cluster = as.character(cluster),
+              child = as.numeric(child)
+            ) %>%
+            dplyr::left_join(cellID_mapping, 
+                             by = c("cluster" = "Segment.Parent", "child" = "Segment.Child")) %>%
+            dplyr::filter(!is.na(Cell.ID)) %>%
+            dplyr::select(Cell.ID, x, y)
+        }
+      }
+    }
         
     # ============================================================================
     # ADD HOVER TEXT
@@ -303,17 +377,21 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
       )
     }
     
-    # Add centroids for each depth
-    for (depth in seq_len(maxDepth)) {
-      domains_plot <- domains_plot + ggplot2::geom_point(
-        data = centroidDataframe[centroidDataframe["lev"] == depth, ],
-        ggplot2::aes(x = x, y = y, text = hoverText),
-        size = CENTROID_BASE_SIZE / (2^(depth - 1)),
-        pch = 21,
-        fill = "black",
-        color = "black",
-        tooltip = "text"
-      )
+    # Add centroids for each depth (conditionally based on centroids parameter)
+    if (centroids == TRUE) {
+      for (depth in seq_len(maxDepth)) {
+        depth_size <- centroid.size[depth]
+        depth_color <- centroid.color[depth]
+        domains_plot <- domains_plot + ggplot2::geom_point(
+          data = centroidDataframe[centroidDataframe["lev"] == depth, ],
+          ggplot2::aes(x = x, y = y, text = hoverText),
+          size = depth_size,
+          pch = 21,
+          fill = depth_color,
+          color = depth_color,
+          tooltip = "text"
+        )
+      }
     }
     
     # ============================================================================
@@ -350,17 +428,76 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
     
     domainsPlot <- plotly::ggplotly(domains_plot, tooltip = "text")
     
-    # Add cell ID annotations
-    subset_data <- subset(centroidDataframe_2, lev == 1)
-    domainsPlot <- domainsPlot %>%
-      plotly::add_annotations(
-        x = subset_data$x,
-        y = subset_data$y,
-        text = subset_data$Cell.ID,
-        showarrow = FALSE,
-        font = list(size = CELL_ID_LABEL_SIZE),
-        yshift = CELL_ID_LABEL_YSHIFT
-      )
+    # Ensure centroids are filled circles in plotly
+    if (centroids == TRUE) {
+      n_traces <- length(domainsPlot$x$data)
+      for (i in seq_len(n_traces)) {
+        trace <- domainsPlot$x$data[[i]]
+        if (!is.null(trace$mode) && grepl("markers", trace$mode)) {
+          if (is.null(domainsPlot$x$data[[i]]$marker)) {
+            domainsPlot$x$data[[i]]$marker <- list()
+          }
+          # Get the depth from the trace (if available) or use first depth color
+          depth_idx <- min(i, length(centroid.color))
+          domainsPlot$x$data[[i]]$marker$fillcolor <- centroid.color[depth_idx]
+          if (is.null(domainsPlot$x$data[[i]]$marker$line)) {
+            domainsPlot$x$data[[i]]$marker$line <- list()
+          }
+          domainsPlot$x$data[[i]]$marker$line$color <- centroid.color[depth_idx]
+          domainsPlot$x$data[[i]]$marker$line$width <- 0.5
+        }
+      }
+    }
+    
+    # Add cell ID annotations (conditionally based on cell_id parameter)
+    if (cell_id == TRUE) {
+      # Prepare annotation data based on cell_id_position
+      if (cell_id_position == "center" && nrow(polygon_centroids_df) > 0) {
+        annotation_data <- polygon_centroids_df
+      } else {
+        annotation_data <- subset(centroidDataframe_2, lev == 1)
+      }
+      
+      # Calculate position offsets based on cell_id_position
+      if (cell_id_position == "center") {
+        xshift <- 0
+        yshift <- 0
+        xanchor <- "center"
+        yanchor <- "middle"
+      } else {
+        alignments <- list(
+          right = list(xshift = 5, yshift = 0, xanchor = "left", yanchor = "middle"),
+          left = list(xshift = -5, yshift = 0, xanchor = "right", yanchor = "middle"),
+          bottom = list(xshift = 0, yshift = -10, xanchor = "center", yanchor = "top"),
+          top = list(xshift = 0, yshift = 10, xanchor = "center", yanchor = "bottom")
+        )
+        alignment <- rlang::`%||%`(alignments[[cell_id_position]], alignments$bottom)
+        xshift <- alignment$xshift
+        yshift <- alignment$yshift
+        xanchor <- alignment$xanchor
+        yanchor <- alignment$yanchor
+      }
+      
+      # Convert cell_id_size from ggplot2 size to plotly font size
+      plotly_font_size <- max(8, cell_id_size * 2.845)
+      
+      if (nrow(annotation_data) > 0) {
+        domainsPlot <- domainsPlot %>%
+          plotly::add_annotations(
+            x = annotation_data$x,
+            y = annotation_data$y,
+            text = as.character(annotation_data$Cell.ID),
+            showarrow = FALSE,
+            font = list(size = plotly_font_size, color = "black"),
+            xshift = xshift,
+            yshift = yshift,
+            xanchor = xanchor,
+            yanchor = yanchor,
+            xref = "x",
+            yref = "y"
+          )
+      }
+    }
     
     # Modify all traces in a single loop
     domainsPlot$x$data <- lapply(domainsPlot$x$data, modify_plotly_trace)

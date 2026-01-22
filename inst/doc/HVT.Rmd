@@ -134,7 +134,22 @@ kable(vignette_data, format = "html",
 
 # 3. Package Version History
 
-## HVT (v25.2.8) - What's new?
+## HVT (v26.1.1) - What's new!
+
+22nd January, 2026
+
+In this version of the HVT package, the following enhancement and feature have been made:
+
+**Enhancement**
+
+1. **LLM Embeddings Vignette**: This vignette showcases the HVT workflow applied to numerical embedding data generated using an OpenAI model, featuring a more robust preprocessing pipeline and a revamped implementation aligned with recent AI developments.
+
+**Feature**
+
+1. **2D HVT Plots**: In this version, the aesthetics of compressed 2D HVT plots have been enhanced by adding new arguments to the plotHVT and scoreHVT functions. These updates allow users to toggle the display of cell centroids, adjust their sizes, and position cell IDs at the center, enabling clearer visualization of dense heatmaps with more legible centroids and cell labels.
+
+
+## HVT (v25.2.8)
 
 16th December, 2025
 
@@ -283,7 +298,7 @@ This version of the HVT package offers features for both training an HVT model a
 
 
 
-# 4. Installation of HVT (v25.2.8)
+# 4. Installation of HVT (v26.1.1)
 
 **CRAN Installation**
 

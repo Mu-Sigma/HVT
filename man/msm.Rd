@@ -99,12 +99,12 @@ temporal_data <- data.frame(cell_id, time_stamp)
 table <- getTransitionProbability(temporal_data, 
 cellid_column = "cell_id",time_column = "time_stamp")
 colnames(temporal_data) <- c("Cell.ID","t")
-ex_post_forecasting <- dataset[1800:1860,]
+ex_post_forecasting <- dataset[1830:1860,]
 ex_post <- msm(state_time_data = temporal_data,
               forecast_type = "ex-post",
               transition_probability_matrix = table,
               initial_state = 2,
-              num_simulations = 10,
+              num_simulations = 2,
               scoreHVT_results = scoring,
               trainHVT_results = hvt.results,
               actual_data = ex_post_forecasting,

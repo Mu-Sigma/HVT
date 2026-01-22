@@ -120,7 +120,7 @@ The HVT package offers a suite of R functions designed to construct <a href="htt
 
 <span style="font-size: 22px;">**What's New? - v24.9.1**</span>
 
-- We are introducing a function named `clustHVT`, designed for hierarchical clustering analysis. This function integrates with the `NbClust` and `stats` packages to determine the optimal number of clusters (k). It performs AGNES clustering and generates an interactive 2D cluster plot by clustering cells at level/depth 1.
+- We are introducing a function named `clustHVT`, designed for hierarchical cluster analysis. This function integrates with the `NbClust` and `stats` packages to determine the optimal number of clusters (k). It performs AGNES clustering and generates an interactive 2D cluster plot by clustering cells at level/depth 1.
 
 **Flow of `clustHVT`** 
 
@@ -147,7 +147,7 @@ The HVT package offers a suite of R functions designed to construct <a href="htt
 
 - The optimal number of clusters (k) is determined using dendrogram plots from the `clustHVT` function. The clustered data are then sent to **OpenAI's gpt-4o** via API call to generate domain names for each cluster. This domain name allocation process is also done manually.
 
-- The 2D HVT plot is visualized with overlaid domain names of both OpenAI-generated and manually assigned for comparison. Conclusions are drawn regarding the HVT package's efficiency, the performance of Hierarchical Clustering method on two different datasets and insights are provided for domain names of both OpenAI generated and manually allotted.     
+- The 2D HVT plot is visualized with overlaid domain names of both OpenAI-generated and manually assigned for comparison. Conclusions are drawn regarding the HVT package's efficiency, the performance of hierarchical clustering method on two different datasets and insights are provided for domain names of both OpenAI generated and manually allotted.     
 
 
 # 2. Experimental Setup 
@@ -168,7 +168,7 @@ The HVT package offers a suite of R functions designed to construct <a href="htt
 
 *Compression Ratio*:
 
-- A higher compression ratio indicates that the method can significantly reduce the dimensionality of the data while potentially retaining important information. A compression percent of atleast 80.
+- A higher compression ratio indicates that the method can significantly reduce the dimensionality of the data while potentially retaining important information. A compression percentage of 80 and above is preferred.
 
 *Visual Similarity Evaluation*: 
 
@@ -184,9 +184,8 @@ This chunk verifies the installation of all the necessary packages to successful
 
 
 ```{r, warning=FALSE, message=FALSE}
-list.of.packages <- c("dplyr","magrittr", "ggplot2", "kableExtra", "gridExtra","grid", "httr", "stats", 
-                      "factoextra", "cluster", "rmarkdown","xfun", "NbClust","plotly", "tidyr",
-                      "dendextend","jsonlite","progress","reticulate","knitr", "tools", "reactable")
+list.of.packages <- c("dplyr","magrittr", "ggplot2", "kableExtra", "httr", "stats", "HVT", 
+                       "cluster", "rmarkdown", "NbClust","plotly","dendextend","jsonlite","knitr")
 
 new.packages <-
   list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
@@ -196,446 +195,13 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
-This chunk loads the scripts from local, as there are few new changes made from CRAN's latest version.
-
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
-```
 
 ## 3.1 User-defined Functions
 
 In this section, we are establishing all the functions that will be utilized in this notebook. The detailed explanation follows below:
 
-### 1. Function to slice and merge the data
 
-This function navigates to a directory containing multiple CSV files with a similar structure. It extracts 3 records (tweets) from each CSV and then combines all the extracted records into a single consolidated file.
-
-```{r}
-merge_and_slice_data <- function(directory, output_path) {
-  
-  csv_files <- list.files(directory, pattern = "*.csv", full.names = TRUE)
-  
-  read_and_slice <- function(file_path) {
-    df <- read.csv(file_path)
-    df <- df %>% slice_head(n = 3)
-    df$source_file <- tools::file_path_sans_ext(basename(file_path))
-    return(df) }
-  
-  sliced_merged_data <- csv_files %>%
-    lapply(read_and_slice) %>%
-    bind_rows()
-  
-  write.csv(sliced_merged_data, output_path, row.names = FALSE)
-}
-```
-
-### 2. Function to clean the twitter data - Phase 1
-
-This is a python function used in **Twitter data processing notebook from  <a href="https://www.kaggle.com/code/ahmedshahriarsakib/twitter-celebrity-matcher-sbert-tweepy#4-Data-Preparation" target="_blank">kaggle</a>** to clean the data by removing the urls, retweet tags, convert the emoji to text and all the basic text cleaning process - phase 1. 
-
-
-
-```{python}
-import demoji
-import re
-import ast
-from typing import Union
-import pandas as pd
-from bs4 import BeautifulSoup
-
-emoticon_data_path="./emoticon_dict.json"
-
-class TwitterDataPrep:
-    def __init__(self, emoticon_data_path=None):
-        self.emoticons_dict = {}
-        if emoticon_data_path:
-            self.load_emoticons(emoticon_data_path)
-
-    def load_emoticons(self, emoticon_data_path):
-        """
-        Load the emoticons dictionary from a JSON file.
-        :param emoticon_data_path: Path to the emoticons JSON file.
-        """
-        import json
-        with open(emoticon_data_path, 'r') as file:
-            self.emoticons_dict = json.load(file)
-
-    def clean_text(self, text: str) -> str:
-       
-        pat1 = r'@[^ ]+'  # remove username @
-        pat2 = r'https?://[A-Za-z0-9./]+'  # remove urls
-        pat3 = r'\'s'  # remove apostrophe
-        pat4 = r'\#\w+'  # remove hashtag
-        pat5 = r'&amp '  # remove unicode `&`
-        pat7 = r'RT'  # remove RT / retweet
-        pat8 = r'www\S+'  # remove link www
-        combined_pat = r'|'.join((pat1, pat2, pat3, pat4, pat5, pat7, pat8))  # combine all patterns
-        text = re.sub(combined_pat, "", text)
-        text = re.sub(r'\s+', ' ', text)  # remove extra spaces
-        return text.strip()
-
-    def _parse_bytes(self, field: Union[str, ast.AST]) -> Union[str, ast.AST]:
-      
-        result = field
-        try:
-            result = ast.literal_eval(field)
-        finally:
-            return result.decode() if isinstance(result, bytes) else field
-
-    def replace_emoticons(self, text: str) -> str:
-      
-        for emoticon, context in self.emoticons_dict.items():
-            text = text.replace(emoticon, ' ' + context + ' ')
-            text = re.sub(' +', ' ', text)
-        return text
-
-    def replace_emojis(self, text: str) -> str:
-       
-        for emoji, context in demoji.findall(text).items():
-            text = text.replace(emoji, ' ' + context + ' ')
-            text = re.sub(' +', ' ', text)
-        return text
-
-    def preprocess_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        
-        df['tweet'] = df['tweet'].apply(self._parse_bytes)
-        df['tweet'] = df['tweet'].str.normalize('NFKD')
-        df['tweet'] = df['tweet'].map(self.clean_text)
-        df['tweet'] = df['tweet'].apply(lambda x: self.replace_emoticons(x))
-        df['tweet'] = df['tweet'].apply(lambda x: self.replace_emojis(x))
-        return df
-
-def preprocess_twitter_data(input_path: str = None, output_path: str = None, df: pd.DataFrame = None, emoticon_data_path: str = None):
-  
-    twitter_data_prep = TwitterDataPrep(emoticon_data_path=emoticon_data_path)
-    
-    if input_path:
-        df = pd.read_csv(input_path)
-    
-    if df is not None:
-        preprocessed_data = twitter_data_prep.preprocess_data(df)
-        if output_path:
-            preprocessed_data.to_csv(output_path, index=False)
-        return preprocessed_data
-    else:
-        raise ValueError("'input_path' is not provided.")
-
-```
-
-
-### 3. Function to clean the twitter data - Phase 2
- 
-This python function performs additional data cleaning in Phase 2 by automating steps that previously required manual intervention. It leverages an AI-powered approach using Claude Sonnet 4.5 to filter out invalid tweets, such as non-English content, one-word or incomplete sentences, and tweets that begin with punctuation. A detailed explanation of this methodology is provided in Section 4.2
-
-```{python, message=FALSE, warning=FALSE, error = FALSE}
-import pandas as pd
-import json
-import time
-import os
-from tqdm.auto import tqdm
-# SAFE import (prevents Rmd cascade failures)
-try:
-    from litellm import completion
-except Exception:
-    completion = None
-
-def filter_with_enhanced_prompt(
-    df,
-    api_key,
-    api_base,
-    model="claude-sonnet-4-5",
-    batch_size=25,
-    sleep_time=0.5,
-    verbose=True,
-    deduplicate=True,
-    similarity_threshold=0.9
-):
-  
-    if completion is None:
-        raise RuntimeError(
-            "litellm is not available in the current Python environment"
-        )
-    
-    if verbose:
-        print("AI-Only Enhanced Filtering with Deduplication...\n")
-    
-    # ---- HANDLE NULL VALUES FIRST ----
-    df = df.copy()
-    original_count = len(df)
-    
-    # Remove rows with null tweets
-    null_mask = df['tweet'].isna()
-    if null_mask.any():
-        removed_nulls = df[null_mask].copy()
-        removed_nulls['decision'] = 'NULL'
-        removed_nulls['removal_reason'] = 'null_or_missing_tweet'
-        df = df[~null_mask].copy()
-        if verbose:
-            print(f"Null/missing tweets removed: {null_mask.sum()}")
-    else:
-        removed_nulls = pd.DataFrame()
-    
-    # Convert all tweets to strings (safety measure)
-    df['tweet'] = df['tweet'].astype(str)
-    
-    # ---- DEDUPLICATION STEP ----
-    all_removed_dupes = pd.DataFrame()
-    
-    if deduplicate:
-        dedup_start_count = len(df)
-        
-        # Step 1: Remove exact duplicates
-        df['tweet_lower'] = df['tweet'].str.lower().str.strip()
-        exact_dupes = df.duplicated(subset=['tweet_lower'], keep='first')
-        
-        if verbose:
-            print(f"Exact duplicates found: {exact_dupes.sum()}")
-        
-        # Keep track of removed duplicates
-        removed_exact = df[exact_dupes].copy()
-        removed_exact['removal_reason'] = 'exact_duplicate'
-        
-        df = df[~exact_dupes].copy()
-        
-        # Step 2: Remove near-duplicates
-        def normalize_text(text):
-            """Normalize text for similarity comparison"""
-            import re
-            # Handle non-string inputs
-            if not isinstance(text, str):
-                text = str(text)
-            text = text.lower().strip()
-            # Remove punctuation
-            text = re.sub(r'[^\w\s]', '', text)
-            # Remove extra whitespace
-            text = ' '.join(text.split())
-            return text
-        
-        df['tweet_normalized'] = df['tweet'].apply(normalize_text)
-        
-        # Find near-duplicates
-        seen = set()
-        near_dupe_mask = []
-        
-        for idx, row in df.iterrows():
-            normalized = row['tweet_normalized']
-            if normalized in seen:
-                near_dupe_mask.append(True)
-            else:
-                seen.add(normalized)
-                near_dupe_mask.append(False)
-        
-        removed_near = df[near_dupe_mask].copy()
-        removed_near['removal_reason'] = 'near_duplicate'
-        
-        if verbose:
-            print(f"Near-duplicates found: {sum(near_dupe_mask)}")
-        
-        df = df[~pd.Series(near_dupe_mask, index=df.index)].copy()
-        
-        # Clean up temporary columns
-        df = df.drop(['tweet_lower', 'tweet_normalized'], axis=1)
-        
-        # Combine all removed duplicates
-        if len(removed_exact) > 0 or len(removed_near) > 0:
-            all_removed_dupes = pd.concat([removed_exact, removed_near], ignore_index=False)
-            all_removed_dupes = all_removed_dupes.drop(['tweet_lower', 'tweet_normalized'], axis=1, errors='ignore')
-        
-        if verbose:
-            print(f"Total duplicates removed: {dedup_start_count - len(df)} ({(dedup_start_count - len(df))/dedup_start_count*100:.1f}%)")
-            print(f"Remaining for quality check: {len(df)}\n")
-    
-    # ---- LLM QUALITY FILTERING ----
-    all_decisions = []
-    
-    # Process tweets in batches
-    for i in tqdm(range(0, len(df), batch_size), disable=not verbose):
-        batch = df.iloc[i:i + batch_size]
-        tweets = [
-            {"index": idx, "tweet": row["tweet"]}
-            for idx, row in batch.iterrows()
-        ]
-        
-        prompt = f"""
-Analyze these tweets. Classify as KEEP or REJECT.
-REJECT if ANY issue:
-1. Non-English/mixed language
-2. Emojis/emoji descriptions
-3. Only 1-2 words
-4. HTML entities (&amp, &lt, &gt)
-5. Starts with punctuation (. ~ -)
-6. Incomplete (ends with –)
-7. Link indicators (link:, here:)
-8. Missing verbs
-9. Excessive punctuation
-10. URL remnants
-KEEP: Complete English only. Be VERY strict.
-Tweets:
-{json.dumps(tweets, indent=2)}
-JSON:
-[{{"index": 0, "decision": "KEEP", "reason": "..."}}]
-"""
-        
-        try:
-            response = completion(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                api_key=api_key,
-                api_base=api_base,
-                temperature=0,
-                max_tokens=4000
-            )
-            result = response.choices[0].message.content.strip()
-            
-            # Clean up markdown code blocks if present
-            if "```" in result:
-                result = result.split("```")[1]
-                if result.startswith("json"):
-                    result = result[4:]
-                result = result.strip()
-            
-            decisions = json.loads(result)
-            all_decisions.extend(decisions)
-            
-        except Exception as e:
-            if verbose:
-                print(f"Batch error: {e}")
-            all_decisions.extend([
-                {
-                    "index": t["index"],
-                    "decision": "ERROR",
-                    "reason": str(e)
-                }
-                for t in tweets
-            ])
-        
-        time.sleep(sleep_time)
-    
-    # ---- Map decisions back to dataframe ----
-    decision_map = {d["index"]: d for d in all_decisions}
-    df = df.copy()
-    df["decision"] = df.index.map(
-        lambda x: decision_map.get(x, {}).get("decision", "ERROR")
-    )
-    df["reason"] = df.index.map(
-        lambda x: decision_map.get(x, {}).get("reason", "Unknown")
-    )
-    
-    # Create valid and rejected dataframes
-    valid_df = df[df["decision"] == "KEEP"].drop(
-        ["decision", "reason"], axis=1
-    )
-    rejected_df = df[df["decision"] != "KEEP"]
-    
-    # Add duplicates to rejected_df
-    if len(all_removed_dupes) > 0:
-        all_removed_dupes['decision'] = 'DUPLICATE'
-        all_removed_dupes['reason'] = all_removed_dupes['removal_reason']
-        all_removed_dupes = all_removed_dupes.drop('removal_reason', axis=1)
-        rejected_df = pd.concat([rejected_df, all_removed_dupes], ignore_index=False)
-    
-    # Add null tweets to rejected_df
-    if len(removed_nulls) > 0:
-        removed_nulls['reason'] = removed_nulls['removal_reason']
-        removed_nulls = removed_nulls.drop('removal_reason', axis=1)
-        rejected_df = pd.concat([rejected_df, removed_nulls], ignore_index=False)
-    
-    return valid_df, rejected_df
-```
-
-
-### 4. Function for generating embeddings from textual data using OpenAI
-
-This is the function used in [section 4](#dataset-understanding) to create embeddings from a textual tweets. This function uses **Open-AI's text-embedding-3-small** model to create **1536 dimensional embedding space**. The output numerical embeddings data will be stored as a csv file. 
-
-```{r}
-create_embeddings <- function(input_path, output_path, 
-                               text_column = "tweet", 
-                               api_key,
-                               base_url,
-                               batch_size = 100) {
-  
-
-  # Debug: Print credentials (remove after testing)
-  message("API Key: ", substr(api_key, 1, 10), "...")
-  message("Base URL: ", base_url)
-  
-  df <- read.csv(input_path, stringsAsFactors = FALSE)
-  
-  # Check if text column exists
-  if(!text_column %in% colnames(df)) {
-    stop(paste("Column", text_column, "not found in data"))
-  }
-  
-  get_embeddings <- function(texts) {
-    tryCatch({
-      response <- POST(
-        url = paste0(base_url, "/embeddings"),
-        add_headers(
-          "Authorization" = paste("Bearer", api_key),
-          "Content-Type" = "application/json"
-        ),
-        body = toJSON(list(
-          model = "text-embedding-3-small",
-          input = texts
-        ), auto_unbox = TRUE),
-        encode = "json"
-      )
-      
-      if(status_code(response) != 200) {
-        message("HTTP Status: ", status_code(response))
-        message("Response: ", content(response, "text"))
-      }
-      
-      stop_for_status(response)
-      content_parsed <- content(response, "parsed")
-      return(lapply(content_parsed$data, function(item) item$embedding))
-    }, error = function(e) {
-      message("Error getting embeddings: ", e$message)
-      return(NULL)
-    })
-  }
-  
-  # Create a progress bar
-  num_batches <- ceiling(nrow(df) / batch_size)
-  pb <- progress_bar$new(total = num_batches, format = "[:bar] :percent :eta")
-  
-  # Process tweets in batches
-  batch_indices <- split(seq_len(nrow(df)), ceiling(seq_len(nrow(df))/batch_size))
-  embeddings <- lapply(batch_indices, function(indices) {
-    batch_embeddings <- get_embeddings(df[[text_column]][indices])
-    pb$tick()
-    Sys.sleep(0.2)
-    return(batch_embeddings)
-  })
-  
-  # Flatten and filter
-  embeddings <- unlist(embeddings, recursive = FALSE)
-  embeddings <- Filter(Negate(is.null), embeddings)
-  
-  # Check if we have any embeddings
-  if(length(embeddings) == 0) {
-    stop("No embeddings were created. Check API credentials and connectivity.")
-  }
-  
-  # Convert to dataframe
-  embeddings_matrix <- do.call(rbind, lapply(embeddings, function(x) unlist(x)))
-  embeddings_df <- as.data.frame(embeddings_matrix)
-  colnames(embeddings_df) <- paste0("E", 1:ncol(embeddings_df))
-  
-  result_df <- cbind(df[1:nrow(embeddings_df), ], embeddings_df)
-  
-  write.csv(result_df, output_path, row.names = FALSE)
-  message("Embeddings created and saved successfully.")
-  message("Output dimensions: ", nrow(result_df), " rows x ", ncol(result_df), " columns")
-}
-```
-
-
-### 5. Function for generating Heatmaps for each column of a dataset
+### 1. Function for generating Heatmaps for each column of a dataset
 
 This is the function used in [section 6.2](#visualizing-using-plothvt) to plot the Heatmaps from the columns 1 to 50 of the dataset.
 
@@ -649,9 +215,9 @@ plot_columns <- function(dataset, no_of_cols, hvt.results) {
   invisible(plots)}
 ```
 
-### 6. Function for writing clusters as .txt files
+### 2. Function for writing clusters as .txt files
 
-This is the function used in [section 8](#hierarchical-clustering) before making an API call for the cluster's data. This function takes the tweets from each cluster and write it as .txt file externally which is later read while making the API call for generating domain names. 
+This is the function used in [section 8](#hierarchical-clustering). This function takes the tweets from each cluster and write it as .txt file externally which is later read while making the API call for generating domain names. 
 
 ```{r}
 create_and_write_clusters <- function(cluster_numbers, cluster_method) {
@@ -673,79 +239,85 @@ create_and_write_clusters <- function(cluster_numbers, cluster_method) {
   }))}
 ```
 
-### 7. Function for making OpenAI-API Call to generate domain names
+### 3. Function for making OpenAI-API Call to generate domain names
 
 This is the function used in [section 8](#hierarchical-clustering) that runs the chat completions API to **OpenAI's gpt-4o model** where the content of each cluster is provided in the prompt, and the model is requested to generate a domain name for each cluster. This API call runs 10 iterations per cluster, to generate the domain names and provide the highly repeated value/domain name for that cluster.
 
 ```{r, collapse=TRUE}
 get_mode <- function(v) {
   uniqv <- unique(v)
-  uniqv[which.max(tabulate(match(v, uniqv)))]
-}
+  uniqv[which.max(tabulate(match(v, uniqv)))]}
 
-get_cluster_domains <- function(k, iterations = 10) {
-  url <- "http://172.25.1.60:31969/v1/chat/completions"
-  read_file_content <- function(filename) {
- filepath <- file.path("./twitter_data/", filename)
-     readLines(filepath, warn = FALSE)
- }
-  
-  cluster_names <- paste0("clust_", 1:k)
-  content_list <- lapply(paste0(cluster_names, ".txt"), read_file_content)
-  
+
+get_cluster_domains <- function(input_dir = "./twitter_data",output_csv) {
+  ITERATIONS <- 10
+  LITELLM_BASE_URL <- Sys.getenv("LITELLM_BASE_URL")
+  LITELLM_API_KEY  <- Sys.getenv("LITELLM_API_KEY")
+  url <- paste0(LITELLM_BASE_URL, "/v1/chat/completions")
+
+  cluster_files <- list.files(
+    input_dir,
+    pattern = "^clust_[0-9]+\\.txt$",
+    full.names = TRUE)
+
+  if (length(cluster_files) == 0) {
+    stop("No clust_*.txt files found")}
+
+  cluster_ids <- as.integer(gsub("clust_|\\.txt", "", basename(cluster_files)))
+  cluster_files <- cluster_files[order(cluster_ids)]
+  k <- length(cluster_files)
+
+  content_list <- lapply(cluster_files, function(f) {
+    readLines(f, warn = FALSE)})
+
   prompt <- "You are a deterministic domain classification engine. Read the entire text and assign exactly ONE broad, high-level domain that best represents the dominant theme based on overall meaning, not isolated words. Output must be EXACTLY one English word containing only letters A–Z or a–z. Do NOT include numbers, labels, prefixes, cluster identifiers, punctuation, quotes, formatting, explanations, or multiple words. Do NOT output anything except the domain word. The domain MUST NOT repeat, rephrase, or be semantically similar to any domain in this list: {used_domains}. If a candidate domain overlaps conceptually with any used domain, it is INVALID and must not be selected. Prefer the most general valid domain and prioritize stability over creativity. If multiple domains apply, choose the dominant one. Valid outputs are single words like: Environment, Culture, Politics, Sports, Religion, Technology. Return ONLY the domain word."
-  
-  send_request <- function(content, cluster_number, used_domains) {
-    full_prompt <- gsub("\\{cluster_number\\}", cluster_number, prompt)
-    full_prompt <- gsub("\\{used_domains\\}", paste(used_domains, collapse = ", "), full_prompt)
-    full_content <- paste(full_prompt, content)
-    
-    request_body <- paste0('{
-      "model": "gpt-4o",
-      "temperature":0,
-      "messages": [
-        {
-          "role": "user",
-          "content": "', full_content, '"
-        }
-      ]
-    }')
-    response <- POST(url,
-                     body = request_body,
-                     add_headers(.headers = c(
-                       `Content-Type` = "application/json",
-                       `Authorization` = "Bearer sk-musigma"
-                     )),
-                     content_type("application/json"))
-    if (response$status_code == 200) {
-      response_content <- content(response, as = "parsed")
-      domain <- response_content$choices[[1]]$message$content
-      domain
+
+  send_request <- function(content, used_domains) {
+
+    full_prompt <- gsub(
+      "\\{used_domains\\}",
+      paste(used_domains, collapse = ", "),
+      prompt)
+
+    request_body <- list(
+      model = "gpt-4o",
+      temperature = 0,
+      messages = list(
+        list(role = "user", content = paste(full_prompt, content))))
+
+    response <- POST(
+      url,
+      add_headers(
+        `Authorization` = paste("Bearer", LITELLM_API_KEY),
+        `Content-Type`  = "application/json"
+      ),
+      body = jsonlite::toJSON(request_body, auto_unbox = TRUE))
+
+    if (httr::status_code(response) == 200) {
+      httr::content(response, as = "parsed")$choices[[1]]$message$content
     } else {
-      stop(paste("Error:", response$status_code, response$content))
-    }
-  }
-  
-  results <- matrix(nrow = iterations, ncol = k)
-  colnames(results) <- paste0("Domain_name_for_cluster_", 1:k)
-  
-  results <- t(replicate(iterations, {
+      stop(paste("LLM error:", httr::status_code(response)))}}
+
+  raw_results <- t(replicate(ITERATIONS, {
     used_domains <- character(0)
-    unlist(lapply(seq_len(k), function(j) {
-      domain <- send_request(content_list[[j]], j, used_domains)
+    sapply(seq_len(k), function(j) {
+      domain <- send_request(content_list[[j]], used_domains)
       used_domains <<- c(used_domains, domain)
       domain
-    }))
-  }))
-  
-  results <- as.data.frame(results)
-  colnames(results) <- paste0("Domain_name_for_cluster_", 1:k)  # Explicitly set column names
+    }) }))
 
-  mode_results <- sapply(results, get_mode)
-  results <- rbind(results, Mode = mode_results)
-  formatted_table <- displayTable(results)
-  return(list(raw_data = results, formatted_table = formatted_table, mode = mode_results))
-}
+  raw_results <- as.data.frame(raw_results)
+  colnames(raw_results) <- paste0("Cluster_", seq_len(k))
+
+  final_domains <- sapply(raw_results, get_mode)
+
+  final_df <- data.frame(
+    cluster = paste0("Cluster_", seq_len(k)),
+    selected_domain = final_domains,
+    stringsAsFactors = FALSE)
+
+  write.csv(final_df, output_csv, row.names = FALSE)
+  invisible(final_df)}
 ```
 
 
@@ -762,123 +334,25 @@ get_cluster_domains <- function(k, iterations = 10) {
 The Twitter dataset used in this notebook is accessible to public (open source) that ensures transparency and reproducibility. Each tweet represents a discrete data point with complete contextual meaning and the dataset comprises unadulterated content generated by a diverse global user base, minimizing bias and enhancing the generalizability of our findings. Twitter's platform, where users often share opinions on similar topics, presents an ideal scenario for evaluating the HVT package's claim of grouping similar data points within the same cell.
 
 
-## 4.2 Dataset Cleaning
+## 4.2 Dataset Preparation and Embeddings Generation
 
-3) The downloaded ZIP file contains a folder named 'twitter-celebrity-tweets-data', which includes 916 CSV files, each corresponding to tweets from a specific celebrity. Since most of the file contains thousands of tweets and very few files have 1 or 2 tweets, processing the full dataset would be computationally intensive.
+3) The raw dataset consists of 916 CSV files, each containing tweets from a different celebrity. To reduce computational overhead while maximizing content diversity, only the first three tweets from each file are extracted and merged into a single dataset.
 
-4) To address this, we use the [Function to slice and merge the data](#function-to-slice-and-merge-the-data) from section 3.1 to extract the first three tweets from each CSV file and then merge all the sliced tweets into a single CSV file. This approach helps diversify the dataset by incorporating tweets from a larger number of celebrities or influencers, ensuring a broader range of content rather than repetitive contextual tweets from a few individuals.
+4) This merged dataset undergoes two-stage cleaning:
 
+ *Rule-based preprocessing*: removal of encoded characters and tags, along with normalization of emojis into textual form.
 
-```{r, eval=FALSE}
-merge_and_slice_data(directory = "./twitter_data/all_celebs_tweets_folder/" , output_path = "./twitter_data/sliced_data.csv")
-```
+ *AI-driven filtering*: classifies tweets as valid or rejected by removing non-English, incomplete, and emoji-only tweets. Valid tweets are stored for downstream use.
 
-**This merged dataset has 2732 records**
-
-5) The merged data from above step is given as an input to the [Function to clean the twitter data - Phase 1](#function-to-clean-the-twitter-data---phase-1) from section 3.1 where the removal of encoded texts, tags and emoji to text conversion takes place. Returned will be the cleaned texts. The source of this function which is written in python traces back to the <a href="https://www.kaggle.com/code/ahmedshahriarsakib/twitter-celebrity-matcher-sbert-tweepy#4-Data-Preparation" target="_blank">kaggle</a> twitter data processing notebook.
+5) The final cleaned tweets are then converted into 1536-dimensional numerical embeddings using *OpenAI’s text-embedding-3-small* model. Embeddings are generated in batches, merged with the original tweet text and saved as CSV files.
 
 
-```{python}
-preprocessed_data = preprocess_twitter_data( input_path='./twitter_data/sliced_data.csv',output_path='./twitter_data/cleaned_data.csv')
-```
-
-**The resulting dataset still contains 2732 records with missing (NA) tweet text. This occurs because tweets that consist solely of emojis or contain only links without accompanying text are removed during preprocessing, resulting in empty or invalid entries.**
-
-6) In the next step, we will proceed with phase 2 cleaning using [Function to clean the twitter data - Phase 2](#function-to-clean-the-twitter-data---phase-2) from section 3.1 During this phase, tweets undergo a deeper, AI-driven filtering process and are classified into two categories: **valid** and **rejected**. We are using **Claude Sonnet 4.5 model** for this cleaning step via **Litellm**.
-
-This advanced cleaning step identifies and removes:
-
-* *Non-English tweets* (tweets written in languages other than English),
-* *Incomplete or truncated tweets*, such as those containing phrases like *“find the full interview here:”* after link removal in Phase 1,
-* *Tweets beginning with punctuation* (e.g., `.`, `,`, `~`), and
-* *Tweets ending with artifacts such as `&amp;`*, which indicate incomplete content.
-
-All tweets failing these criteria are stored in *tweets_rejected.csv*, while the cleaned and validated tweets are saved in *tweets_valid.csv* for downstream analysis and processing.
-
-**Note: This step has already been completed, and the resulting CSV files are saved and loaded during knitting to avoid repeated AI usage, as it incurs additional cost.**
-
-
-```{python, eval = FALSE}
-import os
-import pandas as pd
-
-df = pd.read_csv("./twitter_data/cleaned_data.csv")
-valid_df, rejected_df = filter_with_enhanced_prompt(
-    df=df,
-    api_key= , #os.getenv("LITELLM_API_KEY"),
-    api_base= , #os.getenv("LITELLM_BASE_URL"),
-    batch_size=25
-)
-valid_df.to_csv("./twitter_data/tweets_valid.csv", index=False)
-rejected_df.to_csv("./twitter_data/tweets_rejected.csv", index=False)
-```
-
-Once the cleaning process is complete, we examine the two resulting buckets. The rejected tweets file is loaded and displayed using the chunk below (only first 10 rows) to understand which tweets were classified as rejected. The `reason` column provides clear explanations for why each tweet was excluded. 
+Here we load the generated embeddings dataset. Below is a table displaying the first 10 rows of the numerical embeddings for the tweets.
 
 ```{r}
-rejected_csv <- read.csv("./twitter_data/tweets_rejected.csv")
-rejected_csv <- rejected_csv[,-c(1,2)] #removing the twitter id and date column
-displayTable(rejected_csv[1:10,])
-```
-
-
-</br>
-
-The chunk below displays the valid tweets (only first 10 records), which consist of complete, meaningful english sentences without emoji-only content. This cleaned dataset will be used in the next steps to generate embeddings for this vignette.
-
-```{r}
-selected_csv <- read.csv("./twitter_data/tweets_valid.csv")
-selected_csv <- selected_csv[,-c(1,2)] #removing the twitter id and date column
-displayTable(selected_csv[1:10,])
-```
-
-
-There are totally **`r nrow(rejected_csv)` records in rejected file and `r nrow(selected_csv)` records in selected file.**
-
-
-
-</br>
-
-## 4.3 Create Embeddings of the Dataset using OpenAI
-
-7) The cleaned valid data which has **`r nrow(selected_csv)` records** is then transformed to token embeddings using **OpenAI's text-embedding-3-small** model, which generates **1536-dimensional data**. 
-
-8) The [Function for generating embeddings from textual data](#function-for-generating-embeddings-from-textual-data-using-openai) mentioned in section 3.1 follows all the below given steps for the process of converting textual data to numerical embeddings.
-
-<span style="font-size: 15px;">**Steps of Embeddings Generation**</span>
-
-*Step 1 – Initialization and Data Loading*
-
-The function initializes the API credentials (passed as arguments) and loads the input tweets dataset from a csv file.
-
-*Step 2 – Embedding Generation via API*
-
-Tweets are processed in batches and sent to the embeddings API (text-embedding-3-small) to generate numerical vector representations, with error handling for failed requests.
-
-*Step 3 – Data Processing and Transformation*
-
-The passed requests are filtered, flattened, and combined into a structured dataframe, where each row corresponds to a tweet.
-
-*Step 4 – Result Compilation and Storage*
-
-The original tweet data and their embeddings are merged row-wise and written to a new CSV file at the specified output path.
-
-
-```{r, eval=FALSE}
-create_embeddings(input_path = "./twitter_data/tweets_valid.csv",
-                  output_path = "./twitter_data/final_embeddings.csv",
-                  text_column = "tweet",
-                  api_key = ,  #Sys.getenv("LITELLM_API_KEY"),
-                  base_url = , #Sys.getenv("LITELLM_BASE_URL"),
-                  batch_size = 100)
-```
-
-Here we load the generated embeddings dataset. Below is a table displaying the first 10 rows of the embeddings dataset generated from cleaned tweets. **The embeddings are generated only from the tweets not the username.**
-
-```{r}
-data <- read.csv("./twitter_data/final_embeddings.csv")
-data <- data %>% select(-c(1, 2)) %>% rename(username = source_file)
-displayTable(data[1:10,])
+dataset_raw <- read.csv("./twitter_data/final_embeddings.csv")
+dataset_raw <- dataset_raw %>% select(-c(1, 2)) %>% rename(username = source_file)
+displayTable(dataset_raw[1:10,])
 ```
 
 
@@ -892,24 +366,21 @@ displayTable(data[1:10,])
 
 
 
-## 4.4 Datasets for HVT Analysis
+## 4.3 Datasets for HVT Analysis
 
-This section showcases two datasets that are subsequently utilized in this notebook within the functions of the HVT package.
+This section showcases two datasets that are subsequently utilized in this vignette.
 
 ```{r}
-dataset_raw <- data #removing the s.no column
-dataset <- data[,-c(1,2)] #removing the categorical column
+dataset <- dataset_raw[,-c(1,2)] #removing the categorical column
 ```
 
-1) `dataset_raw` - The embeddings dataset with all the columns that includes both categorical and numerical.
+1) `dataset_raw` - The embeddings dataset with all the columns that includes both categorical and numerical types.
 
 ```{r}
 dim(dataset_raw)
 ```
 
-The dimension of `dataset_raw` is `r nrow(selected_csv)` rows and 1538 columns (1536 numerical + 2 categorical columns).
-
-Here we are displaying `dataset_raw` with the first 10 rows and 1536 columns.
+The dimension of `dataset_raw` is `r nrow(dataset_raw)` rows and 1538 columns (1536 numerical + 2 categorical columns). Here we are displaying `dataset_raw` with the first 10 rows and 1536 columns.
 ```{r}
 displayTable(dataset_raw[1:10,])
 ```
@@ -921,9 +392,7 @@ displayTable(dataset_raw[1:10,])
 dim(dataset)
 ```
 
-The dimension of `dataset` is `r nrow(selected_csv)` rows and 1536 columns (only numerical).
-
-Here we are displaying `dataset` with the first 10 rows and 1536 columns.
+The dimension of `dataset` is `r nrow(dataset)` rows and 1536 columns (only numerical). Here we are displaying `dataset` with the first 10 rows and 1536 columns.
 ```{r}
 displayTable(dataset[1:10,])
 ```
@@ -931,7 +400,7 @@ displayTable(dataset[1:10,])
 
 
 
-## 4.5 EDA Plots {.tabset}
+## 4.4 EDA Plots {.tabset}
 
 This section displays four objects.
 
@@ -957,7 +426,7 @@ This section displays four objects.
 
 It uses an inbuilt function called `edaPlots` to display the above-mentioned four objects.
 
-*NOTE: Here we have used the `dataset` object which has `r nrow(selected_csv)` rows and 1536 numerical columns. The input dataset should be a data frame object and the columns should be only numeric type. For demo purposes, we are plotting the EDA plots and displaying summary table only for the first 10 columns from 1536 columns.*
+*NOTE: Here we have used the `dataset` object which has `r nrow(dataset)` rows and 1536 numerical columns. The input dataset should be a data frame object and the columns should be only numeric type. For demo purposes, we are plotting the EDA plots and displaying summary table only for the first 10 columns from 1536 columns.*
 
 
 </br>
@@ -1022,8 +491,7 @@ trainHVT(
   depth,quant.err,normalize,distance_metric,
   dim_reduction_method,error_metric,quant_method,
   scale_summary, diagnose, hvt_validation,
-  train_validation_split_ratio
-)
+  train_validation_split_ratio)
 ```
 
 Each of the parameters of `trainHVT` function has been explained below:
@@ -1121,7 +589,7 @@ The error metric can be `mean` or `max`. For a specified number of cells, each c
 
 <span style="font-size: 18px;">**Input Parameters**</span>
 
-- Dataset = `dataset` (The processed dataset with `r nrow(selected_csv)` rows and 1536 columns)
+- Dataset = `dataset` (The processed dataset with `r nrow(dataset)` rows and 1536 columns)
 - Number of cells = 125
 - Quantization Error = 0.65
 - Distance Metric = Manhattan/L1 Norm
@@ -1152,7 +620,7 @@ Lets look at the dimensionality reduction evaluation metrics.
 displayTable(hvt.results$model_info$distance_measures)
 ```
 
-The embedding effectively preserves local neighborhood structure and captures the overall data geometry in the low-dimensional space. While the representation is interpretable and computationally efficient, some loss in fine-grained neighbor consistency and cluster separation remains. 
+The embedding preserves much of the local neighborhood structure and overall geometry of the data in the low-dimensional space. While it is computationally efficient and moderately interpretable, there is minimal loss in fine-grained neighbor consistency and cluster separation. 
 
 </br>
 
@@ -1166,7 +634,7 @@ This section focuses on projecting the plots that used Sammon's dimensionality r
 plotHVT <-(hvt.results,line.width,color.vec, 
            centroid.size, centroid.color, 
            child.level, hmap.cols, 
-           cell_id, cell_id_size,
+           cell_id, cell_id_size,centroids,
            cell_id_position,quant.error.hmap,
            separation_width, layer_opacity,
            dim_size, plot.type = '2Dhvt') 
@@ -1190,7 +658,9 @@ plotHVT <-(hvt.results,line.width,color.vec,
 
 * __`cell_id_size`__ - (2Dhvt/2Dheatmap) A number indicating the size of the cell ID text. Only applicable for the level 1. (default = 1)
 
-* __`cell_id_position`__ - (2Dhvt/2Dheatmap) A Character indicating the position of the cell ID text. Only applicable for the level 1. Accepted entries are 'top', 'left', 'bottom' or 'right'. (default = 'bottom')
+* __`cell_id_position`__ - (2Dhvt/2Dheatmap) A Character indicating the position of the cell ID text. Only applicable for the level 1. Accepted entries are 'top', 'left', 'bottom', 'right' or 'center'. (default = 'bottom')
+
+* __`centroids`__ - (2Dhvt/2Dheatmap) A logical option indicating whether the centroids have to be plotted or can be skipped. Default is TRUE.
 
 * __`quant.error.hmap`__ - (2Dheatmap)  A number representing the quantization error threshold to be highlighted in the heatmap. When a value is provided, it will emphasize cells with quantization errors equal or less than the specified threshold, indicating that these cells cannot be further subdivided in the next depth layer. The default value is NULL, meaning all cells will be colored in the heatmap across various depths.
 
@@ -1235,7 +705,7 @@ plotHVT(hvt.results, plot.type = '2Dproj')
 - cell_id = TRUE (to display the cell id's in plot)
 
 ```{r , warning=FALSE,message=FALSE, fig.width=7.5, fig.height = 5,fig.align = "center"}
-plotHVT(hvt.results, plot.type  = '2Dhvt', cell_id = TRUE)
+plotHVT(hvt.results, plot.type  = '2Dhvt', cell_id = TRUE, cell_id_position = "center", centroids = TRUE, cell_id_size = 2.4, centroid.size = 0.1)
 ```
 
 
@@ -1249,7 +719,7 @@ plotHVT(hvt.results, plot.type  = '2Dhvt', cell_id = TRUE)
 
 
 ```{r , warning=FALSE,message=FALSE, fig.width=7.5, fig.height = 5,fig.align = "center"}
-plotHVT(hvt.results,  hmap.cols = "n", plot.type  = '2Dheatmap', cell_id = TRUE)
+plotHVT(hvt.results,  hmap.cols = "n", plot.type  = '2Dheatmap',  cell_id = TRUE, cell_id_position = "center", centroids = TRUE, cell_id_size = 2.4, centroid.size = 0.1)
 ```
 
 
@@ -1267,7 +737,7 @@ The [Function for generating Heatmaps for each column of a dataset](#function-fo
 
 <span style="font-size: 18px;">**Input parameters**</span>
 
-- dataset = The `dataset` with `r nrow(selected_csv)` rows and 1536 numerical columns
+- dataset = The `dataset` with `r nrow(dataset)` rows and 1536 numerical columns
 - no_of_cols = the columns to be plotted[from 1 to 17]
 - hvt.results = `trainHVT()` results 
 
@@ -1282,7 +752,7 @@ plot_columns(dataset, no_of_cols, hvt.results)
 
 <span style="font-size: 18px;">**Input parameters**</span>
 
-- dataset = The `dataset` with `r nrow(selected_csv)` rows and 1536 numerical columns
+- dataset = The `dataset` with `r nrow(dataset)` rows and 1536 numerical columns
 - no_of_cols = the columns to be plotted[from 18 to 34]
 - hvt.results = `trainHVT()` results 
 
@@ -1296,7 +766,7 @@ plot_columns(dataset, no_of_cols, hvt.results)
 
 <span style="font-size: 18px;">**Input parameters**</span>
 
-- dataset = The `dataset` with `r nrow(selected_csv)` rows and 1536 numerical columns
+- dataset = The `dataset` with `r nrow(dataset)` rows and 1536 numerical columns
 - no_of_cols = the columns to be plotted[from 35 to 50]
 - hvt.results = `trainHVT()` results 
 
@@ -1360,6 +830,18 @@ The parameters are explained below:
 
 * __`names.column`__ - The column of names of the datapoints which will be displayed as the contents of the cell in 'scoredPlotly'. Default is NULL.
 
+*Parameters used for the scored Plotly visualization, generated only when analysis.plots = TRUE*
+
+* __`cell_id`__ - A logical indicating whether the cell IDs should be displayed. Default is TRUE.
+
+* __`cell_id_position`__ - A character indicating the position of the cell IDs. Accepted entries are 'top',  'bottom', 'left', 'right', and 'center'. Default is 'bottom'.
+
+* __`centroids`__ - A logical indicating whether the centroid points should be displayed. Default value is TRUE. 
+
+* __`cell_id_size`__ - A numeric value indicating the size of the cell IDs. Default is 4
+
+* __`centroid.size`__ - A numeric value or vector indicating the size of centroids for each level. Default is 0.8
+
 
 
 ## 7.2 Model Scoring using `scoreHVT()`
@@ -1367,7 +849,7 @@ The parameters are explained below:
 <span style="font-size: 18px;">**Input Parameters**</span>
 
 
-- `dataset_raw` = The uploaded raw dataset with `r nrow(selected_csv)` rows and 1538 columns (1536 numerical + 2 categorical) (Only the numerical columns get scored the categorical columns works as Identifier variables in scored plot)
+- `dataset_raw` = The uploaded raw dataset with `r nrow(dataset)` rows and 1538 columns (1536 numerical + 2 categorical) (Only the numerical columns get scored the categorical columns works as Identifier variables in scored plot)
 
 - hvt.results = `trainHVT()` results 
 
@@ -1383,7 +865,7 @@ The parameters are explained below:
 
 ```{r, warning=FALSE, message=FALSE,}
 scoring <- scoreHVT(dataset_raw, hvt.results, mad.threshold = 0.65,normalize = T,
-                    analysis.plots  = TRUE,names.column = dataset_raw[,1])
+                    analysis.plots  = TRUE,names.column = dataset_raw[,1], cell_id_position = "center")
 ```
 
 Let's look at the **scored model summary**.
@@ -1413,7 +895,7 @@ Let's look at the dimensions of scored table.
 dim(scoring$scoredPredictedData)
 ```
 
-It has `r nrow(selected_csv)` rows and 1545 columns (standard output 9 columns + 1536 input dataset columns)
+It has `r nrow(dataset)` rows and 1545 columns (standard output 9 columns + 1536 input dataset columns)
 
 Below are the newly added 9 columns after scoring using `scoreHVT`
 
@@ -1450,7 +932,7 @@ summary(scoring)
 Let's look at the 'scoredPlotly' which visualizes the 2D Heatmap, hover on it will display the no. of observations and the tweets in a cell with its cell ID.
 
 
-```{r, warning=FALSE,message=FALSE,out.width="720px",out.height = "500px",fig.align = "center"}
+```{r, warning=FALSE,message=FALSE,out.width="720px",out.height = "550px",fig.align = "center"}
 scoring$scoredPlotly
 ```
 
@@ -1460,7 +942,7 @@ This plot visualizes a 2D Heatmap using a Voronoi diagram where each region repr
 
 *High-density region on the left*: The towards-left area has few notable clusters with high number of tweets/records.
 
-*LOw-density region on the right*: The towards-right area side has lot of clusters with low number of tweets/records.
+*Low-density region on the right*: The towards-right area has lot of clusters with low number of tweets/records.
 
 *Cell Specifics*: Hovering over a cell, as demonstrated, reveals detailed information such as Cell ID, number of observations, and name of the observations (tweets). 
 
@@ -1500,7 +982,7 @@ clustHVT(data,
 
 Each of the parameters of `clustHVT` function has been explained below:
 
-* __`data`__ - A data frame intended for performing hierarchical clustering analysis.
+* __`data`__ - A data frame intended for performing hierarchical cluster analysis.
 
 * __`trainHVT_results`__ - A list object which is obtained as a result of `trainHVT` function.
 
@@ -1510,7 +992,7 @@ Each of the parameters of `clustHVT` function has been explained below:
 
 The hyperparameters of `NbClust`& `hclust` functions which are used in `clustHVT` function has been explained below:
 
-* __`indices`__  - The indices used for determining the optimal number of clusters in `NbClust` function. By default it uses 20 different indices ("kl", "ch", "hartigan", "cindex", "db", "silhouette", "ratkowsky", "ball","hubert","dindex","ptbiserial", "gap", "frey", "mcclain", "gamma", "gplus", "tau", "dunn", "sdindex", "sdbw") It is suggested to tailor the indices based on the dataset provided.
+* __`indices`__  - The indices used for determining the optimal number of clusters in `NbClust` function. By default it uses 19 different indices ("kl", "ch", "hartigan", "cindex", "db", "silhouette", "ratkowsky", "ball","hubert","dindex","ptbiserial", "frey", "mcclain", "gamma", "gplus", "tau", "dunn", "sdindex", "sdbw") It is suggested to tailor the indices based on the dataset provided.
 
 * __`clustering_method`__  - The method used for clustering in both `NbClust` and `hclust` function. Defaults to 'ward.D2'.
 
@@ -1547,9 +1029,9 @@ The data has 125 rows and 2 columns (x and y coordinates). Let's have a look at 
 displayTable(hclust_data_1, limit = 125)
 ```
 
-### 8.2.2 Clustering Analysis
+### 8.2.2 Cluster Analysis
 
-In this section, we will use `clustHVT` function to conduct clustering analysis. Let's look at the `NbClust` function's output for determining the number of optimal clusters for the dataset. 
+In this section, we will use `clustHVT` function to conduct cluster analysis. Let's look at the `NbClust` function's output for determining the number of optimal clusters for the dataset. 
 
 ```{r, warning=FALSE,message=FALSE,fig.align = "center",fig.width= 9, fig.height=5}
 clust.results <- clustHVT(data = hclust_data_1, 
@@ -1559,20 +1041,8 @@ clust.results <- clustHVT(data = hclust_data_1,
 ```
 
 
-Based on the above results, four indices recommend both 3 and 15 clusters equally. However, according to the sorting order, the solution with 3 clusters is selected as the champion. Let us now examine these clusters.
+Based on the above results, the highest recommended number of optimal clusters are `15`. Hence we proceed with the visualizations of clusters.
 
-```{r, fig.width=15, fig.height = 6,fig.align = "center"}
-clust.results$dendrogram()
-```
-
-The 3-cluster solution results in a dendrogram with large clusters. However, for our specific use case, smaller clusters are preferred. Therefore, we switch to a 15-cluster solution by re-running the clustHVT function using the challenger model, allowing 15 clusters to be selected during sorting.
-
-```{r, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-clust.results <- clustHVT(data = hclust_data_1, 
-              trainHVT_results = hvt.results,
-              scoreHVT_results = scoring, 
-              clusters_k = 'challenger')
-```
 Let's look at the dendrogram for 15 clusters.
 
 ```{r, fig.width=15, fig.height = 6,fig.align = "center"}
@@ -1581,7 +1051,7 @@ clust.results$dendrogram()
 
 Let's look at the Cluster HVT plot for the 15 clusters.
 
-```{r, message=FALSE, warning=FALSE, fig.width=8, fig.height = 5,fig.align = "center"}
+```{r, message=FALSE, warning=FALSE, fig.width=8, fig.height = 6,fig.align = "center"}
 clust.results$clusterplot
 ```
 
@@ -1599,26 +1069,27 @@ clust.results$clusterplot
 create_and_write_clusters(cluster_numbers = 1:15, cluster_method = clust.results$cluster_data)
 ```
 
-- The below chunk makes a call to **OpenAI's gpt-4o** via chat completions API and print the responses for clusters below. 
+- The below chunk makes a call to **OpenAI's gpt-4o** via chat completions API. This function makes 10 API calls for each cluster and most frequently produced response will be selected as the domain name for that cluster.
 
-- Let's call the [Function for making OpenAI-API Call to generate domain names](#function-for-making-openai-api-call-to-generate-domain-names) which is explained in section 3.1. This function makes 10 API calls for each cluster and prints all 10 responses. The domain name that appears most frequently is selected as the domain name for that cluster.
+- This process has already done and the results are saved in a csv file, which will be fetched and used further.
 
-```{r}
-result <- get_cluster_domains(15)
-result$formatted_table
-print(result$mode)
+```{r, eval=FALSE}
+get_cluster_domains(output_csv = "./twitter_data/domain_names_itr1.csv")
 ```
 
 
 Let's replace the cluster numbers to above generated `domain names` in the dataset.
 
 ```{r}
+domain_map <- read.csv("./twitter_data/domain_names_itr1.csv", stringsAsFactors = FALSE)
 cluster_data <- clust.results$cluster_data
-# Initialize cluster_name column
 cluster_data$cluster_name <- NA_character_
-# Assign domain names to each cluster
-for (i in 1:15) {
-  cluster_data$cluster_name[cluster_data$clusters == i] <- result$mode[[i]]}
+
+cluster_ids <- as.integer(gsub("Cluster_", "", domain_map$cluster))
+for (i in seq_along(cluster_ids)) {
+  cluster_data$cluster_name[cluster_data$clusters == cluster_ids[i]] <-
+    domain_map$selected_domain[i]}
+displayTable(domain_map)
 ```
 
 
@@ -1632,7 +1103,8 @@ In this section, we will generate the Heatmaps of OpenAI and Manual Approach for
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_1 <- clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", type = "plot")
+hclust_plot_1 <- clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", 
+                          type = "plot")
 ```
 
 **Manual Approach**
@@ -1644,11 +1116,11 @@ clust_1 <- subset(cluster_data$names.column, cluster_data$clusters == 1)
 ```
 
 ```{r}
-cluster_names <- c("Series *", "TV Shows *", "Social media *", 
-                   "Celebrity *", "Marketing *", "Lifestyle *", 
-                   "Relationships *", "Education *", "Tour *", 
-                   "Career *", "Politics *", "Philosopy *", 
-                   "Frustration *", "Civic *", "Wellness *")
+cluster_names <- c("Entertainment *", "New-Releases *", "Gratitude *", 
+                   "Promotions *", "Announcements *", "Multi-Media *", 
+                   "Support *", "Commentary *", "Transformation *", 
+                   "Thoughts *", "Politics *", "Grief *", 
+                   "Beliefs *", "Civic *", "World-view *")
 
 cluster_data$cluster_name <- cluster_names[cluster_data$clusters]
 ```
@@ -1656,7 +1128,8 @@ cluster_data$cluster_name <- cluster_names[cluster_data$clusters]
 
 ```{r,message=FALSE, warning=FALSE, fig.width=8.8, fig.height = 5,fig.align = "center"}
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-manual_plot_1 <-clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", type = "plot")
+manual_plot_1 <-clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", 
+                         type = "plot")
 ```
 
 ### 8.2.5 Visualization of plots: OpenAI vs Manual Approach
@@ -1674,15 +1147,15 @@ plotly::layout(annotations = list(
 
 **Inference**
 
-- A visual comparison between the plots of *OpenAI Approach* and the *Manual Approach* indicates that the domain names assigned to clusters exhibit complete uniqueness across both methods. 
+- A visual comparison between the plots of *OpenAI Approach* and the *Manual Approach* indicates that the domain names assigned to both methods are mostly different except domain names - 'politics' & 'Entertainment'.
 
-- The labeling methodology employed by OpenAI has not suggested relevant domains. For instance, the 'Technology' domain in the OpenAI-generated plot contains no technology-related tweets; instead, it primarily reflects social media engagements. In the manual approach, this cluster was labeled as 'Social Media', which appears more contextually appropriate than 'Technology'.
+- The labeling methodology employed by OpenAI has not suggested relevant domains. For instance, the 'Technology' domain in the OpenAI-generated plot contains no technology-related tweets; instead, it primarily reflects social media engagements. In the manual approach, this cluster was labeled as 'Multi-Media', which appears more contextually appropriate than 'Technology'.
 
 
 
 ### 8.2.6 Calculation of Average Silhouette Width(ASW)
 
-- The Average Silhouette Width (ASW) is a measure to evaluate the quality of clusters in a clustering analysis. It assess how similar each point in a cluster is to other points in the same cluster compared to points in different clusters. Higher ASW indicates better-defined and more separated clusters.
+- The Average Silhouette Width (ASW) is a measure to evaluate the quality of clusters in a cluster analysis. It assess how similar each point in a cluster is to other points in the same cluster compared to points in different clusters. Higher ASW indicates better-defined and more separated clusters.
 
 ```{r}
 clusters <- clust.results$clusters
@@ -1698,19 +1171,24 @@ print(ward_asw)
 
 
 ```{r, include=FALSE, warning=FALSE,message=FALSE}
-# Initialize cluster_name column if it doesn't exist
-if (!"cluster_name" %in% names(cluster_data)) {
-  cluster_data$cluster_name <- NA_character_
-}
-# Assign domain names to each cluster with _1538D suffix
-for (i in 1:15) {
-  cluster_data$cluster_name[cluster_data$clusters == i] <- paste0(result$mode[[i]], "_1538D")
-}
-centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_2 <- clustHVT(data = centroid_cluster_data, trainHVT_results = hvt.results, domains.column = "cluster_name", type = "plot")
+# Save 2D clustering results and domain map before they get overwritten in section 8.3
+clust.results_2d <- clust.results
+domain_map_2d <- domain_map
+cluster_data_2d <- clust.results$cluster_data
 
-ward_cluster <- cluster_data
-hc_1 <- clust.results$hc
+# Prepare hclust_plot_1 with OpenAI-generated domain names + "_2D" suffix
+cluster_data_2d$cluster_name <- NA_character_
+cluster_ids_2d <- as.integer(gsub("Cluster_", "", domain_map_2d$cluster))
+for (i in seq_along(cluster_ids_2d)) {
+  cluster_data_2d$cluster_name[cluster_data_2d$clusters == cluster_ids_2d[i]] <-
+    paste0(domain_map_2d$selected_domain[i], "_2D")}
+
+centroid_cluster_data_2d <- cluster_data_2d %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
+hclust_plot_1 <- clustHVT(data = centroid_cluster_data_2d, trainHVT_results = hvt.results, domains.column = "cluster_name", type = "plot")
+
+ward_cluster <- cluster_data_2d
+hc_1 <- clust.results_2d$hc
+
 ```
 
 ## 8.3 `hclust` on 1538D data
@@ -1742,18 +1220,19 @@ Let's have a look at the data. Only the first 10 rows and all the 1538 columns a
 displayTable(hclust_data_2[1:10,])
 ```
 
-### 8.3.2 Clustering Analysis
+### 8.3.2 Cluster Analysis
 
-In this section, we will use `clustHVT` function to conduct clustering analysis. Let's look at the `NbClust` function's output for determining the number of optimal clusters for the dataset. 
+In this section, we use the `clustHVT` function to perform the cluster analysis. As determined earlier, the optimal number of clusters is **15**, so we directly specify this value.
+
 
 ```{r, warning=FALSE,message=FALSE,fig.align = "center",fig.width= 9, fig.height=5}
 clust.results <- clustHVT(data = hclust_data_2, 
               trainHVT_results = hvt.results,
               scoreHVT_results = scoring, 
-              clusters_k = 'champion')
+              clusters_k = 15)
 ```
 
-From the above results, we can clearly see that highest recommendation is *15* as the optimal number of clusters. Let's look at the dendrogram plot for the same.
+Let's look at the dendrogram plot for 15 clusters.
 
 ```{r, fig.width=15, fig.height = 6,fig.align = "center"}
 clust.results$dendrogram()
@@ -1762,7 +1241,7 @@ clust.results$dendrogram()
 
 Let's look at the Cluster HVT plot for the 15 clusters.
 
-```{r, message=FALSE, warning=FALSE, fig.width=8, fig.height = 5,fig.align = "center"}
+```{r, message=FALSE, warning=FALSE, fig.width=8, fig.height = 6,fig.align = "center"}
 clust.results$clusterplot
 ```
 
@@ -1780,28 +1259,28 @@ cluster_data <- clust.results$cluster_data
 create_and_write_clusters(cluster_numbers = 1:15, cluster_method = cluster_data)
 ```
 
-The below chunk makes a call to **OpenAI's gpt-4o** via chat completions API and print the responses for clusters below. 
+- The below chunk makes a call to **OpenAI's gpt-4o** via chat completions API. This function makes 10 API calls for each cluster and most frequently produced response will be selected as the domain name for that cluster.
 
-- Let's call the [Function for making OpenAI-API Call to generate domain names](#function-for-making-openai-api-call-to-generate-domain-names) which is explained in section 3.1. This function makes 10 API calls for each cluster and prints all 10 responses. The domain name that appears most frequently is selected as the domain name for that cluster.
+- This process has already done and the results are saved in a csv file, which will be fetched and used further.
 
-```{r}
-result <- get_cluster_domains(15)
-result$formatted_table
-print(result$mode)
+
+```{r, eval=FALSE}
+get_cluster_domains(output_csv = "./twitter_data/domain_names_itr2.csv")
 ```
 
 
 Let's replace the cluster numbers to above generated `domain names` in the dataset.
 
 ```{r}
-# Initialize cluster_name column if it doesn't exist
-if (!"cluster_name" %in% names(cluster_data)) {
-  cluster_data$cluster_name <- NA_character_
-}
-# Assign domain names to each cluster
-for (i in 1:15) {
-  cluster_data$cluster_name[cluster_data$clusters == i] <- result$mode[[i]]
-}
+domain_map <- read.csv("./twitter_data/domain_names_itr2.csv", stringsAsFactors = FALSE)
+cluster_data <- clust.results$cluster_data
+cluster_data$cluster_name <- NA_character_
+
+cluster_ids <- as.integer(gsub("Cluster_", "", domain_map$cluster))
+for (i in seq_along(cluster_ids)) {
+  cluster_data$cluster_name[cluster_data$clusters == cluster_ids[i]] <-
+    domain_map$selected_domain[i]}
+displayTable(domain_map)
 ```
 
 ### 8.3.4 Cluster Domain Naming: OpenAI vs Manual Approach
@@ -1828,11 +1307,11 @@ clust_1 <- subset(cluster_data$names.column, cluster_data$clusters == 1)
 ```
 
 ```{r}
-cluster_names <- c("Series *", "TV Shows *", "Social media *", 
-                   "Entertainment *", "Marketing *", "Lifestyle *", 
-                   "Relationships *", "Education *", "Tour *", 
-                   "Civic *", "Politics *", "Philosophy *", 
-                   "Frustration *", "Wellness *", "Governance *")
+cluster_names <- c("Show Tours *", "Entertainment *", "Gratitude *", 
+                   "Promotions *", "Marketing *", "New-Releases *", 
+                   "Announcements *", "Lifestyle *", "Transformation *", 
+                   "Thoughts *", "Support *", "World-view *", 
+                   "Beliefs *", "Outrage *", "Grief *")
 
 cluster_data$cluster_name <- cluster_names[cluster_data$clusters]
 
@@ -1862,14 +1341,15 @@ plotly::layout(annotations = list(
 
 **Inference**
 
-- A visual comparison between the plots of *OpenAI Approach* and the *Manual Approach* indicates that the labels assigned to clusters exhibit complete uniqueness across both methods. 
+- A visual comparison between the plots of *OpenAI Approach* and the *Manual Approach* indicates that the domain names assigned to both methods are mostly different except one domain name - 'Entertainment'.
 
-- The labeling methodology used by OpenAI and the manual approach converge on the cluster name “Relationships,” indicating that both approaches successfully identified and labeled the cluster based on its underlying content.
+- Both the OpenAI-based and manual labeling approaches show limited accuracy for a small number of clusters. For example, the cluster labeled *Grief* in the manual approach contains only a few grief-related tweets, while the same cluster is labeled *Law* in the AI-based approach, despite having only a few law-related tweets. This indicates that there is scope for improvement in both labeling methods.
+
 
 
 ### 8.3.6 Calculation of Average Silhouette Width(ASW)
 
-- The Average Silhouette Width (ASW) is a measure to evaluate the quality of clusters in a clustering analysis. It assesses how similar each point in a cluster is to other points in the same cluster compared to points in different clusters. 
+- The Average Silhouette Width (ASW) is a measure to evaluate the quality of clusters in a cluster analysis. It assesses how similar each point in a cluster is to other points in the same cluster compared to points in different clusters. 
 
 ```{r}
 clusters <- clust.results$clusters
@@ -1885,38 +1365,44 @@ print(ward_asw_2)
  - **For Sammon's coordinates data (2D - x and y coordinates) with the embeddings (1536D) of the centroids of 125 cells, the ASW for ward is `r ward_asw_2` **.
 
 ```{r, include=FALSE, warning=FALSE,message=FALSE}
-# Initialize cluster_name column if it doesn't exist
-if (!"cluster_name" %in% names(cluster_data)) {
-  cluster_data$cluster_name <- NA_character_
-}
-# Assign domain names to each cluster with _1538D suffix
-for (i in 1:15) {
-  cluster_data$cluster_name[cluster_data$clusters == i] <- paste0(result$mode[[i]], "_1538D")
-}
-centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
-hclust_plot_2 <- clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", type = "plot")
+# Prepare hclust_plot_2 with OpenAI-generated domain names from domain_names_itr2.csv + "_1538D" suffix
+# Ensure we're using the 1538D clustering results and domain map
+cluster_data_1538d <- clust.results$cluster_data
+cluster_data_1538d$cluster_name <- NA_character_
 
-cluster_data <- cluster_data
+# Use the domain_map from section 8.3.3 (domain_names_itr2.csv) - ensure it's loaded
+if (!exists("domain_map") || is.null(domain_map)) {
+  domain_map <- read.csv("./twitter_data/domain_names_itr2.csv", stringsAsFactors = FALSE)
+}
+
+cluster_ids_1538d <- as.integer(gsub("Cluster_", "", domain_map$cluster))
+for (i in seq_along(cluster_ids_1538d)) {
+  cluster_data_1538d$cluster_name[cluster_data_1538d$clusters == cluster_ids_1538d[i]] <-
+    paste0(domain_map$selected_domain[i], "_1538D")}
+
+centroid_cluster_data_1538d <- cluster_data_1538d %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
+hclust_plot_2 <- clustHVT(data = centroid_cluster_data_1538d, trainHVT_results = hvt.results, domains.column = "cluster_name", type = "plot")
+
 hc_2 <- clust.results$hc
 
 ```
 
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
-ward_cluster$cluster_name <- ifelse(ward_cluster$clusters == 1, "Series_2D",
-                                 ifelse(ward_cluster$clusters == 2, "TV Shows_2D",
-                                 ifelse(ward_cluster$clusters == 3, "Social media_2D",
-                                 ifelse(ward_cluster$clusters == 4, "Celebrity_2D",
-                                 ifelse(ward_cluster$clusters == 5, "Marketing_2D",
-                                 ifelse(ward_cluster$clusters == 6, "Lifestyle_2D",
-                                 ifelse(ward_cluster$clusters == 7, "Relationships_2D",
-                                 ifelse(ward_cluster$clusters == 8, "Education_2D",
-                                 ifelse(ward_cluster$clusters == 9, "Tour_2D",
-                                 ifelse(ward_cluster$clusters == 10, "Career_2D",
+ward_cluster$cluster_name <- ifelse(ward_cluster$clusters == 1, "Entertainment_2D",
+                                 ifelse(ward_cluster$clusters == 2, "New-Releases_2D",
+                                 ifelse(ward_cluster$clusters == 3, "Gratitude_2D",
+                                 ifelse(ward_cluster$clusters == 4, "Promotions_2D",
+                                 ifelse(ward_cluster$clusters == 5, "Announcements_2D",
+                                 ifelse(ward_cluster$clusters == 6, "Multi-Media_2D",
+                                 ifelse(ward_cluster$clusters == 7, "Support_2D",
+                                 ifelse(ward_cluster$clusters == 8, "Commentary_2D",
+                                 ifelse(ward_cluster$clusters == 9, "Transformation_2D",
+                                 ifelse(ward_cluster$clusters == 10, "Thoughts_2D",
                                  ifelse(ward_cluster$clusters == 11, "Politics_2D",
-                                 ifelse(ward_cluster$clusters == 12, "Philosopy_2D",
-                                 ifelse(ward_cluster$clusters == 13, "Frustration_2D",
-                                 ifelse(ward_cluster$clusters == 14, "Civic_2D", "Wellness_2D"))))))))))))))
+                                 ifelse(ward_cluster$clusters == 12, "Grief_2D",
+                                 ifelse(ward_cluster$clusters == 13, "Beliefs_2D",
+                                 ifelse(ward_cluster$clusters == 14, "Civic_2D", "World-view_2D"))))))))))))))
  
 centroid_cluster_data <- ward_cluster %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
 manual_plot_1 <-clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.results, domains.column = "cluster_name", type="plot")
@@ -1924,20 +1410,20 @@ manual_plot_1 <-clustHVT(data = centroid_cluster_data, trainHVT_results  = hvt.r
 
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
-cluster_data$cluster_name <- ifelse(cluster_data$clusters == 1, "Series_1538D",
-                                 ifelse(cluster_data$clusters == 2, "TV Shows_1538D",
-                                 ifelse(cluster_data$clusters == 3, "Social media_1538D",
-                                 ifelse(cluster_data$clusters == 4, "Entertainment_1538D",
+cluster_data$cluster_name <- ifelse(cluster_data$clusters == 1, "Show Tours_1538D",
+                                 ifelse(cluster_data$clusters == 2, "Entertainment_1538D",
+                                 ifelse(cluster_data$clusters == 3, "Gratitude_1538D",
+                                 ifelse(cluster_data$clusters == 4, "Promotions_1538D",
                                  ifelse(cluster_data$clusters == 5, "Marketing_1538D",
-                                 ifelse(cluster_data$clusters == 6, "Lifestyle_1538D",
-                                 ifelse(cluster_data$clusters == 7, "Relationships_1538D",
-                                 ifelse(cluster_data$clusters == 8, "Education_1538D",
-                                 ifelse(cluster_data$clusters == 9, "Tour_1538D",
-                                 ifelse(cluster_data$clusters == 10, "Civic_1538D",
-                                 ifelse(cluster_data$clusters == 11, "Politics_1538D",
-                                 ifelse(cluster_data$clusters == 12, "Philosophy_1538D",
-                                 ifelse(cluster_data$clusters == 13, "Frustration_1538D",
-                                 ifelse(cluster_data$clusters == 14, "Wellness_1538D", "Governance_1538D"))))))))))))))
+                                 ifelse(cluster_data$clusters == 6, "New-Releases_1538D",
+                                 ifelse(cluster_data$clusters == 7, "Announcements_1538D",
+                                 ifelse(cluster_data$clusters == 8, "Lifestyle_1538D",
+                                 ifelse(cluster_data$clusters == 9, "Transformation_1538D",
+                                 ifelse(cluster_data$clusters == 10, "Thoughts_1538D",
+                                 ifelse(cluster_data$clusters == 11, "Support_1538D",
+                                 ifelse(cluster_data$clusters == 12, "World-view_1538D",
+                                 ifelse(cluster_data$clusters == 13, "Beliefs_1538D",
+                                 ifelse(cluster_data$clusters == 14, "Outrage_1538D", "Grief_1538D"))))))))))))))
 
 centroid_cluster_data <- cluster_data %>% dplyr::select('Cell.ID', 'cluster_name','names.column')
 manual_plot_2 <- clustHVT(data = centroid_cluster_data, trainHVT_results = hvt.results, domains.column = "cluster_name", type = "plot")
@@ -1959,9 +1445,9 @@ plotly::layout(annotations = list(
       list(x = 0.9, y = 1.05, text = "OpenAI plot - 1538D", showarrow = F, xref='paper', yref='paper', width = 165)))
 ```
 
-- Visual comparison of the plots reveals that only one cluster has changed its structure the two datasets used (low-dimensional 2D and the high-dimensional 1538D)
+- Visual comparison of the plots reveals that only few cluster has changed its structure between the two datasets used (low-dimensional 2D and the high-dimensional 1538D)
 
-- From visual inspection, most domain names are repeated with only a few exceptions, indicating that the AI is able to regenerate the same topics multiple times, as cluster formations are largely consistent across both datasets. The actual cluster changes occur in clusters 4, 10, 14, and 15, where the domain names differ; however, the changes are not identical across all four clusters.
+- From visual inspection, most domain names recur across both datasets with only a few exceptions, suggesting that the AI consistently regenerates similar topics and that the overall cluster formations are largely stable. Notable deviations are observed in clusters such as “Travel_1538D” and “Politics_2D,” where both the cluster structure and the assigned domain names have changed. Additionally, there are cases where the underlying cluster structure remains consistent, but the domain labels differ, as seen between “Philanthropy_1538D” and “Charity_2D”.
 
 ### 8.4.2 Comparison of `Manual` plots
 
@@ -1975,9 +1461,9 @@ plotly::layout(annotations = list(
 ```
 
 
-- Visual comparison of the plots reveals that only one cluster has changed its structure the two datasets used (low-dimensional 2D and the high-dimensional 1538D)
+- Visual comparison of the plots reveals that only few cluster has changed its structure between the two datasets used (low-dimensional 2D and the high-dimensional 1538D)
 
-- From visual inspection, most domain names remain consistent, with changes occurring only in a few clusters 4, 10, 14, and 15 which directly correspond to the clusters where the groupings have changed.
+- From visual inspection, most domain names recur across both datasets with only a few exceptions. Notable deviations are observed in clusters such as “Announcements_1538D” and “Announcements_2D,” where both named for different clusters whereas'Beliefs_2D' and 'Beliefs_1538D' is named for the same cluster between both datasets.
 
 ## 8.5 Tanglegram Comparison of 2D and 1538D datasets
 
@@ -2001,11 +1487,11 @@ tanglegram(dend1, dend2,   main_left = "Sammon's coordinates(2D)", main_right = 
 
 <span style="font-size: 22px;">**Insights**</span>
 
-1. The colored lines connecting the two dendrograms indicate relationship between clusters on both sides. Lines of the same color tend to stay together, indicating that clusters are largely preserved between the two dendrograms. 
+1. The colored lines trace the same observations across the two hierarchical clusterings, allowing visual comparison of how elements are reassigned between dendrograms. Groups of similarly colored lines indicate shared cluster membership under one reference structure. 
 
-2. Points connected by shorter lines are more stable in their representation across both datasets, implying that their characteristics are consistently captured in both cases. The data points represented by shorter lines have undergone less dramatic shifts in their relative positions. 
+2. Regions with minimal line crossings indicate locally consistent clustering, where subsets of observations maintain similar relative positions across both dendrograms. Conversely, dense crossings highlight areas where the hierarchical structure differs between the two datasets.
 
-3. The crossing patterns of these lines suggest that majority of the clusters have remained same between two datasets while very minor changes has been happened between two structures.
+3. The overall presence of both aligned and crossing line bundles suggests that the global clustering structure is broadly comparable, while local rearrangements and boundary shifts between clusters are evident. This indicates that the two datasets capture similar high-level patterns but differ in finer-grained hierarchical organization.
 
 
 # 9. Conclusion
@@ -2016,7 +1502,7 @@ tanglegram(dend1, dend2,   main_left = "Sammon's coordinates(2D)", main_right = 
  
  - The findings strongly support the **Alternative Hypothesis (H1)** mentioned in [section 2](#experimental-setup), demonstrating the HVT package's efficacy in compressing high-dimensional LLM embedding data while preserving and meaningfully representing contextual contents.
  
-- *Compression Ratio*: The HVT package achieved a compression ratio of 81% referred in summary table of [section 5](#model-training), surpassing our target threshold of 80%. This indicates the HVT's efficiency in reducing data dimensionality while retaining essential information, which is crucial for handling high-dimensional token embeddings dataset.
+- *Compression Ratio*: The HVT package achieved a compression ratio of 82% referred in summary table of [section 5](#model-training), surpassing our target threshold of 80%. This indicates the HVT's efficiency in reducing data dimensionality while retaining essential information, which is crucial for handling high-dimensional token embeddings dataset.
 
 - *Visual Similarity Evaluation*: The generated Heatmap visualization referred in [section 7.2](#model-scoring-using-scorehvt) effectively captured and displayed contextual similarities and differences between tweets. The coherent grouping of semantically related tweets and the logical proximity of related cell clusters validate the HVT's ability to maintain the structure of token embeddings post-compression.
 
@@ -2035,9 +1521,9 @@ The Average Silhouette Width (ASW), a metric that quantifies clustering quality 
 
 - For the 2D Sammon's coordinates, the ASW for Ward.D2 was **`r ward_asw`**, whereas for the 1536D embeddings, the ASW was **`r ward_asw_2`**.
 
-- Notably, the difference in ASW between the two datasets was approximately 0.04, a margin that is statistically minimal. This result suggests that despite the higher dimensionality of the dataset(1538D), the **clustering quality did not significantly improve** and, in fact, the lower-dimensional (2D) data provided slightly better results. 
+- The difference in ASW between the two datasets is notably changed, but **lower ASW means poor clustering**. **Higher the value of ASW, higher the cluster quality**. This result suggests that despite the higher dimensionality of the dataset(1538D), the **clustering quality did not significantly improve** and, in fact, the lower-dimensional (2D) data provided slightly better results. 
 
-- Given the marginal difference in ASW and the increased complexity associated with higher-dimensional data, we conclude that the **low dimensional (2D) data is not only more computationally efficient but also more effective for this clustering task**.
+- Given the difference in ASW and the increased complexity associated with higher-dimensional data, we conclude that the **low dimensional (2D) data is not only more computationally efficient but also more effective for this cluster analysis**.
 
 
 </br>
@@ -2053,38 +1539,15 @@ By evaluating the domain names produced by OpenAI's gpt-4o against those assigne
 
 - The manual approach considers the full content of each cluster, resulting in domain names that better capture the overall theme and contextual breadth.
 
-- In most cases, the manual approach aligns more closely with the tweet content of each cluster. Although there are a few exceptions such as 'Career' (manual) versus 'Philanthropy' (AI), where the AI performed better but these are limited cases. Overall, the manual approach provides a more comprehensive representation of the cluster context.
+- In most cases, the manual approach aligns more closely with the tweet content of each cluster. Although there are a few exceptions such as 'Entertainment' (AI) versus 'Show Tours' (manual) in section 8.3.5, where the AI performed better but these are limited cases. Overall, the manual approach provides a more comprehensive representation of the cluster context.
 
 
 </br>
 
-# 10. Summary of AI models used 
-
-The table below lists all the LLM/AI models used in this vignette along with their respective purposes. To replicate this vignette locally, please store the OpenAI API key, the LiteLLM API key, and the LiteLLM base URL in the `.Renviron` file using the same naming convention, and uncomment the corresponding arguments in the relevant functions.
-
-```{r, echo=FALSE, eval=TRUE}
-df <- data.frame(
-  S.No = c(1,2,3),
-  Model = c("Claude Sonnet 4.5", "Text embedding-3-small", "Open AI gpt-4o"),
-  Usage = c(
-    "For phase - 2 cleaning, used to filter the tweets as valid and rejected",
-    "To create numerical embeddings from textual content (in this vignette, tweets)",
-    "For generating domain names for each cluster which contains tweets"),
-  stringsAsFactors = FALSE)
-
-displayTable(df)
-```
 
 
 
-
-
-
-
-
-
-
-# 11. References
+# 10. References
 
 1. <a href="https://users.ics.aalto.fi/jhollmen/dippa/node9.html" target="_blank">Topology Preserving Maps</a>
  
