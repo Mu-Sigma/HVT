@@ -84,7 +84,7 @@ Following are the links to the vignettes for the HVT package:
 
 22nd January, 2026
 
-In this version of the HVT package, the following enhancement and feature have been made:
+In this version of the HVT package, the following enhancement and feature has been made:
 
 **Enhancement**
 
