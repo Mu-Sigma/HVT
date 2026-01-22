@@ -3068,7 +3068,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h4 class="author">Zubin Dowlaty, Shubhra Prakash, Sunuganty Achyut Raj,
 Praditi Shah, Somya Shambhawi,Vishwavani</h4>
 <h4 class="date">Created Date: 2018-05-17 <br> Modified Date:
-2025-12-16</h4>
+2026-01-22</h4>
 
 
 <div id="TOC">
@@ -5317,18 +5317,12 @@ function looks like.</p>
 </div>
 <div id="scoring-on-test-data" class="section level2">
 <h2>9.3 Scoring on Test Data</h2>
-<pre><code>scoreHVT(dataset,
-         hvt.results,
-         child.level,
-         mad.threshold,
-         line.width,
-         color.vec,
-         normalize,
-         distance_metric,
-         error_metric,
-         yVar,
-         analysis.plots, 
-         names.column)</code></pre>
+<pre><code>scoreHVT(dataset,hvt.results,child.level,
+         mad.threshold,line.width,color.vec,
+         normalize,distance_metric,error_metric,
+         yVar,analysis.plots,names.column,
+         centroids,cell_id,centroid_size,
+         cell_id_size, cell_id_position)</code></pre>
 <p>The important parameters for the function <code>scoreHVT</code> are
 as below</p>
 <ul>
@@ -5388,6 +5382,23 @@ viewing the contents and clusters of cells. Default is FALSE.</p></li>
 <li><p><strong><code>names.column</code></strong> - The column of names
 of the datapoints which will be displayed as the contents of the cell in
 ‘scoredPlotly’. Default is NULL.</p></li>
+</ul>
+<p><em>Parameters used for the scored Plotly visualization, generated
+only when analysis.plots = TRUE</em></p>
+<ul>
+<li><p><strong><code>cell_id</code></strong> - A logical indicating
+whether the cell IDs should be displayed. Default is TRUE.</p></li>
+<li><p><strong><code>cell_id_position</code></strong> - A character
+indicating the position of the cell IDs. Accepted entries are ‘top’,
+‘bottom’, ‘left’, ‘right’, and ‘center’. Default is ‘bottom’.</p></li>
+<li><p><strong><code>centroids</code></strong> - A logical indicating
+whether the centroid points should be displayed. Default value is
+TRUE.</p></li>
+<li><p><strong><code>cell_id_size</code></strong> - A numeric value
+indicating the size of the cell IDs. Default is 4</p></li>
+<li><p><strong><code>centroid.size</code></strong> - A numeric value or
+vector indicating the size of centroids for each level. Default is
+0.8</p></li>
 </ul>
 <p style="color:red;">
 Here the mad_threshold has been selected as 0.8 which is based on Mean

@@ -643,7 +643,6 @@ Since we are yet to achieve the compression of atleast 80%, lets try again by in
 
 
 ```{r torus hvt third ,warning=FALSE,fig.show='hold',message=FALSE, results='hide'}
-set.seed(240)
 hvt.torus3 <- trainHVT(
   torus_train,
   n_cells = 500,
@@ -679,7 +678,7 @@ Now let's try to understand **plotHVT** function. The parameters have been expla
 
 ```{r plotHVT function,echo = TRUE, eval= FALSE}
 plotHVT <-(hvt.results,line.width,color.vec, 
-           centroid.size, centroid.color, 
+           centroids,centroid.size, centroid.color, 
            child.level, hmap.cols, 
            cell_id, cell_id_size,
            cell_id_position,quant.error.hmap,
@@ -705,7 +704,9 @@ plotHVT <-(hvt.results,line.width,color.vec,
 
 * __`cell_id_size`__ - (2Dhvt/2Dheatmap) A number indicating the size of the cell ID text. Only applicable for the level 1. (default = 1)
 
-* __`cell_id_position`__ - (2Dhvt/2Dheatmap) A Character indicating the position of the cell ID text. Only applicable for the level 1. Accepted entries are 'top', 'left', 'bottom' or 'right'. (default = 'bottom')
+* __`cell_id_position`__ - (2Dhvt/2Dheatmap) A Character indicating the position of the cell ID text. Only applicable for the level 1. Accepted entries are 'top', 'left', 'bottom', 'right' or 'center'. (default = 'bottom')
+
+* __`centroids`__ - (2Dhvt/2Dheatmap) A logical option indicating whether the centroids have to be plotted or can be skipped. Default is TRUE.
 
 * __`quant.error.hmap`__ - (2Dheatmap)  A number representing the quantization error threshold to be highlighted in the heatmap. When a value is provided, it will emphasize cells with quantization errors equal or less than the specified threshold, indicating that these cells cannot be further subdivided in the next depth layer. The default value is NULL, meaning all cells will be colored in the heatmap across various depths.
 
@@ -802,18 +803,12 @@ plotHVT(hvt.torus3,hmap.cols = "z", plot.type = '2Dheatmap')
 Let's try to comprehend the **scoreHVT function** first before moving on
 
 ```{r scoreHVT function1,echo = TRUE, eval= FALSE}
-scoreHVT(dataset,
-         hvt.results.model,
-         child.level,
-         mad.threshold,
-         line.width,
-         color.vec,
-         normalize,
-         distance_metric,
-         error_metric,
-         yVar,
-         analysis.plots,
-         names.column)
+scoreHVT(dataset,hvt.results.model,child.level,
+         mad.threshold,line.width,color.vec,
+         normalize,distance_metric,error_metric,
+         yVar,analysis.plots,names.column,
+         centroids,cell_id, cell_id_size, 
+         cell_id_position, centroid.size)
 ```
 
 The parameters for the function `scoreHVT` are explained below:
@@ -845,6 +840,17 @@ The parameters for the function `scoreHVT` are explained below:
 
 * __`names.column`__ - The column of names of the datapoints which will be displayed as the contents of the cell in 'scoredPlotly'. Default is NULL.
 
+*Parameters used for the scored Plotly visualization, generated only when analysis.plots = TRUE*
+
+* __`cell_id`__ - A logical indicating whether the cell IDs should be displayed. Default is TRUE.
+
+* __`cell_id_position`__ - A character indicating the position of the cell IDs. Accepted entries are 'top',  'bottom', 'left', 'right', and 'center'. Default is 'bottom'.
+
+* __`centroids`__ - A logical indicating whether the centroid points should be displayed. Default value is TRUE. 
+
+* __`cell_id_size`__ - A numeric value indicating the size of the cell IDs. Default is 4
+
+* __`centroid.size`__ - A numeric value or vector indicating the size of centroids for each level. Default is 0.8
 
 
 
@@ -1146,57 +1152,7 @@ For more detailed information on scoring please refer to [section 7.4](#step-4-s
 
 Now once we have built the model, let us try to score using our testing dataset containing(1252 data points) which cell and which level each point belongs to.
 
-
-```{r scoreHVT function,echo = TRUE, eval= FALSE}
-scoreHVT(dataset,
-         hvt.results.model,
-         child.level,
-         mad.threshold,
-         line.width,
-         color.vec,
-         normalize,
-         seed,
-         distance_metric,
-         error_metric,
-         yVar,
-         analysis.plots,
-         names.column)
-```
-
-The parameters for the function `scoreHVT` are explained below:
-
-* __`dataset`__ - A dataframe containing the testing dataset. The dataframe should have all the variable(features) used for training. 
-
-* __`hvt.results.model`__ - A list obtained from the trainHVT function while performing hierarchical vector quantization on training data. This list provides an overview of the hierarchical vector quantized data, including diagnostics, tessellation details, Sammon's projection coordinates, and model input information.
-
-* __`child.level`__ - A number indicating the depth for which the heat map is to be plotted. Each depth represents a different level of clustering or partitioning of the data.
-
-* __`mad.threshold`__  - A numeric value indicating the permissible Mean Absolute Deviation which is obtained from Minimum Intra centroid plot(when diagnose is set to TRUE in trainHVT). `mad.threshold` value is important since it is used in anomaly detection.Default value is 0.2
-*NOTE: for a given datapoint, when the quantization error is above `mad.threshold` it is denoted as anomaly else not.*
-
-* __`line.width`__	- A vector indicating the line widths of the tessellation boundaries for each layer. (Optional Parameters)
-
-* __`color.vec`__	- A vector indicating the colors of the tessellations boundaries at each layer. (Optional Parameters)
-
-* __`normalize`__ - A logical value indicating if the dataset should be normalized. When set to TRUE, the data (testing dataset) is standardized by mean and sd of the training dataset referred from the trainHVT(). When set to FALSE, the `data` is used as such without any changes.
-
-* __`distance_metric`__ - The distance metric can be `L1_Norm`(Manhattan) or `L2_Norm`(Euclidean). The metric is used when calculating distance between each datapoint(in test dataset) with the centroids obtained from results of trainHVT. Default is `L1_Norm`.
-
-* __`error_metric`__ - The error metric can be `mean` or `max`.  `max` will return the max of `m` values and `mean` will take mean of `m` values where each value is a distance between the datapoint and centroid of the cell. This helps in calculating the scored quantization error. Default value is `max`.
-
-* __`yVar`__ - A character or a vector representing the name of the dependent variable(s)
-
-*The below given arguments are used only when character column can be mapped over the scored results. since torus doesn't have a character column, we are not using them in this vignette.*
-
-* __`analysis.plots`__ - A logical value to indicate whether to include the insight plots which are useful in viewing the contents and clusters of cells. Default is FALSE.
-
-* __`names.column`__ - The column of names of the datapoints which will be displayed as the contents of the cell in 'scoredPlotly'. Default is NULL.
-
-
-
-
 ```{r scoreHVT hmap computers,warning=FALSE,message=FALSE, results='asis'}
-set.seed(240)
 scoring_comp <-scoreHVT(
   testComputers,
   hvt.results,

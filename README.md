@@ -3,14 +3,15 @@
 #### Zubin Dowlaty
 
 ##### Created Date: 2018-11-15
-##### Modified Date: 2025-12-16
+##### Modified Date: 2026-01-22
 
 <div id="TOC">
 
 *   [<span class="toc-section-number">1.</span> Abstract](#abstract)
 *   [<span class="toc-section-number">2.</span> Vignettes](#vignettes)
 *   [<span class="toc-section-number">3.</span> Package Version History](#version-history)
-    *   [<span class="toc-section-number">3.9</span> HVT (v25.2.8) | What’s New](#hvt-(v25.2.8)-whats-new)
+    *   [<span class="toc-section-number">3.10</span> HVT (v26.1.1) | What’s New](#hvt-(v26.1.1)-whats-new)
+    *   [<span class="toc-section-number">3.9</span> HVT (v25.2.8)](#hvt-(v25.2.8))
     *   [<span class="toc-section-number">3.8</span> HVT (v25.2.7)](#hvt-(v25.2.7))
     *   [<span class="toc-section-number">3.7</span> HVT (v25.2.6)](#hvt-(v25.2.6))
     *   [<span class="toc-section-number">3.6</span> HVT (v25.2.5)](#hvt-(v25.2.5))
@@ -19,7 +20,7 @@
     *   [<span class="toc-section-number">3.3</span> HVT (v24.5.2)](#hvt-(v24.5.2))
     *   [<span class="toc-section-number">3.2</span> HVT (v23.11.02)](#hvt-(v23.11.02))
     *   [<span class="toc-section-number">3.1</span> HVT (v22.12.06)](#hvt-(v22.12.06))
-*   [<span class="toc-section-number">4.</span> Installation of HVT (v25.2.8)](#installation-of-hvt-(v25.2.8))
+*   [<span class="toc-section-number">4.</span> Installation of HVT (v26.1.1)](#installation-of-hvt-(v26.1.1))
 
 
 </div>
@@ -77,10 +78,27 @@ Following are the links to the vignettes for the HVT package:
 
 # <span class="header-section-number">3.</span> Package Version History 
 
+<div id="hvt-(v26.1.1)-whats-new" class="section level2" number="3.1">
 
-<div id="hvt-(v25.2.8)-whats-new" class="section level2" number="3.1">
+## 3.10 HVT (v26.1.1) - What's New
 
-## 3.9 HVT (v25.2.8) - What's New
+22nd January, 2026
+
+In this version of the HVT package, the following enhancement and feature has been made:
+
+**Enhancement**
+
+1. **LLM Embeddings Vignette**: This vignette showcases the HVT workflow applied to numerical embedding data generated using an OpenAI model, featuring a more robust preprocessing pipeline and a revamped implementation aligned with recent AI developments.
+
+**Feature**
+
+1. **2D HVT Plots**: In this version, the aesthetics of compressed 2D HVT plots have been enhanced by adding new arguments to the `plotHVT` and `scoreHVT` functions. These updates allow users to toggle the display of cell centroids, adjust their sizes, and position cell IDs at the center, enabling clearer visualization of dense heatmaps with more legible centroids and cell labels.
+
+</div>
+
+<div id="hvt-(v25.2.8)" class="section level2" number="3.2">
+
+## 3.9 HVT (v25.2.8)
 
 16th December, 2025
 
@@ -90,7 +108,7 @@ In this version of the HVT package, the following new feature has been introduce
 
 </div>
 
-<div id="hvt-(v25.2.7)" class="section level2" number="3.2">
+<div id="hvt-(v25.2.7)" class="section level2" number="3.3">
 
 ## 3.8 HVT (v25.2.7) 
 
@@ -113,7 +131,7 @@ In this version of the HVT package, the following new feature and vignette have 
 
 </div>
 
-<div id="hvt-(v25.2.6)" class="section level2" number="3.3">
+<div id="hvt-(v25.2.6)" class="section level2" number="3.4">
 
 ## 3.7 HVT (v25.2.6)
 
@@ -124,7 +142,7 @@ In this version of the HVT package, the following new feature and vignette have 
 </div>
 
 
-<div id="hvt-(v25.2.5)" class="section level2" number="3.4">
+<div id="hvt-(v25.2.5)" class="section level2" number="3.5">
 
 ## 3.6 HVT (v25.2.5)
 
@@ -134,7 +152,7 @@ In this version of the HVT package, the following new feature and vignette have 
 
 </div>
 
-<div id="hvt-(v25.2.4)" class="section level2" number="3.5">
+<div id="hvt-(v25.2.4)" class="section level2" number="3.6">
 
 ## 3.5 HVT (v25.2.4) 
 
@@ -158,7 +176,7 @@ In this version of the HVT package, the following new features and vignette have
 </div>
 
 
-<div id="hvt-(v24.9.1)" class="section level2" number="3.6">
+<div id="hvt-(v24.9.1)" class="section level2" number="3.7">
 
 ## 3.4 HVT (v24.9.1) 
 
@@ -194,7 +212,7 @@ In this version of the HVT package, the following new features and vignettes hav
 </div>
 
 
-<div id="hvt-(v24.5.2)" class="section level2" number="3.7">
+<div id="hvt-(v24.5.2)" class="section level2" number="3.8">
 
 ## 3.3 HVT (v24.5.2) 
 
@@ -231,7 +249,7 @@ Below are the new functions and its brief descriptions:
 
 
 
-<div id="hvt-(v23.11.02)" class="section level2" number="3.8">
+<div id="hvt-(v23.11.02)" class="section level2" number="3.9">
 
 ## 3.2 HVT (v23.11.02) 
 
@@ -258,7 +276,7 @@ Let us try to understand the steps with the help of the diagram below
 
 </div>
 
-<div id="hvt-(v22.12.06)" class="section level2" number="3.8">
+<div id="hvt-(v22.12.06)" class="section level2" number="3.10">
 
 ## 3.1 HVT (v22.12.06) 
 
@@ -274,9 +292,9 @@ This version of HVT package offers features for both training an HVT model and e
 </div>
 
 
-<div id="installation-of-hvt-(v25.2.8)" class="section level2" number="4">
+<div id="installation-of-hvt-(v26.1.1)" class="section level2" number="4">
 
-# <span class="header-section-number">4.</span> Installation of HVT (v25.2.8)
+# <span class="header-section-number">4.</span> Installation of HVT (v26.1.1)
 
 <div class="sourceCode" id="cb1">
 

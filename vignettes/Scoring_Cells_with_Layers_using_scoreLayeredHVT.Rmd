@@ -423,10 +423,10 @@ Now let's try to understand **plotHVT** function. The parameters have been expla
 plotHVT <-(hvt.results,line.width,color.vec, 
            centroid.size, centroid.color, 
            child.level, hmap.cols, 
-           cell_id, cell_id_size,
+           cell_id, cell_id_size,centroids,
            cell_id_position, quant.error.hmap,
            separation_width, layer_opacity,
-           dim_size, plot.type = '2Dhvt') 
+           dim_size, plot.type) 
 ```
 
 * __`hvt.results`__ - (1D/2Dproj/2Dhvt/2Dheatmap/surface_plot)  A list obtained from the trainHVT function. This list provides an overview of the hierarchical vector quantized data, including diagnostics, tessellation details, Sammon's projection coordinates, and model input information.
@@ -447,7 +447,9 @@ plotHVT <-(hvt.results,line.width,color.vec,
 
 * __`cell_id_size`__ - (2Dhvt/2Dheatmap) A number indicating the size of the cell ID text. Only applicable for the level 1. (default = 1)
 
-* __`cell_id_position`__ - (2Dhvt/2Dheatmap) A Character indicating the position of the cell ID text. Only applicable for the level 1. Accepted entries are 'top', 'left', 'bottom' or 'right'. (default = 'bottom')
+* __`cell_id_position`__ - (2Dhvt/2Dheatmap) A Character indicating the position of the cell ID text. Only applicable for the level 1. Accepted entries are 'top', 'left', 'bottom', 'right' or 'center'. (default = 'bottom')
+
+* __`centroids`__ - (2Dhvt/2Dheatmap) A logical option indicating whether the centroids have to be plotted or can be skipped. Default is TRUE.
 
 * __`quant.error.hmap`__ - (2Dheatmap)  A number representing the quantization error threshold to be highlighted in the heatmap. When a value is provided, it will emphasize cells with quantization errors equal or less than the specified threshold, indicating that these cells cannot be further subdivided in the next depth layer. The default value is NULL, meaning all cells will be colored in the heatmap across various depths.
 

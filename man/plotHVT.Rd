@@ -19,7 +19,8 @@ plotHVT(
   quant.error.hmap = NULL,
   cell_id = FALSE,
   cell_id_position = "bottom",
-  cell_id_size = 2.6
+  cell_id_size = 2.6,
+  centroids = TRUE
 )
 }
 \arguments{
@@ -58,12 +59,14 @@ When a value is provided, it will emphasize cells with quantization errors equal
 indicating that these cells cannot be further subdivided in the next depth layer. The default value is NULL,
 meaning all cells will be colored in the heatmap across various depths.}
 
-\item{cell_id}{(2Dhvt/2Dheatmap) Logical. A logical indicating whether the cell IDs should be displayed}
+\item{cell_id}{(2Dhvt/2Dheatmap) Logical. A logical indicating whether the cell IDs should be displayed. Default is FALSE}
 
 \item{cell_id_position}{(2Dhvt/2Dheatmap) Character. A character indicating the position of the cell IDs. Accepted entries are 'top' , 
-'bottom', 'left' and 'right'.}
+'bottom', 'left', 'right', and 'center'. Default is 'bottom'}
 
-\item{cell_id_size}{(2Dhvt/2Dheatmap) Numeric. A numeric vector indicating the size of the cell IDs for all levels.}
+\item{cell_id_size}{(2Dhvt/2Dheatmap) Numeric. A numeric vector indicating the size of the cell IDs. Default is 2.6}
+
+\item{centroids}{(2Dhvt/2Dheatmap) Logical. A logical indicating whether the centroid points should be displayed. Default value is TRUE.}
 }
 \value{
 plot object containing the visualizations of reduced dimension(1D/2D) for the given dataset.

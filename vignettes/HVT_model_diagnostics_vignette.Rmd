@@ -1280,18 +1280,12 @@ function looks like.
 ## 9.3 Scoring on Test Data
 
 ```         
-scoreHVT(dataset,
-         hvt.results,
-         child.level,
-         mad.threshold,
-         line.width,
-         color.vec,
-         normalize,
-         distance_metric,
-         error_metric,
-         yVar,
-         analysis.plots, 
-         names.column)
+scoreHVT(dataset,hvt.results,child.level,
+         mad.threshold,line.width,color.vec,
+         normalize,distance_metric,error_metric,
+         yVar,analysis.plots,names.column,
+         centroids,cell_id,centroid_size,
+         cell_id_size, cell_id_position)
 ```
 
 The important parameters for the function `scoreHVT` are as below
@@ -1323,6 +1317,17 @@ The important parameters for the function `scoreHVT` are as below
 
 * **`names.column`** - The column of names of the datapoints which will be displayed as the contents of the cell in 'scoredPlotly'. Default is NULL.
 
+*Parameters used for the scored Plotly visualization, generated only when analysis.plots = TRUE*
+
+* **`cell_id`** - A logical indicating whether the cell IDs should be displayed. Default is TRUE.
+
+* **`cell_id_position`** - A character indicating the position of the cell IDs. Accepted entries are 'top',  'bottom', 'left', 'right', and 'center'. Default is 'bottom'.
+
+* **`centroids`** - A logical indicating whether the centroid points should be displayed. Default value is TRUE. 
+
+* **`cell_id_size`** - A numeric value indicating the size of the cell IDs. Default is 4
+
+* **`centroid.size`** - A numeric value or vector indicating the size of centroids for each level. Default is 0.8
 
 
 

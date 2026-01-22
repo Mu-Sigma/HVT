@@ -127,31 +127,13 @@ In this latest version of notebook, introducing an enhancement to dynamic foreca
 This chunk verifies the installation of all the necessary packages to successfully run this vignette, if not, the code will install those packages and attach to the session environment.
 
 ```{r, warning=FALSE, message=FALSE}
-# Load required packages from local installation only
-# Note: All packages must be installed locally - no CRAN downloads
 list.of.packages <- c("dplyr", "tidyr","patchwork", "feather","ggplot2","kableExtra", "htmltools",
-                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust")
+                      "plotly","tibble","purrr", "gganimate", "DT","readr", "NbClust", "HVT")
 
-# Load packages (assumes they are already installed locally)
+new.packages <-list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+if (length(new.packages))
+  install.packages(new.packages, dependencies = TRUE, verbose = FALSE, repos='https://cloud.r-project.org/')
 invisible(lapply(list.of.packages, library, character.only = TRUE))
-```
-
-```{r setup-working-directory, echo=FALSE, eval=TRUE}
-# Set working directory to vignettes folder if not already there
-# This ensures relative paths work correctly when knitting
-if (basename(getwd()) != "vignettes") {
-  vignettes_dir <- file.path(getwd(), "vignettes")
-  if (dir.exists(vignettes_dir)) {
-    setwd(vignettes_dir)
-  }
-}
-```
-
-```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = TRUE}
-# Sourcing required code scripts for HVT
-script_dir <- "../R"
-r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
-invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
 ```
 
 Below is the function for more dynamic drop down display in the data tables.
@@ -174,12 +156,8 @@ calculate_dynamic_length_menu <- function(total_entries, base_step = 100) {
 Let's start with importing the dataset. The below code reads and displays the dataset.
 
 ```{r,warning=FALSE,message=FALSE, eval=TRUE}
-# Load dataset from local file
 csv_path <- "sample_dataset/macro_eco_data_2025.csv"
-# Fallback to absolute path if relative path doesn't work
-if (!file.exists(csv_path)) {
-  csv_path <- "/home/shailu/Desktop/HVT/vignettes/sample_dataset/macro_eco_data_2025.csv"
-}
+
 entire_dataset_raw <- read.csv(csv_path)
 entire_dataset_raw <-  entire_dataset_raw %>% mutate(across(where(is.numeric), ~ round(., 4)))
 dynamic_length_menu <- calculate_dynamic_length_menu(nrow(entire_dataset_raw))
