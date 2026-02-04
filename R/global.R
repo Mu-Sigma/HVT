@@ -14,7 +14,7 @@ utils::globalVariables(c(".","k","Segment.Level","Segment.Child","Quant.Error",
                         "Segment.Child.y", "Segment.Level.x", "Segment.Level.y", "Segment.Parent.x", "Segment.Parent.y", "identified_Novelty_cells",
                         "mapC_cell_path", "results_df","hc","clusters","cluster_data","centroid_data",
                         "Current_State","Next_State","is_self_only","nearest_neighbor",
-                        "k_numeric","nn_numeric","mae_numeric","k_sort","nn_sort",
+                        "k_numeric","nn_numeric","mae_numeric","k_sort","nn_sort", "id",
                         "Number of Cells","Number of nearest neighbors","mae","status",
                         "temp_cluster_data","hoverText","lev","nclust","nn","formatted_time",
                         "is_overall_best","is_overall_worst","hover_text", "label"))
