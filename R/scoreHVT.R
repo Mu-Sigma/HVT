@@ -919,7 +919,6 @@ if(analysis.plots) {
     cellID_coordinates =cellID_coordinates,
     predictInput = c("depth" = child.level, "quant.err" = mad.threshold),
     model_mad_plots = list(),
-    centroidData = centroid_data,
     model_info = list(type = "hvt_prediction", 
                       trained_model_summary = trained_model,
                       scored_model_summary =scored_model)
