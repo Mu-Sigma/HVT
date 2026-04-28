@@ -311,6 +311,7 @@ msm <- function(state_time_data,
   
   # Handle problematic states with clustering
   if (handle_problematic_states && length(problematic_states) > 0) {
+    cluster_data <- clust.results <- stp_list <- cluster_heatmap <- all_nearest_neighbors <- NULL
     tryCatch({
       #if (called_directly) message("Starting problematic states handling...")
       
@@ -548,7 +549,7 @@ msm <- function(state_time_data,
   }
   
   if (handle_problematic_states && length(problematic_states) > 0) {
-    
+    clust.results.2 <- NULL
     clust.results.2 <- clustHVT(
       data = clustering_data,
       trainHVT_results = trainHVT_results,
