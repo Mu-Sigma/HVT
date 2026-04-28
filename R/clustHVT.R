@@ -226,9 +226,22 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
     
     
     # Prepare data for clusterPlotly
-    cluster_data <- scoreHVT_results$centroidData %>% 
+    centroid_src <- scoreHVT_results$centroidData
+    if (is.null(centroid_src)) {
+      ch <- scoreHVT_results$cellID_coordinates
+      ch <- ch[!duplicated(ch$Cell.ID), ]
+      ch <- ch[order(ch$Cell.ID), ]
+      centroid_src <- data.frame(
+        Cell.ID      = as.integer(ch$Cell.ID),
+        names.column = as.character(ch$Cell.ID),
+        x            = as.numeric(ch$x),
+        y            = as.numeric(ch$y),
+        stringsAsFactors = FALSE
+      )
+    }
+    cluster_data <- centroid_src %>%
       dplyr::select("Cell.ID", "names.column") %>%
-      mutate(clusters =  clusters)
+      mutate(clusters = clusters)
     
     cluster_data <- cluster_data[order(cluster_data$Cell.ID), ]
     #browser()  

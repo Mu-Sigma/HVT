@@ -156,7 +156,7 @@ msm <- function(state_time_data,
         errors <- c(errors, paste0("Invalid k vs cells (k=", k, ", cells=", length(scored_cells_temp), ")"))
       }
       max_possible_nn <- length(scored_cells_temp) - k
-      if (n_nearest_neighbor > max_possible_nn) {
+      if (!is.null(n_nearest_neighbor) && n_nearest_neighbor > max_possible_nn) {
         errors <- c(errors, paste0("Insufficient NN - requested nn=", n_nearest_neighbor,
                                   ", available nn=", max_possible_nn))
       }
@@ -338,7 +338,7 @@ msm <- function(state_time_data,
         }
         
         # Category 2: Limited availability of neighbors
-        if (n_nearest_neighbor > min_available) {
+        if (!is.null(n_nearest_neighbor) && n_nearest_neighbor > min_available) {
           stop(paste0("Limited Availability of neighbors (Req = ", n_nearest_neighbor, 
                       ", Pre = ", min_available, ")",
                       "\nSuggestions:\n",
@@ -348,7 +348,8 @@ msm <- function(state_time_data,
       }
       
       # Add names.column if available
-      if (length(scoreHVT_results$centroidData$names.column) == nrow(cluster_data)) {
+      if (!is.null(scoreHVT_results$centroidData) &&
+          length(scoreHVT_results$centroidData$names.column) == nrow(cluster_data)) {
         cluster_data$names.column <- scoreHVT_results$centroidData$names.column
       }
       
@@ -565,7 +566,7 @@ msm <- function(state_time_data,
     
     
   # Return results
-  if(handle_problematic_states) {
+  if(handle_problematic_states && length(problematic_states) > 0) {
     output_list <- list(
       plots = plots,
       dendrogram = clust.results.2$dendrogram,
