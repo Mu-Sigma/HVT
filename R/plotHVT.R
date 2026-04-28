@@ -36,6 +36,7 @@
 #' @keywords Tessellation_and_Heatmap
 #' @importFrom magrittr %>%
 #' @import ggplot2
+#' @include utilities.R constants.R
 #' @examples
 #' data("EuStockMarkets")
 #' hvt.results <- trainHVT(EuStockMarkets, n_cells = 60, depth = 1, quant.err = 0.1, 
@@ -67,46 +68,7 @@ plotHVT <- function(hvt.results,
                     cell_id_position="bottom", 
                     cell_id_size = 2.6,
                     centroids = TRUE) {
-  
-  # Helper function to calculate geometric centroid of a polygon
-  calculate_polygon_centroid <- function(x_coords, y_coords) {
-    n <- length(x_coords)
-    if (n < 3) {
-      # If not enough points, return mean
-      return(list(x = mean(x_coords), y = mean(y_coords)))
-    }
-    
-    # Close the polygon if not already closed
-    if (x_coords[1] != x_coords[n] || y_coords[1] != y_coords[n]) {
-      x_coords <- c(x_coords, x_coords[1])
-      y_coords <- c(y_coords, y_coords[1])
-      n <- n + 1
-    }
-    
-    # Calculate signed area using shoelace formula
-    signed_area <- 0
-    cx <- 0
-    cy <- 0
-    
-    for (i in 1:(n - 1)) {
-      cross_product <- x_coords[i] * y_coords[i + 1] - x_coords[i + 1] * y_coords[i]
-      signed_area <- signed_area + cross_product
-      cx <- cx + (x_coords[i] + x_coords[i + 1]) * cross_product
-      cy <- cy + (y_coords[i] + y_coords[i + 1]) * cross_product
-    }
-    
-    signed_area <- signed_area / 2
-    
-    if (abs(signed_area) < 1e-10) {
-      # Degenerate polygon, return mean
-      return(list(x = mean(x_coords[1:(n-1)]), y = mean(y_coords[1:(n-1)])))
-    }
-    
-    centroid_x <- cx / (6 * signed_area)
-    centroid_y <- cy / (6 * signed_area)
-    
-    return(list(x = centroid_x, y = centroid_y))
-  }
+
   
   lev <- NULL
   n_cells <- max(stats::na.omit(hvt.results[[3]][["summary"]][["Cell.ID"]]))
@@ -264,19 +226,10 @@ plotHVT <- function(hvt.results,
             by = c("depth", "cluster", "child")
       )
 
-      hvt_res1 <- hvt_list[[2]][[1]]$`1`
-      hvt_res2 <- hvt_list[[3]]$summary$Cell.ID
-      a <- 1: length(hvt_res1)
-      b <- a[hvt_res2]
-      b <-  as.vector(b)
-      hvt_res2 <- stats::na.omit(b)
+
+      cellID_coordinates <- extract_cell_coordinates(hvt_list)
+
       
-      coordinates_value1 <- lapply(1:length(hvt_res1), function(x) {
-        centroids1 <- hvt_res1[[x]]
-        coordinates1 <- centroids1$pt})
-      cellID_coordinates <- do.call(rbind.data.frame, coordinates_value1)
-      colnames(cellID_coordinates) <- c("x", "y")
-      cellID_coordinates$Cell.ID <- hvt_res2
       centroidDataframe_2 <- merge(cellID_coordinates, centroidDataframe, by = c("x" ,"y"))
     
     # Calculate polygon geometric centroids for cell ID positioning
@@ -649,11 +602,7 @@ plotHVT <- function(hvt.results,
     polygon_centroids_df_hmap <- do.call(rbind, polygon_centroids_list_hmap)
 
     p <- ggplot2::ggplot()
-    colour_scheme <- c(
-      "#6E40AA", "#6B44B2", "#6849BA", "#644FC1", "#6054C8", "#5C5ACE", "#5761D3", "#5268D8", "#4C6EDB", "#4776DE", "#417DE0", "#3C84E1", "#368CE1",
-      "#3194E0", "#2C9CDF", "#27A3DC", "#23ABD8", "#20B2D4", "#1DBACE", "#1BC1C9", "#1AC7C2", "#19CEBB", "#1AD4B3", "#1BD9AB", "#1DDFA3", "#21E39B",
-      "#25E892", "#2AEB8A", "#30EF82", "#38F17B", "#40F373", "#49F56D", "#52F667", "#5DF662", "#67F75E", "#73F65A", "#7FF658", "#8BF457", "#97F357", "#A3F258"
-    )
+    colour_scheme <- HVT_COLOR_SCHEME
     data <- datapoly
     if (child.level > 1) {
       for (i in 1:(child.level - 1)) {
@@ -786,34 +735,15 @@ plotHVT <- function(hvt.results,
       }
       
       # Use polygon centroids if cell_id_position is "center", otherwise use point centroids
-      if (cell_id_position == "center") {
-        if (nrow(cellID_polygon_centroids_hmap) > 0) {
-          subset_data <- cellID_polygon_centroids_hmap
-          # Center alignment for polygon centroids
-          hjust_val <- 0.5
-          vjust_val <- 0.5
-        } else {
-          # Fallback to original method if polygon centroids not available
-          subset_data <- subset(centroidDataframe_2, lev == 1)
-          hjust_val <- 0.5
-          vjust_val <- 0.5
-        }
+      if (cell_id_position == "center" && nrow(cellID_polygon_centroids) > 0) {
+        subset_data <- cellID_polygon_centroids
       } else {
-        # Use original point centroids for other positions
         subset_data <- subset(centroidDataframe_2, lev == 1)
-        
-        alignments <- list(
-          right = list(hjust = -0.5, vjust = 0.5),
-          left = list(hjust = 1.5, vjust = 0.5),
-          bottom = list(hjust = 0.5, vjust = 1.5),
-          top = list(hjust = 0.5, vjust = -0.5)
-        )
-        
-        # Get alignment values for the current position
-        alignment <- rlang::`%||%`(alignments[[cell_id_position]], alignments$bottom)
-        hjust_val <- alignment$hjust
-        vjust_val <- alignment$vjust
       }
+      alignment <- get_cell_label_alignment(cell_id_position, "ggplot")
+      hjust_val <- alignment$hjust
+      vjust_val <- alignment$vjust
+      
       
       # Add geom_text to the plot
       if (cell_id_position == "center") {

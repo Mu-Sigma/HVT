@@ -150,6 +150,7 @@ The HVT package offers a suite of R functions designed to construct <a href="htt
 - The 2D HVT plot is visualized with overlaid domain names of both OpenAI-generated and manually assigned for comparison. Conclusions are drawn regarding the HVT package's efficiency, the performance of hierarchical clustering method on two different datasets and insights are provided for domain names of both OpenAI generated and manually allotted.     
 
 
+
 # 2. Experimental Setup 
 
 **Objective**: To evaluate the effectiveness of the HVT package in compressing and visualizing high-dimensional LLM token embeddings while preserving the underlying structure and relationships between the embeddings.
@@ -195,6 +196,13 @@ invisible(lapply(list.of.packages, library, character.only = TRUE))
 
 ```
 
+
+```{r, loading all the script files of the package, message=FALSE, warning=FALSE, include = FALSE}
+# Sourcing required code scripts for HVT
+script_dir <- "../R"
+r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
+invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
+```
 
 ## 3.1 User-defined Functions
 

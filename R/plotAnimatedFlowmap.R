@@ -25,6 +25,7 @@
 #' @seealso \code{\link{trainHVT}} \cr \code{\link{scoreHVT}} \cr \code{\link{getTransitionProbability}}
 #' @keywords Timeseries_Analysis
 #' @importFrom magrittr %>%
+#' @include utilities.R
 #' @examples
 #' dataset <- data.frame(date = as.numeric(time(EuStockMarkets)),
 #'                       DAX = EuStockMarkets[, "DAX"],
@@ -75,15 +76,7 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
   colnames(df)[colnames(df) == cellid_column] <- "Cell.ID"
   
   ###########centroid - x and y coordinates################
-  hvt_res1 <- hvt_model_output[[2]][[1]]$`1`
-  hvt_res2 <- hvt_model_output[[3]]$summary$Cell.ID
-  coordinates_value1 <- lapply(1:length(hvt_res1), function(x) {
-    centroids1 <- hvt_res1[[x]]
-    coordinates1 <- centroids1$pt
-  })
-  cellID_coordinates <- do.call(rbind.data.frame, coordinates_value1)
-  colnames(cellID_coordinates) <- c("x", "y")
-  cellID_coordinates$Cell.ID <- hvt_res2
+  cellID_coordinates <- extract_cell_coordinates(hvt_model_output)
   # Subset the arrow starting coordinates based on the order
   current_state_data <- dplyr::arrange(cellID_coordinates, Cell.ID)
   colnames(current_state_data) <- c("x1", "y1", "Cell.ID")
