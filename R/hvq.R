@@ -110,42 +110,22 @@ hvq <-
     }
     
    
-    # names(outkinit$val) <- seq_along(outkinit$val)
     rescl[[1]] <- outkinit$val
     tet <- lapply(outkinit$val, row.names) 
-    # tet <- lapply(1:length(tet),function(k){
-    #   data.frame(tet[[as.character(k)]], 1, 1, k)
-    # })
-    # tet <- lapply(1:length(tet),function(k){
-    #   k<- as.character(k)
-    #   if(length(tet[[k]])!=0)
-    #     data.frame(tet[[as.character(k)]], 1, 1, k)
-    #   else data.frame(`tet..as.character.k...`=character(0), `1`=numeric(0),'1'=numeric(0), k=integer(0))
-    # })  
-    #length(tet) = no of clusters
     for (k in 1:length(tet)){
-      #print(k)
       tet[[k]] <- data.frame(tet[[k]], 1, 1, k)
-      #print(head(tet[[k]]))
     } 
     names(tet) <- paste(1:length(tet))
-    # names(tet) <- seq_along(tet)
-    # for (k in 1: length(tet)) 
-    #   tet[[as.character(k)]] <- data.frame(tet[[as.character(k)]], 1, 1, k)
-    #ID for each datapoint
     resid[[1]] <- tet
     #centroids of each cluster
-    # names(outkinit$cent) <- seq_along(outkinit$cent)
     resm[[1]] <- outkinit$cent
     maxqe[[1]] <- outkinit$maxQE
     meanqe[[1]] <- outkinit$meanQE
     #flag to check for quantization error
     resplt[[1]] <- unlist(outkinit$cent) > quant.err
     #initial values for next level k-means
-    # names(outkinit$values)<-seq_along(outkinit$values)
     initclust <- outkinit$values  
     if (depth > 1) {
-      # flog.info("HVQ calculation started")
       i <- 1
       while (i < depth) {
         ijclust <- NULL
@@ -172,35 +152,11 @@ hvq <-
           if (quantok[j] & NROW(initclust[[j]]) > 3) {
             #k-means on the initclust to obtain the next level clustering(sub-clusters)
             z = data.frame(initclust[[j]])
-            # try(
-            # outk <- getOptimalCentroids_new(z, iter.max = 10^5, algorithm = algorithm, n_cells, n_min_points, function_to_calculate_distance_metric, function_to_calculate_error_metric, quant.err = quant.err, distance_metric = distance_metric, quant_method=quant_method)
             outk <- getOptimalCentroids(z, iter.max = 10^5, algorithm = algorithm, n_cells = n_cells, function_to_calculate_distance_metric = function_to_calculate_distance_metric, function_to_calculate_error_metric = function_to_calculate_error_metric, quant.err = quant.err, distance_metric = distance_metric, quant_method = quant_method)
-            # )  
-            # outk$centers <- outk$centers[-which(sapply(outk$centers, is.na))]
-            # outk$maxQE <- outk$maxQE[-which(sapply(outk$maxQE, is.na))]
-            # outk$meanQE <- outk$meanQE[-which(sapply(outk$meanQE, is.na))]
-            # outk$values <- outk$values[-which(sapply(outk$values, is.na))]
-            # outk$nsize <- outk$nsize[-which(sapply(outk$nsize, is.na))]     
-            # browser()
-            # outk <- getOptimalCentroids(initclust[[j]], iter.max = 100, algorithm = algorithm, n_cells,distance_metric = distance_metric,error_metric = error_metric,quant.err = quant.err)       
-            # outk <- getCentroids(initclust[[j]], kout = stats::kmeans(initclust[[j]], n_cells, iter.max = 100, algorithm = algorithm), n_cells,distance_metric = distance_metric,error_metric = error_metric)
-            #store the datapoints
-            # names(outk$val)<-seq_along(outk$val)
             ijrescl[[j]] <- outk$val
-            # tet <- lapply(outk$val, sapply, row.names)
             tet <- lapply(outk$val, row.names)
             tet[-which(sapply(tet, is.null))]
-            # names(tet) <- seq_along(tet)
-            #create ID's for each datapoint
-            # tet <- lapply(1:length(tet),function(k){
-            #   if(length(tet[[as.character(k)]])!=0)
-            #     data.frame(tet[[as.character(k)]], i+1, j, k)
-            #   else data.frame(`tet..as.character.k...`=character(0), `i...1`=numeric(0), j=numeric(0), k=integer(0))
-            # })
-            # for (k in 1: length(tet)) {
-            #   print(k)
-            #   print(nrow(data.frame(tet[[k]])))
-            # }
+           
             for (k in 1: length(tet)){
               
               if(!is.null(tet[[k]])){
@@ -210,22 +166,16 @@ hvq <-
                 tet[[k]] <- data.frame(tet[[k]]<-numeric(0))
               }
             }           
-            # names(tet) <- paste(1:length(tet))
-            # names(tet)<-seq_along(tet)
+           
             ijresid[[j]] <- tet
-            #store the centroids
-            # names(outk$cent) <- seq_along(outk$cent)
             ijresm[[j]] <- outk$centers
             ijmaxqe[[j]] <- outk$maxQE
             ijmeanqe[[j]] <- outk$meanQE
             #size of a cluster
-            # names(outk$nsize) <- seq_along(outk$nsize)
+          
             ijresnsize[[j]] <- outk$nsize
-            # ijztab3up[[j]] <- sapply(outk$val, mean)  
             ijztab3up[[j]]<-matrix(0, nrow = ncol(x), n_cells)          
-            # rownames(ijztab3up[[j]]) <- colnames(x)
             ijztab3up[[j]] <- t(outk$centroid_val)
-            # ijztab3up[[j]]<- na.omit(ijztab3up[[j]])            
             #flag to check if the quantization error threshold is exceeded
             ijresplt[[j]] <- unlist(outk$centers) > quant.err
             #store the datapoints
@@ -266,9 +216,7 @@ hvq <-
           i <- depth
         }
       }
-      # flog.info("HVQ for user-defined depth has been calculated")
-      #ztab is the output which contains the datapoints and their IDs.
-      #initialize ztab
+
       ztab <- data.frame(matrix(0, nrow = sum(n_cells^(1:zdepth)), 
                                 ncol = (ncol(x) + 5)))
       #Segment Level
@@ -281,9 +229,6 @@ hvq <-
       ztab[1:n_cells, 4] <- unlist(outkinit$nsize)
       #Centroid/Quantization error of the cluster
       ztab[1:n_cells, 5] <- unlist(outkinit$cent)
-      # ztab3upc <- sapply(outkinit$val, mean, na.rm = TRUE)
-      # ztab3upc<-matrix(0, nrow = ncol(x), n_cells)
-      # std<-matrix(0, nrow = ncol(x), n_cells)
       for(a in 1: n_cells){
         for(b in 1: ncol(x)){
           ztab3upc[b, a] <- as.matrix(mean(outkinit$val[[a]][, b], na.rm = TRUE))

@@ -3,14 +3,16 @@
 #### Zubin Dowlaty
 
 ##### Created Date: 2018-11-15
-##### Modified Date: 2026-01-22
+##### Modified Date: 2026-04-29
 
 <div id="TOC">
 
 *   [<span class="toc-section-number">1.</span> Abstract](#abstract)
 *   [<span class="toc-section-number">2.</span> Vignettes](#vignettes)
 *   [<span class="toc-section-number">3.</span> Package Version History](#version-history)
-    *   [<span class="toc-section-number">3.10</span> HVT (v26.1.1) | What’s New](#hvt-(v26.1.1)-whats-new)
+    *   [<span class="toc-section-number">3.12</span> HVT (v26.1.3) | What’s New](#hvt-(v26.1.3)-whats-new)
+    *   [<span class="toc-section-number">3.11</span> HVT (v26.1.2)](#hvt-(v26.1.2))
+    *   [<span class="toc-section-number">3.10</span> HVT (v26.1.1)](#hvt-(v26.1.1))
     *   [<span class="toc-section-number">3.9</span> HVT (v25.2.8)](#hvt-(v25.2.8))
     *   [<span class="toc-section-number">3.8</span> HVT (v25.2.7)](#hvt-(v25.2.7))
     *   [<span class="toc-section-number">3.7</span> HVT (v25.2.6)](#hvt-(v25.2.6))
@@ -20,7 +22,7 @@
     *   [<span class="toc-section-number">3.3</span> HVT (v24.5.2)](#hvt-(v24.5.2))
     *   [<span class="toc-section-number">3.2</span> HVT (v23.11.02)](#hvt-(v23.11.02))
     *   [<span class="toc-section-number">3.1</span> HVT (v22.12.06)](#hvt-(v22.12.06))
-*   [<span class="toc-section-number">4.</span> Installation of HVT (v26.1.1)](#installation-of-hvt-(v26.1.1))
+*   [<span class="toc-section-number">4.</span> Installation of HVT (v26.1.3)](#installation-of-hvt-(v26.1.3))
 
 
 </div>
@@ -78,9 +80,40 @@ Following are the links to the vignettes for the HVT package:
 
 # <span class="header-section-number">3.</span> Package Version History 
 
-<div id="hvt-(v26.1.1)-whats-new" class="section level2" number="3.1">
+<div id="hvt-(v26.1.3)-whats-new" class="section level2" number="3.12">
 
-## 3.10 HVT (v26.1.1) - What's New
+## 3.12 HVT (v26.1.3) - What's New
+
+29th April, 2026
+
+In this version of the HVT package, several bug fixes and improvements have been made to enhance stability and performance.
+
+**Bug Fixes:**
+
+1. Fixed a crash in `msm` where comparisons against `n_nearest_neighbor` were performed without a null check, causing failures when the parameter was not supplied
+2. Fixed missing initialization of intermediate variables before conditional blocks in `msm`, which caused undefined variable errors on early exit paths
+3. Fixed `scoreHVT` not returning `centroidData` in its output, causing downstream null-access failures in `msm` and `clustHVT`
+4. Fixed `clustHVT` crashing when `centroidData` was absent from scoring results; it now falls back to reconstructing centroid coordinates from `cellID_coordinates`
+
+**Improvements:**
+
+1. Extracted repeated polygon centroid, cell coordinate extraction, boundary coordinate construction, and cell label alignment logic into a shared `utilities.R` file, reducing duplication across `plotHVT`, `scoreHVT`, and `scoreLayeredHVT`.
+2. Moved the hardcoded colour palette from `plotHVT` and `clusterPlot` into `constants.R` as a named constant.
+
+</div>
+
+<div id="hvt-(v26.1.2)" class="section level2" number="3.11">
+
+## 3.11 HVT (v26.1.2)
+
+5th February, 2026
+
+*In this version of the HVT package, a minor issue related to the global initialization of a variable has been fixed.*
+</div>
+
+<div id="hvt-(v26.1.1)" class="section level2" number="3.1">
+
+## 3.10 HVT (v26.1.1)
 
 22nd January, 2026
 
@@ -292,9 +325,9 @@ This version of HVT package offers features for both training an HVT model and e
 </div>
 
 
-<div id="installation-of-hvt-(v26.1.1)" class="section level2" number="4">
+<div id="installation-of-hvt-(v26.1.3)" class="section level2" number="4">
 
-# <span class="header-section-number">4.</span> Installation of HVT (v26.1.1)
+# <span class="header-section-number">4.</span> Installation of HVT (v26.1.3)
 
 <div class="sourceCode" id="cb1">
 

@@ -90,7 +90,6 @@ madPlot <- function(hvt.scoring) {
     ggplot2::theme(
       plot.title = ggplot2::element_text(size = 12),
       axis.text = element_text(size = 8),
-      # axis.text.x = element_text(angle = 90),
       axis.title = element_text(size = 8)
     ) +
     labs(title = "Mean Absolute Deviation Plot") +

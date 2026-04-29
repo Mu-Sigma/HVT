@@ -13,7 +13,6 @@ diagPlot <- function(hvt.results,
   requireNamespace("dplyr")     
 
   ##### Min Inter-Centroid distance plot
-  # browser()
   newdfMapping <- hvt.results[[3]][["summary"]]
   
   x <- newdfMapping %>% 
@@ -30,18 +29,6 @@ diagPlot <- function(hvt.results,
   df$value <- df$value/ncol(x)
   df_cent <- df %>% dplyr::group_by(row) %>% dplyr::summarise(min_dist = min(value, na.rm = TRUE))
   
-  
-  # p_cent <- ggplot() +
-  #               aes(x = df_cent$min_dist) +
-  #               geom_histogram(fill = "#112446") +
-  #               theme_minimal()+
-  #               geom_vline(xintercept = mean(df_cent$min_dist), colour="red",linetype="dashed")+
-  #               ggtitle("Minimum Intra-Centroid Distance Plot")+
-  #   ggplot2::xlab("Distance between Centroids")+
-  #   ggplot2::ylab("Number of Occurrences")+
-  #   annotate("text",x = mean(df_cent$min_dist),
-  #            y = Inf,vjust=1,hjust=-0.5,
-  #            label = mean(df_cent$min_dist)%>%round(2),fontface = "bold") 
   
   p_cent <- ggplot2::ggplot(df_cent,aes(x = min_dist)) +
     ggplot2::geom_histogram(ggplot2::aes(y = stat(density)),fill = "midnightblue",colour="white",alpha=0.75) +
@@ -62,30 +49,14 @@ diagPlot <- function(hvt.results,
   
   
   ##### Min Inter-Point distance plot
-  
-  # browser()
-  # x=data
+
   d = stats::dist(data,method = "manhattan")
   
   df <- reshape2::melt(as.matrix(d), varnames = c("row", "col"))
   df=df[df$value!=0,]
   df$value=df$value/ncol(data)
   df_data = df %>% dplyr::group_by(row) %>% dplyr::summarise(min_dist = min(value, na.rm = TRUE))
-  
-  # p_datapoint = ggplot() +
-  #               aes(x = df_data$min_dist) +
-  #               geom_histogram(fill = "#112446") +
-  #               theme_minimal()+
-  #               geom_vline(xintercept = mean(df_data$min_dist), colour="red",linetype="dashed")+
-  #               ggtitle("Minimum Intra-DataPoint Distance Plot")+
-  #               ggplot2::xlab("Distance between DataPoints")+
-  #               ggplot2::ylab("Number of Occurrences")+
-  #               annotate("text",x = mean(df_data$min_dist),
-  #                        y = Inf,vjust=1,hjust=-0.5,
-  #                        label = mean(df_data$min_dist)%>%round(2),fontface = "bold") 
-  # 
-  
-  
+
   p_datapoint = ggplot2::ggplot(df_data,aes(x = min_dist)) +
     
     ggplot2::geom_histogram(ggplot2::aes(y = stat(density)),fill = "midnightblue",colour="white",alpha=0.75) +
@@ -104,8 +75,7 @@ diagPlot <- function(hvt.results,
              y = Inf,vjust=1,hjust=-0.5,
              label = mean(df_data$min_dist)%>%round(2),fontface = "bold") 
   
-  # p_datapoint
-  
+
   ####### Number of datapoints
   
   n_cells=x%>% dplyr::select("n") %>% unlist()
@@ -122,7 +92,6 @@ diagPlot <- function(hvt.results,
              label = round(mean(n_cells),0),fontface = "bold") 
   
   # MAD Calibration
-  # browser()
   ####### MAD Plot ################
   predictions_train = list()
   predictions_train <- scoreHVT(

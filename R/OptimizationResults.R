@@ -43,16 +43,6 @@ OptimizationResults <- function(msm_results,show_top_global = NULL) {
       mae = suppressWarnings(as.numeric(mae))
     )
   
-  # Optional nclust filter
-  # if (!is.null(nclust_filter)) {
-  #   df <- dplyr::filter(df, `Number of Cells` %in% nclust_filter)
-  # }
-  # if (nrow(df) == 0) {
-  #   return(DT::datatable(data.frame(Message = "No results to display"), rownames = FALSE))
-  # }
-  
-
-  
   # Calculate best results per cell count and globally
   df <- df %>%
     group_by(`Number of Cells`) %>%

@@ -32,9 +32,7 @@
 
 
 getTransitionProbability <- function(df, cellid_column, time_column, type = "with_self_state") {
-  
-  ##for cran warnings
-  Current_State <- Transition_Probability <- Cumulative_Probability <- Next_State <- Relative_Frequency <- NULL
+    Current_State <- Transition_Probability <- Cumulative_Probability <- Next_State <- Relative_Frequency <- NULL
   
   # Rename columns for consistency
   colnames(df)[colnames(df) == time_column] <- "Timestamp"

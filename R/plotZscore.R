@@ -32,7 +32,6 @@
 plotZscore <- function(data, cell_range = NULL, segment_size = 2,
                        reference_lines = c(-1.65, 1.65)) {
   
-  ##for cran warning
   Value<-threshold_status <- NULL
   
   default_color = "gray50" 

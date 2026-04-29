@@ -121,7 +121,6 @@ msm <- function(state_time_data,
     if (!mae_metric %in% c("median", "mean", "mode"))
       errors <- c(errors, "ERROR: mae_metric must be 'mean', 'median', or 'mode'")
 
-#browser()
     # Ex-post validation
     can_plot_states_actual <- FALSE
     if (forecast_type == "ex-post") {
@@ -156,7 +155,7 @@ msm <- function(state_time_data,
         errors <- c(errors, paste0("Invalid k vs cells (k=", k, ", cells=", length(scored_cells_temp), ")"))
       }
       max_possible_nn <- length(scored_cells_temp) - k
-      if (n_nearest_neighbor > max_possible_nn) {
+      if (!is.null(n_nearest_neighbor) && n_nearest_neighbor > max_possible_nn) {
         errors <- c(errors, paste0("Insufficient NN - requested nn=", n_nearest_neighbor,
                                   ", available nn=", max_possible_nn))
       }
@@ -174,8 +173,7 @@ msm <- function(state_time_data,
   # ============================================================================
   # SIMPLIFIED CLUSTERING
   # ============================================================================
-#browser()
-  
+
   perform_clustering <- function(clustering_data, k, centroid_2d_points) {
     tryCatch({
       # Try clustHVT first
@@ -239,25 +237,10 @@ msm <- function(state_time_data,
   common_cols <- intersect(colnames(raw_dataset), colnames(centroid_data))
   clustering_data <- (scoreHVT_results$cellID_coordinates) %>% dplyr::select(-Cell.ID)
   centroid_data <- centroid_data[, common_cols]
-  
-  
-    
-  # clustering_data <- scoreHVT_results$cellID_coordinates
-  # # Order by Cell.ID and set as rownames before removing
-  # clustering_data <- clustering_data[order(clustering_data$Cell.ID), ]
-  # # Set Cell.ID as row names
-  # rownames(clustering_data) <- clustering_data$Cell.ID
-  # # Remove the Cell.ID column
-  # clustering_data <- dplyr::select(clustering_data, -Cell.ID)
-  # 
-  # 
-  # centroid_data <- centroid_data[, common_cols]
-  
   scored_cells <- unique(scoreHVT_results$cellID_coordinates$Cell.ID)
   transition_cells <- unique(c(transition_probability_matrix$Current_State,
                                transition_probability_matrix$Next_State))
-  # temporal_cells <- unique(state_time_data$Cell.ID)  # Commented out as not used
-  
+
   has_full_transition_coverage <- all(scored_cells %in% transition_cells)
   
   # Determine n_ahead
@@ -288,9 +271,6 @@ msm <- function(state_time_data,
   
   # Detect problematic states
   problematic_detection <- detect_problematic_states(transition_probability_matrix, scored_cells)
-  # missing_states <- problematic_detection$missing_states  # Commented out as not used
-  # self_transition_states <- problematic_detection$self_transition_states  # Commented out as not used
-  # cyclic_states <- problematic_detection$cyclic_states  # Commented out as not used
   
   # Handle precomputed problematic states
   detected_problematic <- problematic_detection$all_problematic
@@ -301,16 +281,9 @@ msm <- function(state_time_data,
   }
 
 
-  # if (called_directly) {
-  #   if (length(problematic_states) >= 1) {
-  #     message("Problematic states found: ", paste(problematic_states, collapse = ", "))
-  #   } else {
-  #     message("No problematic states found")
-  #   }
-  # }
-  
   # Handle problematic states with clustering
   if (handle_problematic_states && length(problematic_states) > 0) {
+    cluster_data <- clust.results <- stp_list <- cluster_heatmap <- all_nearest_neighbors <- NULL
     tryCatch({
       #if (called_directly) message("Starting problematic states handling...")
       
@@ -338,7 +311,7 @@ msm <- function(state_time_data,
         }
         
         # Category 2: Limited availability of neighbors
-        if (n_nearest_neighbor > min_available) {
+        if (!is.null(n_nearest_neighbor) && n_nearest_neighbor > min_available) {
           stop(paste0("Limited Availability of neighbors (Req = ", n_nearest_neighbor, 
                       ", Pre = ", min_available, ")",
                       "\nSuggestions:\n",
@@ -348,7 +321,8 @@ msm <- function(state_time_data,
       }
       
       # Add names.column if available
-      if (length(scoreHVT_results$centroidData$names.column) == nrow(cluster_data)) {
+      if (!is.null(scoreHVT_results$centroidData) &&
+          length(scoreHVT_results$centroidData$names.column) == nrow(cluster_data)) {
         cluster_data$names.column <- scoreHVT_results$centroidData$names.column
       }
       
@@ -414,16 +388,6 @@ msm <- function(state_time_data,
     })
   }
   
-  # Adjust initial state
-  # initial_state <- adjust_initial_state(initial_state,
-  #                                       transition_cells,
-  #                                       problematic_states,
-  #                                       scored_cells,
-  #                                       centroid_2d_points,
-  #                                       cluster_data,
-  #                                       n_nearest_neighbor)
-
-  
     
   # Final validation for problematic states handling
   if (handle_problematic_states && length(problematic_states) > 0) {
@@ -431,7 +395,6 @@ msm <- function(state_time_data,
     # Neighbor availability already validated post-clustering
   }
 
-#
   
   # Run simulations
   simulation_results <- sapply(seq_len(num_simulations), function(sim_index) {
@@ -542,12 +505,11 @@ msm <- function(state_time_data,
       trainHVT_results = trainHVT_results
     )
   } else {
-    # plots <- list(centroid_mae_list, list(mae = as.numeric(states_mae)))  # Commented out as variables not defined
     plots <- list()
   }
   
   if (handle_problematic_states && length(problematic_states) > 0) {
-    
+    clust.results.2 <- NULL
     clust.results.2 <- clustHVT(
       data = clustering_data,
       trainHVT_results = trainHVT_results,
@@ -565,7 +527,7 @@ msm <- function(state_time_data,
     
     
   # Return results
-  if(handle_problematic_states) {
+  if(handle_problematic_states && length(problematic_states) > 0) {
     output_list <- list(
       plots = plots,
       dendrogram = clust.results.2$dendrogram,

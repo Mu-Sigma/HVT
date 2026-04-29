@@ -223,29 +223,13 @@ scoreLayeredHVT <- function(data,
 
     df1 <- as.data.frame(pred_values)
     names(df1) <- paste0("pred_", pred_cols) 
-    #df1 <- round(df1,4)
     return(df1)
   }
 
   df1 <- create_predictions(df)
   combined_data <- cbind(df_data, df1)
 
-  subtract_predicted_actual <- function(data, actual_prefix = "act_", predicted_prefix = "pred_") {
-    actual_cols <- grep(paste0("^", actual_prefix), names(data), value = TRUE)
-    df_new <- data.frame(matrix(ncol = 1, nrow = nrow(data)))
-    temp0 <<- data.frame(matrix(nrow = nrow(data)))
-    for (col in actual_cols) {
-      predicted_col <- gsub(actual_prefix, predicted_prefix, col)
 
-      if (predicted_col %in% names(data)) {
-        temp0[[predicted_col]] <<- abs(data[[col]] - data[[predicted_col]])
-      }
-    }
-    temp0 <- temp0 %>% purrr::discard(~ all(is.na(.) | . == ""))
-    df_new[, 1] <- rowMeans(temp0)
-    #df_new <- round(df_new,4)
-    return(df_new)
-  }
 
   diff <- subtract_predicted_actual(combined_data) 
   combined_data$diff <- diff$matrix.ncol...1..nrow...nrow.data..

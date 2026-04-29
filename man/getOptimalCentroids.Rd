@@ -14,8 +14,7 @@ getOptimalCentroids(
   function_to_calculate_error_metric = c("mean", "max"),
   quant.err,
   distance_metric = "L1_Norm",
-  quant_method = c("kmeans", "kmedoids"),
-  ...
+  quant_method = c("kmeans", "kmedoids")
 )
 }
 \arguments{

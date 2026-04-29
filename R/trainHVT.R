@@ -112,14 +112,7 @@ trainHVT <-
     requireNamespace("splancs")      #csr function
     requireNamespace("sp")           #point.in.polygon function
     requireNamespace("conf.design")  #factorize functionScreenshot from 2022-10-26 16-15-44
-    # requireNamespace("uwot")
-    # requireNamespace("dplyr")
-    # requireNamespace("scales")
-    # requireNamespace("Matrix")
-    # requireNamespace("stats")
-    # requireNamespace("cluster")
-    # requireNamespace("magrittr")
-    # requireNamespace("kableExtra")
+  
     
     if (any(is.na(dataset))) {
       stop("Input dataframe contains missing (NA) values. Please handle missing data before using this function (e.g., via na.omit(), na.fill(), or imputation).")
@@ -128,7 +121,6 @@ trainHVT <-
     
     if(quant_method=="kmedoids"){message(' K-Medoids: Run time for vector quantization using K-Medoids is very high for large number of clusters.')}
     dataset <- as.data.frame(dataset)
-    # dataset <- as.data.frame(sapply(dataset[,1:length(dataset[1,])], as.numeric))
     dataset=data.frame(
       lapply(dataset, as.numeric),
       check.names = FALSE,
@@ -160,22 +152,18 @@ trainHVT <-
       
       scale_summary <- list(mean_data = mean_data, std_data = std_data)
       
-      # flog.info("scaling is done")
     } else {
       scaledata <- as.matrix(dataset)
       rownames(scaledata) <- rownames(dataset)
-      # flog.info("The data is not scaled as per the user requirement")
       if(!all(is.na(scale_summary))){
         scale_summary = scale_summary
       }else{
         scale_summary = NA
-        # stop("Please pass scale_summary to the function or set normalize parameter to TRUE")
       }
       
     }
     
     polinfo <- hvqdata <- list()
-    # browser()
     hvq_k <- hvq(
       scaledata,
       min_compression_perc = min_compression_perc,
@@ -192,16 +180,12 @@ trainHVT <-
       depth <- 1
     }
     
-    # flog.info("HVQ output is ready")
     hvqoutput <- hvq_k$summary
     
     gdata <- hvqoutput  #assign the output of hvq file to gdata
-    #cleaning the data by deleting the rows containing NA's
-    #gdata <- gdata[-which(is.na(gdata[, 5])), ]
     gdata <- hvqoutput[stats::complete.cases(hvqoutput), ]
     hvqdata <- gdata
-    # flog.info("NA's are removed from the HVQ output")
-    
+
     #to store hvqdata according to each level
     tessdata <- input.tessdata <- list()
     #stores sammon co-ordinates and segregated according to each level
@@ -213,7 +197,6 @@ trainHVT <-
     #contains the vertices of the parent polygon
     pol_info <- polygon_info <- list()
     #number of levels
-    #browser()
     nlevel <- length(unique(gdata[, "Segment.Level"]))
     #verify if the transformed points are correct
     transpoints <- list()
@@ -226,18 +209,11 @@ trainHVT <-
     
     projection.scale <-  10
     for (i in 1:nlevel) {
-      #hvqdata segregated according to different levels
       tessdata[[i]] <- gdata[which(gdata[, "Segment.Level"]==i),]
-      # tessdata[[i]] <- tessdata[[i]] %>% mutate(across(where(is.double), round, 8))
-      # tessdata[[i]] <- tessdata[[i]] %>% mutate_if(is.double, round, 8)
+     
     }
     
-    # data to be used as input to sammon function
-    # input.tessdata[[i]] <- tessdata[[i]][, (newcols+1): ncol(hvqoutput)]
-    # d<-cmdscale()
-    #  }
-    #  }
-    # # tessdata[[i]] <- round(tessdata[[i]], digits = 8)
+   
     counter <- c(1:nlevel)
     
     
@@ -419,26 +395,7 @@ trainHVT <-
       return(stress)
     }
 
-    ## KNN_retention function
-    # knn_retention <- function(high_dim_embeddings, low_dim_embeddings, k = 5) {
-    #   # Convert embeddings to matrices (if not already)
-    #   high_dim_embeddings <- as.matrix(high_dim_embeddings)
-    #   low_dim_embeddings <- as.matrix(low_dim_embeddings)
-    #   # Find k-nearest neighbors in high-dimensional space
-    #   high_dim_nn <- FNN::knn.index(high_dim_embeddings, k = k)
-    #   # Find k-nearest neighbors in low-dimensional space
-    #   low_dim_nn <- FNN::knn.index(low_dim_embeddings, k = k)
-    #   # Calculate overlap
-    #   total_overlap <- 0
-    #   n <- nrow(high_dim_embeddings)
-    #   # Calculate total overlap without using a for loop
-    #   total_overlap <- sum(sapply(1:n, function(i) {
-    #     length(intersect(high_dim_nn[i, ], low_dim_nn[i, ]))
-    #   }))
-    #   # Calculate average retention
-    #   avg_retention <- total_overlap / (n * k)
-    #   return(avg_retention)
-    # }
+   
     knn_retention <- function(high_dim_embeddings, low_dim_embeddings, k = 8) {
       high_dim_embeddings <- as.matrix(high_dim_embeddings)
       low_dim_embeddings <- as.matrix(low_dim_embeddings)
@@ -512,12 +469,9 @@ trainHVT <-
       rn = row.names(points2d[[i]])
       vec = as.integer(rn) - sum(n_cells ^ (0:(i - 1))) + 1
       
-      # for(j in 1: length(unique(tessdata[[i]][, "Segment.Parent"]))) {
       index = 1
       for (j in unique(tessdata[[i]][, "Segment.Parent"])) {
-        # print(((n_cells * (j - 1)) + 1): (j * n_cells))
-        # intermediate.rawdata[[j]] <- cbind(points2d[[i]][((n_cells * (j - 1)) + 1): (j * n_cells), 1],
-        #                                    points2d[[i]][((n_cells * (j - 1)) + 1): (j * n_cells), 2])
+     
         if (any(dplyr::between(j - vec / n_cells, 0, 0.9999))) {
           intermediate.rawdata[[index]] <-
             cbind(points2d[[i]][rn[dplyr::between(j - vec / n_cells, 0, 0.9999)], 1],
@@ -530,8 +484,7 @@ trainHVT <-
       
     }
     rm(intermediate.rawdata)
-    # flog.info("Sammon points for all the levels have been calculated")
-    
+
     #new_rawdeldata contains the transformed points of rawdeldata
     new_rawdeldata[[1]] <- rawdeldata[[1]]
     
@@ -542,10 +495,8 @@ trainHVT <-
                                    new_rawdeldata[[1]][[1]][, 2])
     deldat1[[1]] <- deldat2
     rm(deldat2)
-    # flog.info("Tessellations are calculated for the first level")
     #plotting the tessellation
-    #plot(deldat1[[1]][[1]], wlines = "tess", lty = 1, lwd = 4)
-    
+
     #polygon_info stores parent tile vertices information
     #polygon_info is the modified tile.list output except for first level.
     pol_info[[1]] <- deldir::tile.list(deldat1[[1]][[1]])
@@ -668,12 +619,7 @@ trainHVT <-
       }
       
 
-      # validation_result=diag_Suggestion
-      # fin_out[["model_info"]]=list(model_train_date=model_train_date,
-      #                              type="hvt_model",
-      #                              input_parameters = input_parameters,
-      #                              validation_result = validation_result,
-      #                              distance_measures = metrics_df)
+      
       
       # generating cell ID using getCellId
       fin_out[[3]]$summary <- getCellId(hvt.results=fin_out)
@@ -697,7 +643,6 @@ trainHVT <-
         par_map[[i - 1]] <- list()
         
         for (tileIndex in 1:n_par_tile[[(i - 1)]]) {
-          # print(tileIndex)
           #a chunk of hvqdata which contains the rows corresponding to a particular parent tile
           gi_par_tiles <-
             par_tile_indices[[i]][intersect(which((par_tile_indices[[i]] / n_cells) <= par_tile_indices[[(i - 1)]][tileIndex]),
@@ -720,20 +665,15 @@ trainHVT <-
             } else{
               deldat1[i] <- 0
               polinfo <<- polygon_info
-              #flog.warn("Projection is not scaled enough and the polygon is very small to perform transformation")
               return(deldat1)
-              #return("Projection is not scaled enough and the polygon is very small to perform transformation")
             }
             
           }
         }
-        # flog.info("Sammon points of level %s are transformed", i)
-        
+
         deldat2 <- list()
         par_tile_polygon <- list()
-        #?
         for (tileNo in 1:n_par_tile[[i]]) {
-          # print(tileNo)
           #modulus operation for the last index in polygon_info
           if (((par_tile_indices[[i]][tileNo]) %% n_cells)) {
             last_index <- (par_tile_indices[[i]][tileNo] %% n_cells)
@@ -777,13 +717,14 @@ trainHVT <-
           #polygon is sufficient to calculate next level tessellations inside this
           if (all(verify_dirsgs[, 1:8] != "-1")) {
             deldat2[[tileNo]]$dirsgs <- verify_dirsgs
-            # flog.info("Tessellations for level %s is calculated", i)
           } else{
-            deldat1[[i]] <- 0
-            #flog.warn("Projection is not scaled enough and the polygon is very small to perform transformation")
-            polinfo <<- polygon_info
-            return(deldat1)
-            #return("Projection is not scaled enough to perform tessellations for the next level")
+            # deldat1[[i]] <- 0
+            # polinfo <<- polygon_info
+            # return(deldat1)
+            stop(paste0(
+              "Tessellation failed at depth ", i, ": polygon is too small for further subdivision. ",
+              "Try reducing 'depth', increasing 'n_cells', or using a larger dataset."
+            ))
           }
           
           #delete lines with both the points identical
@@ -799,7 +740,6 @@ trainHVT <-
             new_dirsgs <- new_dirsgs[-del_rows, ]
           }
           deldat2[[tileNo]]$dirsgs <- new_dirsgs
-          # flog.info("Line with same endpoints are deleted")
         }
         
         deldat1[[i]] <- deldat2
@@ -834,8 +774,7 @@ trainHVT <-
             }
           }
         }
-        # flog.info("Endpoints of tessellation lines which are outside parent polygon are deleted")
-        
+
         for (parentIndex in 1:n_par_tile[[i]]) {
           #modulo operation to obtain the last index
           if (((par_tile_indices[[i]][parentIndex]) %% n_cells)) {
@@ -852,15 +791,12 @@ trainHVT <-
                                 polygon_info[[(i - 1)]][[which(par_tile_indices[[(i - 1)]] == sec_index)]][[last_index]],
                                 new_rawdeldata[[i]][[parentIndex]])
         }
-        # flog.info("Vertices of parent tile are added to appropriate child tile")
+      
       }
       
       polinfo <- polygon_info
       
-      # par_map <- reshape2::melt(par_map)
-      # colnames(par_map) <- c('Child','Parent','Level')
-      # par_map <- par_map %>% mutate(ChildNo = (Parent-1)*n_cells+Child)
-      
+    
       fin_out <- list()
       
       fin_out[[1]] <- deldat1
@@ -868,7 +804,6 @@ trainHVT <-
       fin_out[[3]] <- hvq_k
       fin_out[[6]] <- hvq_k
       fin_out[[3]][['scale_summary']] <- scale_summary
-      # fin_out[[4]] <- par_map
       level_names <- list()
       
       for (level in 1:nlevel) {
@@ -881,8 +816,7 @@ trainHVT <-
         names(fin_out[[2]][[level]]) <- level_names[[level]]
       }
       
-      # fin_out <- correctedBoundaries(fin_out,nlevel)
-      
+
       emptyParents  <- depth - length(fin_out[[2]])
       for (i in 1:emptyParents) {
         fin_out[[2]][[length(fin_out[[2]]) + 1]] <- list()
@@ -918,8 +852,7 @@ trainHVT <-
         
       }
       
-      #  fin_out[[5]] <- NA
-      
+
       ####### Adding Code for MAD Plot
       if(hvt_validation){
         # browser()
@@ -960,7 +893,7 @@ trainHVT <-
         hvt_validation = hvt_validation,
         train_validation_split_ratio = train_validation_split_ratio,
         dim_reduction_method = dim_reduction_method[1],
-        tsne_theta = tsne_eta[1],
+        tsne_theta = tsne_theta[1],
         tsne_eta = tsne_eta[1],
         tsne_perplexity = tsne_perplexity[1],
         tsne_verbose = tsne_verbose[1],

@@ -15,9 +15,6 @@ function(tile, check_dirsgs){
     }else{
       tile_vert_info[[tile_index]] <- FALSE
     }
-
-    # tile_vert_info[[tile_index]] <- is.na(which(round(check_dirsgs[, c("y1", "y2")], 6) == round(tile$y[tile_index], 6)) &&
-    #                                        which(round(check_dirsgs[, c("x1", "x2")], 6) == round(tile$x[tile_index], 6)))
   }
   #delete the vertices which are outside the parent tile
   del_ind <- which(tile_vert_info == FALSE)

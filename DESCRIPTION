@@ -1,9 +1,9 @@
 Package: HVT
 Type: Package
-Date: 2026-01-22
+Date: 2026-04-29
 Title: Constructing Hierarchical Voronoi Tessellations and Overlay
         Heatmaps for Data Analysis
-Version: 26.1.1
+Version: 26.1.3
 Authors@R: c(
   person("Zubin", "Dowlaty", email = "zubin.dowlaty@mu-sigma.com", role = c("aut", "cre")),
   person("Mu Sigma, Inc.", role = "cph"))
@@ -25,10 +25,10 @@ Suggests: knitr,rmarkdown,testthat,geozoo, plotly, rlang,
     furrr, future, dendextend
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2026-01-22 00:00:00 UTC;
+Packaged: 2026-04-29 00:00:00 UTC;
 Maintainer: Zubin Dowlaty <zubin.dowlaty@mu-sigma.com>
 Repository: CRAN
-Date/Publication: 2026-01-22 00:00:00 UTC
+Date/Publication: 2026-04-29 00:00:00 UTC
 Collate: 
     'Add_boundary_points.R'
     'Corrected_Tessellations.R'
@@ -40,6 +40,7 @@ Collate:
     'HVTMSMoptimization.R'
     'OptimizationResults.R'
     'VQ_codebookSplit.R'
+    'constants.R'
     'clusterPlot.R'
     'clustHVT.R'
     'diagPlot.R'
@@ -56,6 +57,7 @@ Collate:
     'madPlot.R'
     'mcmc_plots.R'
     'msm.R'
+    'utilities.R'
     'plotAnimatedFlowmap.R'
     'plotExAnteRawSeries.R'
     'plotHVT.R'

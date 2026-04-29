@@ -172,19 +172,11 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   hclust_data_1 <- hclust_data
   rownames(hclust_data_1)<- hvt_res2
 
-#browser()  
-  
+
   # Perform hierarchical clustering
   hc <- stats::hclust(stats::dist(as.matrix(hclust_data_1)), method = clustering_method)
   clusters <- stats::cutree(hc, k = no_of_clusters)
   
-# Replace the existing plot_dendrogram function with this:
-  # plot_dendrogram <- function(hc_1, no_of_clusters_1) {
-  #   function() {
-  #     plot(hc_1, xlab = "Clusters", ylab = "Distance", sub ="")
-  #     stats::rect.hclust(hc_1, k = no_of_clusters_1, border = grDevices::rainbow(no_of_clusters_1))
-  #   }
-  # }
   
   if(only_dendro){
     plot_dendrogram <- function(hc_1, no_of_clusters_1, highlight_labels = NULL) {
@@ -226,9 +218,22 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
     
     
     # Prepare data for clusterPlotly
-    cluster_data <- scoreHVT_results$centroidData %>% 
+    centroid_src <- scoreHVT_results$centroidData
+    if (is.null(centroid_src)) {
+      ch <- scoreHVT_results$cellID_coordinates
+      ch <- ch[!duplicated(ch$Cell.ID), ]
+      ch <- ch[order(ch$Cell.ID), ]
+      centroid_src <- data.frame(
+        Cell.ID      = as.integer(ch$Cell.ID),
+        names.column = as.character(ch$Cell.ID),
+        x            = as.numeric(ch$x),
+        y            = as.numeric(ch$y),
+        stringsAsFactors = FALSE
+      )
+    }
+    cluster_data <- centroid_src %>%
       dplyr::select("Cell.ID", "names.column") %>%
-      mutate(clusters =  clusters)
+      mutate(clusters = clusters)
     
     cluster_data <- cluster_data[order(cluster_data$Cell.ID), ]
     #browser()  

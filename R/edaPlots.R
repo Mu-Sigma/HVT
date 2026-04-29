@@ -25,9 +25,7 @@
 
 
 edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1,grey_bars = NULL) {
-  
-  ##for cran warnings:
-  start <- end <-  NULL
+    start <- end <-  NULL
   
   if(n_cols == -1){
     n_cols = ncol(df)
@@ -119,10 +117,7 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1,grey_
     g1 <- ggplot2::ggplotGrob(p1)
     g2 <- ggplot2::ggplotGrob(p2)
     
-    # pp <- c(subset(g1$layout, name == "panel", se = t:r))
     pp <- c(subset(g1$layout, name == "panel"))
-    
-    # superimpose p2 (the panel) on p1
     g <- gtable::gtable_add_grob(g1, g2$grobs[[which(g2$layout$name == "panel")]], pp$t, 
                                  pp$l, pp$b, pp$l)
     
@@ -267,10 +262,6 @@ edaPlots <- function(df, time_column, output_type = "summary", n_cols = -1,grey_
     
     
   }
-  
-  
-  #output_list <- list()
-  
   if (output_type == "summary")  {
     eda_table <- summary_eda(df)
     return( eda_table)

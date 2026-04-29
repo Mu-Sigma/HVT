@@ -21,7 +21,6 @@
 summary <- function(data, limit = 20, scroll = TRUE) {
   
   
-  ##for cran warnings
   Row_Number <- NULL
   
   if (inherits(data, "hvt.object")) {
@@ -59,8 +58,7 @@ summary <- function(data, limit = 20, scroll = TRUE) {
       
       table_1 <- knitr::kable(table_1, "html", escape = FALSE, align = "c") %>%
         kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "responsive"), font_size = 10.5) 
-       # kableExtra::scroll_box(width = "90%", height = scrolLimit(nrow(compression_summary_table)))
-      
+
       return(table_1)
       
     } else if ("scoredPredictedData" %in% names(data)) {

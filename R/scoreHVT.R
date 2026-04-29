@@ -33,6 +33,7 @@
 #' @seealso \code{\link{trainHVT}} \cr \code{\link{plotHVT}}
 #' @keywords Scoring
 #' @importFrom magrittr %>%
+#' @include utilities.R constants.R
 #' @examples
 #' data("EuStockMarkets")
 #' dataset <- data.frame(date = as.numeric(time(EuStockMarkets)),
@@ -254,11 +255,11 @@ scoreHVT <- function(dataset,
 
 
   if (error_metric == "mean") {
-    df_temp <- df_temp %>% mutate(Scored.Quant.Error = (sumOriginal + (Quant.Error.x * n.x)) / (n.x + n.y)) # sum original is wrong
+    df_temp <- df_temp %>% mutate(Scored.Quant.Error = (sumOriginal + (Quant.Error.x * n.x)) / (n.x + n.y)) 
     df_temp2 <- df_temp2 %>% mutate(Scored.Quant.Error = (sumOriginal + (Quant.Error.x * n.x)) / (n.x + n.y))
   } else {
-    df_temp <- df_temp %>% mutate(Scored.Quant.Error = max(Quant.Error.x, Quant.Error.y))
-    df_temp2 <- df_temp2 %>% mutate(Scored.Quant.Error = (sumOriginal + (Quant.Error.x * n.x)) / (n.x + n.y)) # should be maxScored
+    df_temp <- df_temp %>% mutate(Scored.Quant.Error = pmax(Quant.Error.x, Quant.Error.y))
+    df_temp2 <- df_temp2 %>% mutate(Scored.Quant.Error = pmax(Quant.Error.x, Quant.Error.y)) 
   }
 
   QECompareDf2 <- df_temp %>%
@@ -275,39 +276,14 @@ scoreHVT <- function(dataset,
 
   
 
+  cellID_coordinates <- extract_cell_coordinates(hvt.results.model)
   
   
-  
-  hvt_res1 <- hvt.results.model[[2]][[1]]$`1`
-  hvt_res2 <- hvt.results.model[[3]]$summary$Cell.ID
-  a <- 1: length(hvt_res1)
-  b <- a[hvt_res2]
-  b <-  as.vector(b)
-  hvt_res2 <- stats::na.omit(b)
-  
-  coordinates_value1 <- lapply(1:length(hvt_res1), function(x) {
-    centroids1 <- hvt_res1[[x]]
-    coordinates1 <- centroids1$pt})
-  cellID_coordinates <- do.call(rbind.data.frame, coordinates_value1)
-  colnames(cellID_coordinates) <- c("x", "y")
-  cellID_coordinates$Cell.ID <- hvt_res2
- # cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
-  
+
   ##################
-  boundaryCoords2 <-
-    lapply(plotList, function(x) {
-      data.frame(
-        "Segment.Level" = x[["Segment.Level"]],
-        "Segment.Parent" = x[["Segment.Parent"]],
-        "Segment.Child" = x[["Segment.Child"]],
-        "x" = x$pt["x"],
-        "y" = x$pt["y"],
-        "bp.x" = I(x$x),
-        "bp.y" = I(x$y)
-      )
-    }) %>%
-    bind_rows(.) 
+ 
   
+  boundaryCoords2 <- build_boundary_coords(plotList)
   
   boundaryCoords2 <- merge(boundaryCoords2, cellID_coordinates, by = c("x" ,"y")) %>%
     right_join(.,
@@ -350,11 +326,7 @@ scoreHVT <- function(dataset,
     ggplot2::scale_y_continuous(expand = c(0, 0))
   
   
-  colour_scheme <- c(
-    "#6E40AA", "#6B44B2", "#6849BA", "#644FC1", "#6054C8", "#5C5ACE", "#5761D3", "#5268D8", "#4C6EDB", "#4776DE", "#417DE0", "#3C84E1", "#368CE1",
-    "#3194E0", "#2C9CDF", "#27A3DC", "#23ABD8", "#20B2D4", "#1DBACE", "#1BC1C9", "#1AC7C2", "#19CEBB", "#1AD4B3", "#1BD9AB", "#1DDFA3", "#21E39B",
-    "#25E892", "#2AEB8A", "#30EF82", "#38F17B", "#40F373", "#49F56D", "#52F667", "#5DF662", "#67F75E", "#73F65A", "#7FF658", "#8BF457", "#97F357", "#A3F258"
-  )
+  colour_scheme <- HVT_COLOR_SCHEME
   
   if (nrow(boundaryCoords2) != 0) {
     hoverText <- paste(
@@ -454,21 +426,6 @@ scoreHVT <- function(dataset,
   merged_df <- merge(actuals_data, predicted_result, by = "Cell.ID")
   merged_result <- merged_df %>% arrange(as.numeric(merged_df$Row.No))
 
-  subtract_predicted_actual <- function(data, actual_prefix = "act_", predicted_prefix = "pred_") {
-    actual_cols <- grep(paste0("^", actual_prefix), names(data), value = TRUE)
-    df_new <- data.frame(matrix(ncol = 1, nrow = nrow(data)))
-    temp0 <<- data.frame(matrix(nrow = nrow(data)))
-    for (col in actual_cols) {
-      predicted_col <- gsub(actual_prefix, predicted_prefix, col)
-
-      if (predicted_col %in% names(data)) {
-        temp0[[predicted_col]] <<- abs(data[[col]] - data[[predicted_col]])
-      }
-    }
-    temp0 <- temp0 %>% purrr::discard(~ all(is.na(.) | . == ""))
-    df_new[, 1] <- rowMeans(temp0)
-    return(df_new)
-  }
 
 
 
@@ -481,10 +438,22 @@ scoreHVT <- function(dataset,
   df_reordered <- merged_result[, desired_order]
 #################################################
 
-  
-if(analysis.plots) { 
-  
-  
+  .generate_scoring_plots <- function(hvt.results.model, predict_test_data3,
+                                      QECompareDf2, cellID_coordinates,
+                                      plotList, names.column, child.level,
+                                      mad.threshold, cell_id, cell_id_position,
+                                      cell_id_size, centroid.size) {
+    
+    scored_data <- data.frame(Cell.ID = predict_test_data3$Cell.ID, names.column)
+    scored_data <- scored_data[order(scored_data$Cell.ID), c("Cell.ID", "names.column")]
+    reformed_data <- stats::aggregate(names.column ~ Cell.ID, scored_data, FUN = function(x) paste(x, collapse = ", "))
+    
+    boundaryCoords2_1 <- build_boundary_coords(plotList)
+    
+    boundaryCoords2_1 <- merge(boundaryCoords2_1, cellID_coordinates, by = c("x","y")) %>%
+      right_join(., QECompareDf2, by = paste0("Segment.", c("Level", "Parent", "Child")))
+    boundaryCoords2_1 <- merge(boundaryCoords2_1, reformed_data, by = "Cell.ID")
+    
     scored_data <- data.frame(Cell.ID = predict_test_data3$Cell.ID, names.column)
     scored_data <- scored_data[order(scored_data$Cell.ID), c("Cell.ID", "names.column")]
     reformed_data <- stats::aggregate(names.column ~ Cell.ID, scored_data, FUN = function(x) paste(x, collapse = ", "))
@@ -519,7 +488,7 @@ if(analysis.plots) {
         n = ifelse(!is.na(sum_n), sum_n, n)
       ) %>%
       select(-sum_n)
-
+    
     
     # Call plotHVT with cell_id = FALSE since we'll add annotations ourselves for better control
     scoredPlot <- plotHVT(
@@ -553,13 +522,8 @@ if(analysis.plots) {
       ggplot2:: scale_y_continuous(expand = c(0, 0))
     
     
-    colour_scheme <- c(
-      "#6E40AA", "#6B44B2", "#6849BA", "#644FC1", "#6054C8", "#5C5ACE", "#5761D3", "#5268D8", "#4C6EDB", "#4776DE", "#417DE0", "#3C84E1", "#368CE1",
-      "#3194E0", "#2C9CDF", "#27A3DC", "#23ABD8", "#20B2D4", "#1DBACE", "#1BC1C9", "#1AC7C2", "#19CEBB", "#1AD4B3", "#1BD9AB", "#1DDFA3", "#21E39B",
-      "#25E892", "#2AEB8A", "#30EF82", "#38F17B", "#40F373", "#49F56D", "#52F667", "#5DF662", "#67F75E", "#73F65A", "#7FF658", "#8BF457", "#97F357", "#A3F258"
-    )
+    colour_scheme <-HVT_COLOR_SCHEME
     
-
     wrap_and_limit_text <- function(text, line_length = 100, max_chars = 500) {
       # First, limit the total text to max_chars
       if (nchar(text) > max_chars) {
@@ -593,35 +557,6 @@ if(analysis.plots) {
       boundaryCoords2_1$hoverText <- NULL
     }
     
-    # Helper function to calculate geometric centroid of a polygon
-    calculate_polygon_centroid <- function(x_coords, y_coords) {
-      n <- length(x_coords)
-      if (n < 3) {
-        return(list(x = mean(x_coords), y = mean(y_coords)))
-      }
-      if (x_coords[1] != x_coords[n] || y_coords[1] != y_coords[n]) {
-        x_coords <- c(x_coords, x_coords[1])
-        y_coords <- c(y_coords, y_coords[1])
-        n <- n + 1
-      }
-      signed_area <- 0
-      cx <- 0
-      cy <- 0
-      for (i in 1:(n - 1)) {
-        cross_product <- x_coords[i] * y_coords[i + 1] - x_coords[i + 1] * y_coords[i]
-        signed_area <- signed_area + cross_product
-        cx <- cx + (x_coords[i] + x_coords[i + 1]) * cross_product
-        cy <- cy + (y_coords[i] + y_coords[i + 1]) * cross_product
-      }
-      signed_area <- signed_area / 2
-      if (abs(signed_area) < 1e-10) {
-        return(list(x = mean(x_coords[1:(n-1)]), y = mean(y_coords[1:(n-1)])))
-      }
-      centroid_x <- cx / (6 * signed_area)
-      centroid_y <- cy / (6 * signed_area)
-      return(list(x = centroid_x, y = centroid_y))
-    }
-    
     # Create the plot (polygons + centroids; labels will be added as Plotly annotations)
     scoredPlot <- scoredPlot +
       ggplot2::geom_polygon(
@@ -639,8 +574,7 @@ if(analysis.plots) {
       ggplot2::scale_fill_gradientn(colours = colour_scheme) +
       ggplot2::guides(colour = "none")
     
-    # Calculate polygon centroids from the BASE tessellation (not scored polygons)
-    # This matches how plotHVT calculates polygon centroids for cell ID positioning
+   
     hvt_list <- hvt.results.model
     
     # Build positionsDataframe from base tessellation (same as plotHVT does)
@@ -756,7 +690,7 @@ if(analysis.plots) {
     } else {
       annotation_data <- data.frame(Cell.ID = numeric(0), x = numeric(0), y = numeric(0))
     }
-   
+    
     plotlyscored <- plotly::ggplotly(scoredPlot, tooltip = "text")
     
     # Ensure centroids are filled circles in plotly
@@ -785,28 +719,13 @@ if(analysis.plots) {
     # Add Cell.ID labels as Plotly annotations based on cell_id parameter
     if (cell_id == TRUE && nrow(annotation_data) > 0) {
       # Calculate position offsets based on cell_id_position
-      if (cell_id_position == "center") {
-        xshift <- 0
-        yshift <- 0
-        xanchor <- "center"
-        yanchor <- "middle"
-      } else {
-        alignments <- list(
-          right = list(xshift = 5, yshift = 0, xanchor = "left", yanchor = "middle"),
-          left = list(xshift = -5, yshift = 0, xanchor = "right", yanchor = "middle"),
-          bottom = list(xshift = 0, yshift = -7, xanchor = "center", yanchor = "top"),
-          top = list(xshift = 0, yshift = 7, xanchor = "center", yanchor = "bottom")
-        )
-        alignment <- rlang::`%||%`(alignments[[cell_id_position]], alignments$bottom)
-        xshift <- alignment$xshift
-        yshift <- alignment$yshift
-        xanchor <- alignment$xanchor
-        yanchor <- alignment$yanchor
-      }
+      alignment <- get_cell_label_alignment(cell_id_position, "plotly")
+      xshift  <- alignment$xshift
+      yshift  <- alignment$yshift
+      xanchor <- alignment$xanchor
+      yanchor <- alignment$yanchor
       
-      # Convert cell_id_size from ggplot2 size to plotly font size (approximate conversion)
-      # ggplot2 size is in mm, plotly font size is in pixels
-      # Rough conversion: ggplot2 size * 2.845 = pixels (1mm ≈ 2.845px at 96dpi)
+
       plotly_font_size <- max(8, cell_id_size * 2.845)
       
       plotlyscored <- plotlyscored %>%
@@ -848,20 +767,21 @@ if(analysis.plots) {
         )
       ) %>%
       plotly::config(displayModeBar = TRUE)
-
-#############################  
-    names_data <- boundaryCoords2_1 %>% dplyr::select("Cell.ID","names.column")    
-    names_data <- names_data %>% 
-      distinct(Cell.ID, .keep_all = TRUE) 
-    a <- cellID_coordinates %>% arrange(Cell.ID)
-    centroid_data = merge(a, names_data, by = 'Cell.ID') %>% as.data.frame()
     
-
+    names_data  <- boundaryCoords2_1 %>% dplyr::select("Cell.ID","names.column") %>% distinct(Cell.ID, .keep_all = TRUE)
+    a           <- cellID_coordinates %>% arrange(Cell.ID)
+    centroid_data <- merge(a, names_data, by = "Cell.ID") %>% as.data.frame()
+    states_data <- boundaryCoords2_1 %>% dplyr::select("Cell.ID","names.column") %>% distinct(Cell.ID, .keep_all = TRUE)
+    
+    list(
+      scoredPlotly     = plotlyscored,
+      scoredPlot_test  = scoredPlot,
+      centroidData     = centroid_data,
+      states_data      = states_data
+    )
+  }
   
-  states_data <- boundaryCoords2_1 %>% dplyr::select("Cell.ID","names.column")
-  states_data <- states_data %>% 
-    distinct(Cell.ID, .keep_all = TRUE)
-}
+    
  #################################################
   #MODEL INFO Rewriting
   input_dataset <- hvt.results.model[["model_info"]][["input_parameters"]][["input_dataset"]]
@@ -892,37 +812,29 @@ if(analysis.plots) {
   
   
   ####################################
-  if (analysis.plots){
-  prediction_list <- list(
-    scoredPredictedData = predict_test_data3,
+  base_list <- list(
+    scoredPredictedData  = predict_test_data3,
     actual_predictedTable = df_reordered,
-    QECompareDf = QECompareDf2,
-    anomalyPlot = plotlyPredict,
-    scoredPlotly = plotlyscored,
-  scoredPlot_test= scoredPlot,
-  cellID_coordinates =cellID_coordinates,
-    centroidData = centroid_data,
-    states_data = states_data,
-    predictInput = c("depth" = child.level, "quant.err" = mad.threshold),
-    model_mad_plots = list(),
-    model_info = list(type = "hvt_prediction",
-                      trained_model_summary = trained_model,
-                      scored_model_summary =scored_model)
+    QECompareDf          = QECompareDf2,
+    anomalyPlot          = plotlyPredict,
+    cellID_coordinates   = cellID_coordinates,
+    predictInput         = c("depth" = child.level, "quant.err" = mad.threshold),
+    model_mad_plots      = list(),
+    model_info           = list(type = "hvt_prediction",
+                                trained_model_summary = trained_model,
+                                scored_model_summary  = scored_model)
+  )
   
-  )}else{
-  
-  prediction_list <- list(
-    scoredPredictedData = predict_test_data3,
-    actual_predictedTable = df_reordered,
-    QECompareDf = QECompareDf2,
-    anomalyPlot = plotlyPredict,
-    cellID_coordinates =cellID_coordinates,
-    predictInput = c("depth" = child.level, "quant.err" = mad.threshold),
-    model_mad_plots = list(),
-    model_info = list(type = "hvt_prediction", 
-                      trained_model_summary = trained_model,
-                      scored_model_summary =scored_model)
-  )}
+  if (analysis.plots) {
+    plot_extras  <- .generate_scoring_plots(hvt.results.model, predict_test_data3,
+                                            QECompareDf2, cellID_coordinates,
+                                            plotList, names.column, child.level,
+                                            mad.threshold, cell_id, cell_id_position,
+                                            cell_id_size, centroid.size)
+    prediction_list <- c(base_list, plot_extras)
+  } else {
+    prediction_list <- base_list
+  }
   
   model_mad_plots <- NA
  
