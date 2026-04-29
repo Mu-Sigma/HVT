@@ -340,7 +340,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
   centroid_data <- centroid_data %>% dplyr::mutate(dplyr::across(where(is.numeric), ~ round(., 4)))
   
   # Calculate mean and sd of raw dataset
-  raw_dataset_wo_time <- raw_dataset %>% dplyr::select(-(time_column))
+  raw_dataset_wo_time <- raw_dataset %>% dplyr::select(-all_of(time_column))
   mean_raw <- raw_dataset_wo_time %>% dplyr::summarise(dplyr::across(dplyr::everything(), ~ round(mean(.), 4)))
   sd_raw <- raw_dataset_wo_time %>% dplyr::summarise(dplyr::across(dplyr::everything(), ~ round(stats::sd(.), 4)))
   
@@ -349,7 +349,7 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
   
   # Generate predicted dataframes
   generate_predicted_df <- function(coord) {
-    centroid_map <- centroid_dataframe %>% dplyr::select(Cell.ID, coord)
+    centroid_map <- centroid_dataframe %>% dplyr::select(Cell.ID, all_of(coord))
     
     replace_with_value <- function(column) {
       centroid_map[[coord]][match(column, centroid_map$Cell.ID)]
@@ -390,13 +390,14 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
       test_data <- state_time_data[state_time_data[[time_column]] %in% simulation_results$time, ]
       
       # Prepare actual data
-      actual_raw_dfs <- lapply(name_columns, function(col_name) {
-        df <- test_dataset[, c(time_column, col_name)]
-        names(df) <- c("time", paste0("actual_", col_name))
-        return(df)
-      })
-      names(actual_raw_dfs) <- name_columns
-      
+      if (!is.null(test_dataset)) {
+        actual_raw_dfs <- lapply(name_columns, function(col_name) {
+          df <- test_dataset[, c(time_column, col_name)]
+          names(df) <- c("time", paste0("actual_", col_name))
+          return(df)
+        })
+        names(actual_raw_dfs) <- name_columns
+    
       # Generate all plots for actual vs predicted and residuals
       all_plots <- lapply(name_columns, function(variable_name) {
         
@@ -442,6 +443,11 @@ mcmc_plots <- function(simulation_results, centroid_data, centroid_2d_points, ac
         
         list(centroids_plot = x_plots, mae = mae)
       })
+      } else {
+        actual_raw_dfs <- NULL
+        all_plots <- NULL
+      }
+    
       
       # States plot
       plot_data <- simulation_results %>%

@@ -404,15 +404,16 @@ plotHVT <- function(hvt.results,
       ) + ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)) +
       ggplot2::scale_x_continuous(expand = c(0, 0)) +
       ggplot2::scale_y_continuous(expand = c(0, 0)) +
-      ggplot2::geom_label(
-        label = centroidDataframe$outlier_cell,
-        nudge_x = 0.45, nudge_y = 0.1,
-        check_overlap = TRUE,
-        label.padding = grid::unit(0.55, "lines"),
-        label.size = 0.4,
-        color = "white",
-        fill = "#038225"
-      ) +
+      if (!is.null(centroidDataframe$outlier_cell) && any(!is.na(centroidDataframe$outlier_cell))) {
+        p <- p + ggplot2::geom_label(
+          label = centroidDataframe$outlier_cell,
+          nudge_x = 0.45, nudge_y = 0.1,
+          label.padding = grid::unit(0.55, "lines"),
+          label.size = 0.4,
+          color = "white",
+          fill = "#038225"
+        )
+      } +
       ggplot2::ggtitle(paste0("Tesellation Plot of ", n_cells, " cells"))+ ggplot2::theme(
         plot.title = ggplot2::element_text(hjust = 0, size = 10 ))
    
