@@ -172,19 +172,11 @@ clustHVT <- function(data, trainHVT_results, scoreHVT_results, clustering_method
   hclust_data_1 <- hclust_data
   rownames(hclust_data_1)<- hvt_res2
 
-#browser()  
-  
+
   # Perform hierarchical clustering
   hc <- stats::hclust(stats::dist(as.matrix(hclust_data_1)), method = clustering_method)
   clusters <- stats::cutree(hc, k = no_of_clusters)
   
-# Replace the existing plot_dendrogram function with this:
-  # plot_dendrogram <- function(hc_1, no_of_clusters_1) {
-  #   function() {
-  #     plot(hc_1, xlab = "Clusters", ylab = "Distance", sub ="")
-  #     stats::rect.hclust(hc_1, k = no_of_clusters_1, border = grDevices::rainbow(no_of_clusters_1))
-  #   }
-  # }
   
   if(only_dendro){
     plot_dendrogram <- function(hc_1, no_of_clusters_1, highlight_labels = NULL) {

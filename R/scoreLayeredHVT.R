@@ -223,7 +223,6 @@ scoreLayeredHVT <- function(data,
 
     df1 <- as.data.frame(pred_values)
     names(df1) <- paste0("pred_", pred_cols) 
-    #df1 <- round(df1,4)
     return(df1)
   }
 

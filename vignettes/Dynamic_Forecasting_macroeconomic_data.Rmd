@@ -142,6 +142,7 @@ script_dir <- "../R"
 r_files <- list.files(script_dir, pattern = "\\.R$", full.names = TRUE)
 invisible(lapply(r_files, function(file) { source(file, echo = FALSE); }))
 ```
+
 Below is the function for more dynamic drop down display in the data tables.
 
 ```{r}

@@ -557,51 +557,7 @@ get_initial_state <- function(temporal_data_train, time_column) {
   return(initial_state)
 }
 
-# Prepare centroid data for MAE calculation
-# prepare_centroid_data_for_mae <- function(dependent_variables, hvt_results, numeric_dataset,
-#                                           scoring, complete_dataset, raw_dataset_stats,
-#                                           mae_metric, centroid_2d_points) {
-#   if (is.null(dependent_variables)) {
-#     # Normal flow: align to training variables only
-#     centroid_data_for_mae <- hvt_results[[3]]$summary %>%
-#       dplyr::select(dplyr::any_of(colnames(numeric_dataset)))
-#   } else {
-#     # DV flow: build normalized per-state centroids for DVs
-#     assign_df <- scoring$scoredPredictedData %>% dplyr::select("Cell.ID")
-#     dv_df <- cbind(assign_df, complete_dataset[, dependent_variables, drop = FALSE])
-#     
-#     mu_vec <- as.numeric(raw_dataset_stats$mean[1, dependent_variables, drop = TRUE])
-#     sd_vec <- as.numeric(raw_dataset_stats$sd[1, dependent_variables, drop = TRUE])
-#     sd_vec[is.na(sd_vec) | sd_vec == 0] <- 1
-#     
-#     dv_norm <- as.data.frame(Map(function(col, m, s) (col - m)/s,
-#                                  dv_df[dependent_variables], mu_vec, sd_vec))
-#     dv_norm$Cell.ID <- dv_df[["Cell.ID"]]
-#     
-#     agg_fun <- switch(mae_metric[1],
-#                       mean = function(x) mean(x, na.rm = TRUE),
-#                       median = function(x) median(x, na.rm = TRUE),
-#                       mode = function(x) {
-#                         tb <- table(x);
-#                         as.numeric(names(tb)[which.max(tb)])
-#                       })
-#     
-#     dv_state_map_scaled <- dv_norm %>%
-#       dplyr::group_by(.data$Cell.ID) %>%
-#       dplyr::summarise(dplyr::across(dplyr::all_of(dependent_variables), ~ agg_fun(.x)), .groups = "drop")
-#     
-#     all_cells <- data.frame(Cell.ID = centroid_2d_points[["Cell.ID"]])
-#     dv_state_map_scaled <- dplyr::left_join(all_cells, dv_state_map_scaled, by = "Cell.ID")
-#     
-#     for (nm in dependent_variables) {
-#       dv_state_map_scaled[[nm]][is.na(dv_state_map_scaled[[nm]])] <- 0
-#     }
-#     
-#     centroid_data_for_mae <- dv_state_map_scaled %>% dplyr::select(-"Cell.ID")
-#   }
-#   
-#   return(centroid_data_for_mae)
-# }
+
 
 # Prepare centroid data for MAE calculation
 prepare_centroid_data_for_mae <- function(hvt_results, numeric_dataset,
@@ -642,7 +598,8 @@ run_single_simulation <- function(k_val, n_nn, cluster_data, transition_matrix,
   tryCatch({
     # Set optimization flag for hvt_msm_opt
     options(hvt.msm.optimization = TRUE)
-  
+    on.exit(options(hvt.msm.optimization = FALSE), add = TRUE)
+    
     # Let MSM handle ALL validation and clustering - no pre-validation
     msm_result <- msm(
       state_time_data = temporal_data_all,
@@ -736,6 +693,7 @@ run_baseline_simulation <- function(transition_matrix, temporal_data_train, scor
   tryCatch({
     # Set optimization flag for hvt_msm_opt
     options(hvt.msm.optimization = TRUE)
+    on.exit(options(hvt.msm.optimization = FALSE), add = TRUE)
     
       # Baseline MSM call: no problematic state handling
       msm_result <- msm(

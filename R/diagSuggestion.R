@@ -13,7 +13,6 @@ diagSuggestion <- function(hvt.results,
   requireNamespace("dplyr")     
 
   ##### Min Inter-Centroid distance plot
-  # browser()
   newdfMapping <- hvt.results[[3]][["summary"]]
   
   x <- newdfMapping %>% 
@@ -23,7 +22,6 @@ diagSuggestion <- function(hvt.results,
   singleton_count=sum(x$Quant.Error< 0.0001)
   num_cells=length(x$Quant.Error)
   
-  # x <- hvt.results[[3]][["summary"]]
   d  <- stats::dist(x,method = "manhattan")
   df <- reshape2::melt(as.matrix(d), varnames = c("row", "col"))
   df <- df[df$value!=0,]
@@ -34,9 +32,6 @@ diagSuggestion <- function(hvt.results,
   mean_cent_train=mean(df_cent$min_dist)
   
   ##### Min Inter-Point distance plot
-  
-  # browser()
-  # x=data
   d = stats::dist(data,method = "manhattan")
   df <- reshape2::melt(as.matrix(d), varnames = c("row", "col"))
   df=df[df$value!=0,]

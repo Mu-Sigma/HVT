@@ -615,7 +615,6 @@ plotHVT <- function(hvt.results,
             data = data
           }
          
-        #rm(index_tess)
       }
     }
     
@@ -735,8 +734,8 @@ plotHVT <- function(hvt.results,
       }
       
       # Use polygon centroids if cell_id_position is "center", otherwise use point centroids
-      if (cell_id_position == "center" && nrow(cellID_polygon_centroids) > 0) {
-        subset_data <- cellID_polygon_centroids
+      if (cell_id_position == "center" && nrow(cellID_polygon_centroids_hmap) > 0) {
+        subset_data <- cellID_polygon_centroids_hmap
       } else {
         subset_data <- subset(centroidDataframe_2, lev == 1)
       }
@@ -986,7 +985,6 @@ plotHVT <- function(hvt.results,
       min_y <- min(datapoly$y)
       max_y <- max(datapoly$y)
       temp_df <- temp_df %>% mutate(name = paste0("Segment", cluster, "-", child))
-      # segments_number=unique()
       returnList <- split(temp_df, f = temp_df$name)
       return(list(
         returnList,

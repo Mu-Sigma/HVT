@@ -10,12 +10,9 @@ getCentroids <-
             function_to_calculate_error_metric,
             distance_metric = "L1_Norm",
             error_metric,
-            quant_method=c("kmeans","kmedoids"),
-            ...) {
+            quant_method=c("kmeans","kmedoids")) {
     set.seed(279)
     
-#browser()
-
     if (quant_method == "kmeans") {
       centl <- nout <- outl <- list()
       x <- data.frame(x) %>% stats::na.omit()

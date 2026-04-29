@@ -77,7 +77,6 @@ plotAnimatedFlowmap <- function(hvt_model_output, transition_probability_df, df,
   
   ###########centroid - x and y coordinates################
   cellID_coordinates <- extract_cell_coordinates(hvt_model_output)
-  # Subset the arrow starting coordinates based on the order
   current_state_data <- dplyr::arrange(cellID_coordinates, Cell.ID)
   colnames(current_state_data) <- c("x1", "y1", "Cell.ID")
   

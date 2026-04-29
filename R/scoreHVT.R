@@ -255,11 +255,11 @@ scoreHVT <- function(dataset,
 
 
   if (error_metric == "mean") {
-    df_temp <- df_temp %>% mutate(Scored.Quant.Error = (sumOriginal + (Quant.Error.x * n.x)) / (n.x + n.y)) # sum original is wrong
+    df_temp <- df_temp %>% mutate(Scored.Quant.Error = (sumOriginal + (Quant.Error.x * n.x)) / (n.x + n.y)) 
     df_temp2 <- df_temp2 %>% mutate(Scored.Quant.Error = (sumOriginal + (Quant.Error.x * n.x)) / (n.x + n.y))
   } else {
-    df_temp <- df_temp %>% mutate(Scored.Quant.Error = max(Quant.Error.x, Quant.Error.y))
-    df_temp2 <- df_temp2 %>% mutate(Scored.Quant.Error = (sumOriginal + (Quant.Error.x * n.x)) / (n.x + n.y)) # should be maxScored
+    df_temp <- df_temp %>% mutate(Scored.Quant.Error = pmax(Quant.Error.x, Quant.Error.y))
+    df_temp2 <- df_temp2 %>% mutate(Scored.Quant.Error = pmax(Quant.Error.x, Quant.Error.y)) 
   }
 
   QECompareDf2 <- df_temp %>%
@@ -279,8 +279,7 @@ scoreHVT <- function(dataset,
   cellID_coordinates <- extract_cell_coordinates(hvt.results.model)
   
   
- # cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
-  
+
   ##################
  
   
@@ -575,8 +574,7 @@ scoreHVT <- function(dataset,
       ggplot2::scale_fill_gradientn(colours = colour_scheme) +
       ggplot2::guides(colour = "none")
     
-    # Calculate polygon centroids from the BASE tessellation (not scored polygons)
-    # This matches how plotHVT calculates polygon centroids for cell ID positioning
+   
     hvt_list <- hvt.results.model
     
     # Build positionsDataframe from base tessellation (same as plotHVT does)

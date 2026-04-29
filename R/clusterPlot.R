@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @include constants.R
 
 clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = NULL,
                         cell_id = TRUE,
@@ -20,13 +21,6 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
     CELL_ID_LABEL_YSHIFT <- -10
     CELL_ID_LABEL_SIZE <- 10
     
-    # Define color palette
-    DOMAIN_COLORS <- c(
-      "#0000FF", "#00FFFF", "#FFD700", "#00FF00", "#FF00FF",
-      "#FF0000", "#F012BE", "#85144b", "#3D9970", "#39CCCC",
-      "#01FF70", "#DDDDDD", "#AAAAAA", "#FF6F61", "#6B5B95",
-      "#88B04B", "#F7CAC9", "#92A8D1", "#955251", "#B565A7"
-    )
     
     # ============================================================================
     # HELPER FUNCTIONS
@@ -156,8 +150,6 @@ clusterPlot <- function(dataset, hvt.results, domains.column, highlight_cells = 
     colnames(cellID_coordinates) <- c("x", "y")
     cellID_coordinates$Cell.ID <- hvt_res2
     cellID_coordinates <- cellID_coordinates %>% arrange(Cell.ID)
-
-#browser()
 
 
     maxDepth <- 1

@@ -47,7 +47,7 @@ getOptimalCentroids <-
             function_to_calculate_error_metric=c("mean","max"), 
             quant.err,
             distance_metric = "L1_Norm",
-            quant_method=c("kmeans","kmedoids"),...
+            quant_method=c("kmeans","kmedoids")
   ){
     
     print(paste0("Data dimensions before clustering:", nrow(x), "and", ncol(x)))
@@ -97,7 +97,6 @@ getOptimalCentroids <-
       return(outkinit)
     }else if(quant_method == "kmedoids"){
       # Start with splitting data into three clusters
-      # browser()
       nclust_iter <- 3
       outkinit <- list(centers = numeric(),maxQE = numeric(),meanQE = numeric(), values = logical() , nsize = numeric())
       quantok <- rep(T, n_cells)
