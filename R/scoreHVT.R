@@ -27,6 +27,11 @@
 #' @param cell_id_size Numeric. A numeric value indicating the size of the cell IDs. Default is 4
 #' @param centroids Logical. A logical indicating whether the centroid points should be displayed. Default value is TRUE
 #' @param centroid.size  Numeric. A numeric value or vector indicating the size of centroids for each level. Default is 0.8
+#' @param allow_missing Logical. When TRUE, rows containing missing (NA) values are scored using only their
+#' available features: each NA dimension is excluded from the centroid distance uniformly across all centroids
+#' (partial-distance assignment), and Quant.Error is normalized by the number of available dimensions. An
+#' n_available column is added to the output so callers can filter rows scored on too few features. Default
+#' is FALSE, which preserves the existing behavior of stopping on any NA.
 #' @returns Dataframe containing scored data, plots and summary
 #' @author Shubhra Prakash <shubhra.prakash@@mu-sigma.com>, Sangeet Moy Das <sangeet.das@@mu-sigma.com> ,
 #' Vishwavani <vishwavani@@mu-sigma.com>
@@ -70,7 +75,8 @@ scoreHVT <- function(dataset,
                        cell_id_position = "bottom",
                        centroids = TRUE,
                        cell_id_size = 4,
-                       centroid.size = 0.8) {
+                       centroid.size = 0.8,
+                       allow_missing = FALSE) {
   
   suppressWarnings({
   set.seed(300)
@@ -85,7 +91,11 @@ scoreHVT <- function(dataset,
   }
   
   if (any(is.na(dataset))) {
-    stop("Input dataframe contains missing (NA) values. Please handle missing data before using this function (e.g., via na.omit(), na.fill(), or imputation).")
+    if (!allow_missing) {
+      stop("Input dataframe contains missing (NA) values. Please handle missing data before using this function (e.g., via na.omit(), na.fill(), or imputation), or pass allow_missing = TRUE to score rows on their available features only.")
+    }
+    n_na_rows <- sum(!stats::complete.cases(dataset))
+    message(sprintf("scoreHVT: allow_missing = TRUE -- %d of %d rows contain NA values and will be scored on their available features only (partial-distance assignment; see the n_available output column).", n_na_rows, nrow(dataset)))
   } 
   
 
@@ -139,6 +149,19 @@ scoreHVT <- function(dataset,
 
   find_path <- function(data_vec, centroid_data) {
   
+    # Missing dimensions drop out of the distance sum uniformly across all
+    # centroids (na.rm = TRUE), so the argmin is a valid partial-distance
+    # assignment. Quant.Error is normalized by the number of AVAILABLE
+    # dimensions: dividing by the full feature count would implicitly
+    # assume every missing feature sits exactly on the centroid, deflating
+    # QE for partial rows and biasing the mad.threshold anomaly comparison
+    # toward "not anomalous". With complete rows n_available equals
+    # length(train_colnames), so behavior is unchanged.
+    n_available <- sum(is.finite(data_vec))
+    if (n_available == 0L) {
+      return(data.frame("Index" = NA_integer_, "Quant.Error" = NA_real_,
+                        "n_available" = 0L))
+    }
     if (distance_metric == "L1_Norm") {
       centroidDist <- which.min(colSums(abs(centroid_data - data_vec), na.rm = TRUE))
       Quant.Error <- (colSums(abs(centroid_data - data_vec), na.rm = TRUE))[centroidDist]
@@ -146,7 +169,8 @@ scoreHVT <- function(dataset,
       centroidDist <- which.min(sqrt(colSums((centroid_data - data_vec)^2, na.rm = TRUE)))
       Quant.Error <- sqrt(colSums((centroid_data - data_vec)^2, na.rm = TRUE))[centroidDist]
     }
-    return(data.frame("Index" = centroidDist, "Quant.Error" = Quant.Error / length(train_colnames)))
+    return(data.frame("Index" = centroidDist, "Quant.Error" = Quant.Error / n_available,
+                      "n_available" = n_available))
   }
 
  
@@ -179,7 +203,11 @@ scoreHVT <- function(dataset,
       by = "Index"
     ) %>%
     select(-Index) %>%
-    select(names(newdfMapping))
+    # Carry n_available (added by find_path) through the summary-column
+    # projection so callers can filter partial-feature rows scored on too
+    # few dimensions. all_of() preserves the existing strict behavior for
+    # the summary columns themselves.
+    select(all_of(names(newdfMapping)), any_of("n_available"))
 
   # Considering margin of error
   predict_test_data3 <- predict_test_data2 %>% mutate(diff = centroidRadius - Quant.Error)

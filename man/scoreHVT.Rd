@@ -21,7 +21,8 @@ scoreHVT(
   cell_id_position = "bottom",
   centroids = TRUE,
   cell_id_size = 4,
-  centroid.size = 0.8
+  centroid.size = 0.8,
+  allow_missing = FALSE
 )
 }
 \arguments{
@@ -67,6 +68,12 @@ be a 2D heatmap plotly which gives info on the cell id and the observations of a
 \item{cell_id_size}{Numeric. A numeric value indicating the size of the cell IDs. Default is 4}
 
 \item{centroid.size}{Numeric. A numeric value or vector indicating the size of centroids for each level. Default is 0.8}
+
+\item{allow_missing}{Logical. When TRUE, rows containing missing (NA) values are scored using only their
+available features: each NA dimension is excluded from the centroid distance uniformly across all centroids
+(partial-distance assignment), and Quant.Error is normalized by the number of available dimensions. An
+n_available column is added to the output so callers can filter rows scored on too few features. Default
+is FALSE, which preserves the existing behavior of stopping on any NA.}
 }
 \value{
 Dataframe containing scored data, plots and summary
