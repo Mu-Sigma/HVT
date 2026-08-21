@@ -95,7 +95,7 @@ scoreHVT <- function(dataset,
       stop("Input dataframe contains missing (NA) values. Please handle missing data before using this function (e.g., via na.omit(), na.fill(), or imputation), or pass allow_missing = TRUE to score rows on their available features only.")
     }
     n_na_rows <- sum(!stats::complete.cases(dataset))
-    message(sprintf("scoreHVT: allow_missing = TRUE — %d of %d rows contain NA values and will be scored on their available features only (partial-distance assignment; see the n_available output column).", n_na_rows, nrow(dataset)))
+    message(sprintf("scoreHVT: allow_missing = TRUE -- %d of %d rows contain NA values and will be scored on their available features only (partial-distance assignment; see the n_available output column).", n_na_rows, nrow(dataset)))
   } 
   
 
